@@ -115,7 +115,7 @@ namespace AGVproject.Class
 
         public static void Initial()
         {
-            Form_Start.config.PixLength = 100;
+            Form_Start.config.PixLength = 50;
 
             Stacks = new List<STACK>();
             for (int i = 0; i <= HouseMap.TotalStacks; i++)
@@ -125,7 +125,7 @@ namespace AGVproject.Class
         public static void getBaseMapPicture()
         {
             // 创建图片
-            if (BaseMapPicture != null) { BaseMapPicture.Dispose(); }
+            if (BaseMapPicture != null) { g.Dispose(); BaseMapPicture.Dispose(); }
             BaseMapPicture = new Bitmap(MapWidth, MapLength);
 
             // 创建画笔，纯色填充
@@ -135,10 +135,19 @@ namespace AGVproject.Class
             // 是否打开地图
             if (!Form_Start.config.CheckMap) { return; }
 
+            // 获取字体
+            int picLength = Math.Min(MapLength, MapWidth) / 2;
+            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
+            Font font = new Font("Arial", width / 6);
+
             // 添加堆垛
-            for (int i = 0; i < Stacks.Count; i++)
+            for (int i = 1; i < Stacks.Count; i++)
             {
                 g.FillRectangle(Brushes.LightBlue, Stacks[i].xBG, Stacks[i].yBG, Stacks[i].Length, Stacks[i].Width);
+
+                int x = Stacks[i].xBG + Stacks[i].Length / 2;
+                int y = Stacks[i].yBG + Stacks[i].Width / 2;
+                g.DrawString(i.ToString(), font, Brushes.Black, x, y);
             }
         }
         public static void getCursorShape()
@@ -156,39 +165,74 @@ namespace AGVproject.Class
         public static void getUltraSonicData()
         {
             if (!Form_Start.config.CheckControlPort) { return; }
-
-            Font stringfont = new Font("Arial", 10);
+            
             int[] SonicData = TH_SendCommand.getUltraSonicData();
             if (SonicData == null) { SonicData = new int[8]; }
 
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Head_L_X].ToString(), stringfont, Brushes.Black, 0, 20);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Head_L_Y].ToString(), stringfont, Brushes.Black, 20, 0);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Head_R_X].ToString(), stringfont, Brushes.Black, 100, 20);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Head_R_Y].ToString(), stringfont, Brushes.Black, 80, 0);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Tail_L_X].ToString(), stringfont, Brushes.Black, 0, 150);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Tail_L_Y].ToString(), stringfont, Brushes.Black, 20, 170);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Tail_R_X].ToString(), stringfont, Brushes.Black, 100, 150);
-            g.DrawString(SonicData[(int)TH_SendCommand.Sonic.Tail_R_Y].ToString(), stringfont, Brushes.Black, 80, 170);
+            int picLength = Math.Min(MapLength, MapWidth) / 2;
+            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
+            Font font = new Font("Arial", width / 6);
+
+            int L = (int)(picLength + Hardware_PlatForm.AxisSideL / Form_Start.config.urgRange * picLength);
+            int U = (int)(picLength - Hardware_PlatForm.AxisSideU / Form_Start.config.urgRange * picLength);
+            int R = (int)(picLength + Hardware_PlatForm.AxisSideR / Form_Start.config.urgRange * picLength);
+            int D = (int)(picLength - Hardware_PlatForm.AxisSideD / Form_Start.config.urgRange * picLength);
+
+            string str = SonicData[(int)TH_SendCommand.Sonic.Head_L_X].ToString();
+            SizeF strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, L - strSize.Width, U);
+
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Head_L_Y].ToString();
+            strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, L, U - strSize.Height);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Head_R_X].ToString();
+            //strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, R, U);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Head_R_Y].ToString();
+            strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, R - strSize.Width, U - strSize.Height);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Tail_L_X].ToString();
+            strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, L - strSize.Width, D - strSize.Height);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Tail_L_Y].ToString();
+            //strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, L, D);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Tail_R_X].ToString();
+            strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, R, D - strSize.Height);
+
+            str = SonicData[(int)TH_SendCommand.Sonic.Tail_R_Y].ToString();
+            strSize = g.MeasureString(str, font);
+            g.DrawString(str, font, Brushes.Black, R - strSize.Width, D);
         }
         public static void getUrgData()
         {
             if (!Form_Start.config.CheckUrgPort) { return; }
 
+            // 画布一半宽度
+            int picLength = Math.Min(MapLength, MapWidth) / 2;
+
             // 画出车的位置
-            int xCar = (int)(180 + Hardware_PlatForm.AxisSideL / Form_Start.config.urgRange * 180);
-            int yCar = (int)(180 - Hardware_PlatForm.AxisSideU / Form_Start.config.urgRange * 180);
-            int CarL = (int)(Hardware_PlatForm.Length / Form_Start.config.urgRange * 180);
-            int CarW = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * 180);
+            int xCar = (int)(picLength + Hardware_PlatForm.AxisSideL / Form_Start.config.urgRange * picLength);
+            int yCar = (int)(picLength - Hardware_PlatForm.AxisSideU / Form_Start.config.urgRange * picLength);
+            int CarL = (int)(Hardware_PlatForm.Length / Form_Start.config.urgRange * picLength);
+            int CarW = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
 
             g.FillRectangle(Brushes.LightGray, xCar, yCar, CarW, CarL);
-            g.FillEllipse(Brushes.Red, 176, 176, 8, 8); // 原点
+            g.FillEllipse(Brushes.Red, picLength - 4, picLength - 4, 8, 8); // 原点
 
             // 周围环境信息
             List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingD(0, Form_Start.config.urgRange);
             for (int i = 0; i < points.Count; i++)
             {
-                int x = (int)(180 * points[i].x / Form_Start.config.urgRange + 180);
-                int y = (int)(180 - 180 * points[i].y / Form_Start.config.urgRange);
+                int x = (int)(picLength * points[i].x / Form_Start.config.urgRange + picLength);
+                int y = (int)(picLength - picLength * points[i].y / Form_Start.config.urgRange);
 
                 g.FillEllipse(Brushes.Black, x, y, 2, 2);
             }
@@ -198,12 +242,17 @@ namespace AGVproject.Class
             if (!Form_Start.config.CheckLocatePort) { return; }
 
             CoordinatePoint.POINT point = TH_MeasurePosition.getPosition();
-            Font stringfont = new Font("Arial", 10);
+            int picLength = Math.Min(MapLength, MapWidth) / 2;
+            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
+            Font font = new Font("Arial", width / 6);
 
-            g.DrawString("X: " + point.x.ToString(), stringfont, Brushes.Black, 30, 260);
-            g.DrawString("Y: " + point.y.ToString(), stringfont, Brushes.Black, 30, 280);
-            g.DrawString("A: " + point.aCar.ToString(), stringfont, Brushes.Black, 30, 300);
-            g.DrawString("R: " + point.rCar.ToString(), stringfont, Brushes.Black, 30, 320);
+            SizeF size = g.MeasureString("X", font);
+            int centre = MapLength / 2;
+
+            g.DrawString("X: " + point.x.ToString(), font, Brushes.Black, 30, centre - size.Width * 3);
+            g.DrawString("Y: " + point.y.ToString(), font, Brushes.Black, 30, centre - size.Width * 1);
+            g.DrawString("A: " + point.aCar.ToString(), font, Brushes.Black, 30, centre + size.Width * 1);
+            g.DrawString("R: " + point.rCar.ToString(), font, Brushes.Black, 30, centre + size.Width * 3);
         }
 
         public static MOUSE setMousePosition(int X, int Y)
@@ -421,8 +470,17 @@ namespace AGVproject.Class
                 OperateMap.g.DrawEllipse(Pens.Blue, Route[i].MapPoint.X - 2, Route[i].MapPoint.Y - 2, 4, 4);
             }
 
+            int picLength = Math.Min(OperateMap.MapLength, OperateMap.MapWidth) / 2;
+            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
+            Font font = new Font("Arial", width / 6);
+
             OperateMap.g.DrawEllipse(Pens.Red, Route[0].MapPoint.X - 2, Route[0].MapPoint.Y - 2, 4, 4);
+            OperateMap.g.DrawString("S", font, Brushes.Red, Route[0].MapPoint);
+
+            if (Route.Count <= 1) { return; }
+
             OperateMap.g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
+            OperateMap.g.DrawString("E", font, Brushes.Red, Route[Route.Count - 1].MapPoint);
         }
 
         public static void MouseLeftClicked()
@@ -440,13 +498,38 @@ namespace AGVproject.Class
             if (mousePos.No == 0) { return; }
             if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { return; }
 
+            if (Route != null && Route.Count != 0)
+            {
+                ROUTE last = Route[Route.Count - 1];
+                OperateMap.STACK stack = OperateMap.Stacks[last.No];
+
+                int BG = stack.yBG - stack.AisleWidth_U;
+                int ED = stack.yBG;
+                bool InAisleU = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
+
+                BG = stack.yBG + stack.Width;
+                ED = BG + stack.AisleWidth_D;
+                bool InAisleD = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
+
+                BG = stack.xBG - stack.AisleWidth_L;
+                ED = stack.xBG;
+                bool InAisleL = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
+                if (last.IsLeft) { InAisleL = false; }
+
+                BG = stack.xBG + stack.Length;
+                ED = BG + stack.AisleWidth_R;
+                bool InAisleR = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
+                if (!last.IsLeft) { InAisleR = false; }
+
+                if (!InAisleL && !InAisleR && !InAisleU && !InAisleD) { OperateMap.Cursor = Cursors.No; return; }
+            }
+
             ROUTE route = new ROUTE();
             route.IsLeft = mousePos.IsLeft;
             route.No = mousePos.No;
             route.Direction = mousePos.Direction;
             route.Distance = mousePos.Distance;
             route.MapPoint = getRouteMapPoint(route);
-
             
             if (Route == null) { Route = new List<ROUTE>(); }
             Route.Add(route);

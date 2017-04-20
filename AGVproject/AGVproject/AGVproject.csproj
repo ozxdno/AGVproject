@@ -68,6 +68,12 @@
     <Compile Include="Form_Input\Form_Input.Designer.cs">
       <DependentUpon>Form_Input.cs</DependentUpon>
     </Compile>
+    <Compile Include="Form_Stack\Form_Stack.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Stack\Form_Stack.Designer.cs">
+      <DependentUpon>Form_Stack.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_Start\Form_Start.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +84,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
       <DependentUpon>Form_Input.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Stack\Form_Stack.resx">
+      <DependentUpon>Form_Stack.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Start\Form_Start.resx">
       <DependentUpon>Form_Start.cs</DependentUpon>
