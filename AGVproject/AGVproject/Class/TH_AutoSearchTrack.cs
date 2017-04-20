@@ -161,21 +161,18 @@ namespace AGVproject.Class
                 
                 // 检测串口状态
                 if (!TH_SendCommand.IsOpen) { control.Event = "Control Port Closed !"; continue; }
-                if (!TH_MeasureSurrounding.IsOpen) { control.Event = "URG Port Closed !"; continue; }
-                if (!TH_MeasurePosition.IsOpen) { control.Event = "Locate Port Closed !"; continue; }
+                //if (!TH_MeasureSurrounding.IsOpen) { control.Event = "URG Port Closed !"; continue; }
+                //if (!TH_MeasurePosition.IsOpen) { control.Event = "Locate Port Closed !"; continue; }
 
                 // 测试
-                AST_GuideBySpeed.ApproachX = false;
-                AST_GuideBySpeed.ApproachY = false;
-                AST_GuideBySpeed.ApproachA = false;
 
                 while (false)
                 {
-                    //int xSpeed = AST_GuideBySpeed.getSpeedX(-400);
-                    //int ySpeed = AST_GuideBySpeed.getSpeedY(400);
-                    int aSpeed = AST_GuideBySpeed.getSpeedA(-800);
+                    int xSpeed = AST_GuideBySpeed.getSpeedX(0);
+                    int ySpeed = AST_GuideBySpeed.getSpeedY(0);
+                    int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
-                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
+                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 100);
                 }
 
                 AST_GuideByPosition.ApproachX = false;
@@ -191,10 +188,10 @@ namespace AGVproject.Class
                 while (false)
                 {
                     //int xSpeed = AST_GuideByPosition.getSpeedX();
-                    int ySpeed = AST_GuideByPosition.getSpeedY();
+                    //int ySpeed = AST_GuideByPosition.getSpeedY();
                     //int aSpeed = AST_GuideByPosition.getSpeedA();
 
-                    TH_SendCommand.AGV_MoveControl_0x70(0, ySpeed, 0);
+                    //TH_SendCommand.AGV_MoveControl_0x70(xSpeed, 0, 0);
                 }
 
                 AST_GuideBySurrounding.ApproachX = false;
@@ -203,7 +200,7 @@ namespace AGVproject.Class
 
                 while (true)
                 {
-                    int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepL_Backward();
+                    int aSpeed = AST_GuideBySurrounding.getSpeedY_KeepD(400);
 
                     TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
                 }

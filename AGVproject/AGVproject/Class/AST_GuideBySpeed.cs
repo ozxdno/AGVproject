@@ -64,6 +64,7 @@ namespace AGVproject.Class
 
             int SpeedL = getSpeedA_RotateL(0);
             int SpeedR = -getSpeedA_RotateR(0);
+            if (SpeedL * SpeedR < 0) { return 0; }
             return SpeedL + SpeedR;
         }
 

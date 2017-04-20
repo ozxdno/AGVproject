@@ -28,9 +28,10 @@ namespace AGVproject.Class
         public static int TimeForControl;
 
         /// <summary>
-        /// 上一时刻速度
+        /// 期望控制速度
         /// </summary>
         public static int xSpeed = 0, ySpeed = 0, aSpeed = 0;
+        
         
         /// <summary>
         /// 超声波传感器编号
@@ -58,7 +59,11 @@ namespace AGVproject.Class
             public byte[] Frame;
 
             public int[] SonicData;
-            public List<int[]> History;
+
+            public SPEED TargetSpeed;
+            public SPEED CurrentSpeed;
+
+            public struct SPEED { public int xSpeed, ySpeed, aSpeed; }
         }
 
         ////////////////////////////////////////// public method ////////////////////////////////////////////////
@@ -140,12 +145,12 @@ namespace AGVproject.Class
             if (aSpeed < -7200) { aSpeed = -7200; }
 
             // 限跳变
-            //if (xSpeed - TH_SendCommand.xSpeed > 100) { xSpeed = TH_SendCommand.xSpeed + 100; }
-            //if (TH_SendCommand.xSpeed - xSpeed > 100) { xSpeed = TH_SendCommand.xSpeed - 100; }
-            //if (ySpeed - TH_SendCommand.ySpeed > 100) { ySpeed = TH_SendCommand.ySpeed + 100; }
-            //if (TH_SendCommand.ySpeed - ySpeed > 100) { ySpeed = TH_SendCommand.ySpeed - 100; }
-            //if (aSpeed - TH_SendCommand.aSpeed > 200) { aSpeed = TH_SendCommand.aSpeed + 200; }
-            //if (TH_SendCommand.aSpeed - aSpeed > 200) { aSpeed = TH_SendCommand.aSpeed - 200; }
+            //if (xSpeed - TH_SendCommand.xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed + 50; }
+            //if (TH_SendCommand.xSpeed - xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed - 50; }
+            //if (ySpeed - TH_SendCommand.ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed + 50; }
+            //if (TH_SendCommand.ySpeed - ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed - 50; }
+            //if (aSpeed - TH_SendCommand.aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed + 100; }
+            //if (TH_SendCommand.aSpeed - aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed - 100; }
 
             // 记录给出速度
             TH_SendCommand.xSpeed = xSpeed;
@@ -406,6 +411,8 @@ namespace AGVproject.Class
                 {
                     config.Port.DiscardOutBuffer();
                     
+
+
                     while (config.IsSettingCommand) ;
                     config.IsGettingCommand = true;
                     config.Port.Write(config.Command, 0, config.Command.Length);
@@ -500,6 +507,64 @@ namespace AGVproject.Class
             AGV_MoveControl_0x70(0, 0, 0);
         }
         
+        private static void Fill_Command()
+        {
+            int xSpeed = config.CurrentSpeed.xSpeed;
+            int ySpeed = config.CurrentSpeed.ySpeed;
+            int aSpeed = config.CurrentSpeed.aSpeed;
+
+            // 限跳变
+            if (xSpeed - TH_SendCommand.xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed + 50; }
+            if (TH_SendCommand.xSpeed - xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed - 50; }
+            if (ySpeed - TH_SendCommand.ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed + 50; }
+            if (TH_SendCommand.ySpeed - ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed - 50; }
+            if (aSpeed - TH_SendCommand.aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed + 100; }
+            if (TH_SendCommand.aSpeed - aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed - 100; }
+
+            // 记录给出速度
+            TH_SendCommand.xSpeed = xSpeed;
+            TH_SendCommand.ySpeed = ySpeed;
+            TH_SendCommand.aSpeed = aSpeed;
+
+            // 给速度
+            int speed = 0, direction = 0, rotate = (int)Math.Round(aSpeed * 3.14159 / 180);
+            if (rotate < 0) { rotate = 128 - rotate; }
+
+            speed = (int)(Math.Sqrt(xSpeed * xSpeed + ySpeed * ySpeed));
+            if (xSpeed == 0 && ySpeed > 0) { direction = 90; }
+            if (xSpeed == 0 && ySpeed < 0) { direction = 270; }
+            if (xSpeed > 0 && ySpeed == 0) { direction = 0; }
+            if (xSpeed < 0 && ySpeed == 0) { direction = 180; }
+            if (xSpeed != 0 && ySpeed != 0)
+            {
+                double angle = Math.Atan((Math.Abs((double)ySpeed)) / Math.Abs((double)xSpeed));
+                direction = (int)((angle) * 180 / Math.PI);
+                if (xSpeed > 0 && ySpeed > 0) { }
+                if (xSpeed > 0 && ySpeed < 0) { direction = 360 - direction; }
+                if (xSpeed < 0 && ySpeed > 0) { direction = 180 - direction; }
+                if (xSpeed < 0 && ySpeed < 0) { direction = 180 + direction; }
+            }
+
+            // 填充 0x70 命令
+            byte[] ControlCommand = new byte[11];
+            ControlCommand[0] = 0xf1;
+            ControlCommand[1] = 0x70;
+            ControlCommand[2] = (byte)(speed >> 8);
+            ControlCommand[3] = (byte)(speed);
+            ControlCommand[4] = (byte)(direction >> 8);
+            ControlCommand[5] = (byte)(direction);
+            ControlCommand[6] = (byte)(rotate);
+            ControlCommand[7] = 0x00;
+            Fill_CheckBytes(ref ControlCommand);
+
+            // 写入
+            config.IsSettingCommand = true;
+            while (config.IsGettingCommand) ;
+
+            config.Command = ControlCommand;
+
+            config.IsSettingCommand = false;
+        }
         private static void Fill_CheckBytes(ref byte[] command)
         {
             uint sumCommand = 0;
