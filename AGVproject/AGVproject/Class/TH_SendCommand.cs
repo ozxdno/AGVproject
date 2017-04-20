@@ -19,18 +19,52 @@ namespace AGVproject.Class
         /// </summary>
         public static bool IsOpen { get { return config.Port != null && config.Port.IsOpen && !config.IsClosing; } }
         /// <summary>
-        /// 线程控制命令
+        /// 线程控制命令：关闭线程
         /// </summary>
         public static bool Abort;
         /// <summary>
-        /// 发送命令的时间间隔，控制时间
+        /// 发送控制命令的时间间隔 单位：ms
         /// </summary>
         public static int TimeForControl;
 
         /// <summary>
         /// 超声波传感器编号
         /// </summary>
-        public enum Sonic { Head_L_X,Head_L_Y, Head_R_Y, Head_R_X,Tail_R_X, Tail_R_Y, Tail_L_Y, Tail_L_X } 
+        public enum Sonic
+        {
+            /// <summary>
+            /// 小车头部，左边，测量 X 方向的超声波传感器编号
+            /// </summary>
+            Head_L_X,
+            /// <summary>
+            /// 小车头部，左边，测量 Y 方向的超声波传感器编号
+            /// </summary>
+            Head_L_Y,
+            /// <summary>
+            /// 小车头部，右边，测量 X 方向的超声波传感器编号
+            /// </summary>
+            Head_R_Y,
+            /// <summary>
+            /// 小车头部，右边，测量 Y 方向的超声波传感器编号
+            /// </summary>
+            Head_R_X,
+            /// <summary>
+            /// 小车尾部，左边，测量 X 方向的超声波传感器编号
+            /// </summary>
+            Tail_R_X,
+            /// <summary>
+            /// 小车尾部，左边，测量 Y 方向的超声波传感器编号
+            /// </summary>
+            Tail_R_Y,
+            /// <summary>
+            /// 小车尾部，右边，测量 X 方向的超声波传感器编号
+            /// </summary>
+            Tail_L_Y,
+            /// <summary>
+            /// 小车尾部，右边，测量 Y 方向的超声波传感器编号
+            /// </summary>
+            Tail_L_X
+        } 
 
         ////////////////////////////////////////// private attribute ////////////////////////////////////////////////
         

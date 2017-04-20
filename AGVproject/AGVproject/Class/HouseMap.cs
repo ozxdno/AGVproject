@@ -39,33 +39,77 @@ namespace AGVproject.Class
         /// </summary>
         public static double PixLength;
         
+        /// <summary>
+        /// 堆垛参数
+        /// </summary>
         public struct STACK
         {
+            /// <summary>
+            /// 是否为左边的堆垛
+            /// </summary>
             public bool IsLeft;
+            /// <summary>
+            /// 堆垛编号
+            /// </summary>
             public int No;
+
+            /// <summary>
+            /// 堆垛长度 单位：mm
+            /// </summary>
             public double Length;
+            /// <summary>
+            /// 堆垛宽度 单位：mm
+            /// </summary>
             public double Width;
 
+            /// <summary>
+            /// 该堆垛上方的通道宽度 单位：mm
+            /// </summary>
             public double AisleWidth_L;
+            /// <summary>
+            /// 该堆垛下方的通道宽度 单位：mm
+            /// </summary>
             public double AisleWidth_R;
+            /// <summary>
+            /// 该堆垛左方的通道宽度 单位：mm
+            /// </summary>
             public double AisleWidth_U;
+            /// <summary>
+            /// 该堆垛右方的通道宽度 单位：mm
+            /// </summary>
             public double AisleWidth_D;
-
-            //public double KeepDistanceL;
-            //public double KeepDistanceR;
-            //public double KeepDistanceU;
-            //public double KeepDistanceD;
-
+            
             /// <summary>
             /// 车与垛区的相对位置（上、下、左、右、无法确定）
             /// </summary>
             public TH_AutoSearchTrack.Direction CarPosition;
             /// <summary>
-            /// 参考点坐标（小车经过参考点时编码器读取到的小车在仓库中的坐标）
+            /// 参考点仓库坐标
             /// </summary>
             public CoordinatePoint.POINT ReferencePoint;
+            /// <summary>
+            /// 当前点仓库坐标
+            /// </summary>
+            public CoordinatePoint.POINT CurrentPoint;
+
+            /// <summary>
+            /// 小车在该堆垛时，小车与堆垛左方保持的距离 单位：mm
+            /// </summary>
+            public double KeepDistanceL;
+            /// <summary>
+            /// 小车在该堆垛时，小车与堆垛右方保持的距离 单位：mm
+            /// </summary>
+            public double KeepDistanceR;
+            /// <summary>
+            /// 小车在该堆垛时，小车与堆垛上方保持的距离 单位：mm
+            /// </summary>
+            public double KeepDistanceU;
+            /// <summary>
+            /// 小车在该堆垛时，小车与堆垛下方保持的距离 单位：mm
+            /// </summary>
+            public double KeepDistanceD;
         }
-        
+
         ///////////////////////////////////////////// Stacks //////////////////////////////////////////////////
 
         public static void Initial()

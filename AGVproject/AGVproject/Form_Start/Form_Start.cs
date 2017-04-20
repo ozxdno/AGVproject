@@ -56,6 +56,7 @@ namespace AGVproject
             public bool CheckLocatePort;
 
             public double urgRange;
+            public double PixLength;
             public struct FILE { public string Full, Path, Name; public string[] Text; }
         }
         
@@ -92,12 +93,24 @@ namespace AGVproject
                 if (TH_AutoSearchTrack.control.Event != null) { this.EventLabel.Text = TH_AutoSearchTrack.control.Event; }
 
                 // 显示信息
-                OperateMap.RefreshMap();
+                OperateMap.getBaseMapPicture();
+                OperateMap.getCursorShape();
+
+                OperateMap.getUltraSonicData();
+                OperateMap.getUrgData();
+                OperateMap.getLocateData();
+
+                OperateRoute.getPermitRoute();
+                OperateRoute.MouseLeftClicked();
+                OperateRoute.getCurrentRoute();
+                OperateRoute.MouseMove();
+
+                OperateRoute.Save();
+
                 this.pictureBox.Height = OperateMap.BaseMapPicture.Height;
                 this.pictureBox.Width = OperateMap.BaseMapPicture.Width;
                 this.pictureBox.Image = OperateMap.BaseMapPicture;
-                this.Cursor = OperateMap.Cursor;
-
+                if (OperateMap.CurrsorInMap) { this.Cursor = OperateMap.Cursor; }
             });
         }
         private void Form_Start_FormClosed(object sender, FormClosedEventArgs e)
@@ -271,14 +284,16 @@ namespace AGVproject
         }
         private void MapMouseMove(object sender, MouseEventArgs e)
         {
-            OperateMap.MousePosition = e.Location;
+            while (OperateMap.MousePosition.IsGetting) ;
+            OperateMap.MousePosition.IsSetting = true;
+            OperateMap.MousePosition = OperateMap.setMousePosition(e.X, e.Y);
+            OperateMap.MousePosition.IsSetting = false;
         }
         private void MapMouseClicked(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right) { return; }
-            if (OperateMap.Operate != OperateMap.OPERATE.SelectPoint) { return; }
 
-            OperateMap.Operate = OperateMap.OPERATE.SetPoint;
+            OperateMap.MouseEvent = OperateMap.MOUSE_EVENT.LeftClicked;
         }
         private void MapMouseDoubleClicked(object sender, MouseEventArgs e)
         {
@@ -286,9 +301,9 @@ namespace AGVproject
         }
         private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            if (!config.CheckMap) { return; }
+            if (!config.CheckMap && !config.CheckRoute) { return; }
 
-            if (e.ClickedItem.Text == "Finish") { OperateMap.Operate = OperateMap.OPERATE.Finished; }
+            if (e.ClickedItem.Text == "Finish") { OperateMap.Operate = OperateMap.OPERATE.Finish; }
             if (e.ClickedItem.Text == "Save") { OperateMap.Operate = OperateMap.OPERATE.Save; }
         }
 
