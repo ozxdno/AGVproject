@@ -21,23 +21,5 @@ namespace AGVproject
         }
     }
 
-    public struct KeyPoint
-    {
-        public int Type;
-        public int No;
-
-        public double X;
-        public double Y;
-        public double A;
-
-        public int UltraSonicL;
-        public int UltraSonicR;
-
-        public double UrgL;
-        public double UrgR;
-        public double UrgK;
-        public double UrgB;
-        public double UrgExtraK;
-        public double UrgExtraB;
-    }
+    
 }
