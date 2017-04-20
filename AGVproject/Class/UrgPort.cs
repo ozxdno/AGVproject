@@ -39,6 +39,9 @@ namespace AGVproject.Class
         private static byte[] receData = new byte[40];
         private static byte[] sentData;
 
+
+        private int testttttttttttttttttttttt;
+
         private struct PORT_STATE
         {
             public bool IsClosing;
