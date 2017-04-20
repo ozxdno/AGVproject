@@ -28,12 +28,6 @@ namespace AGVproject.Class
         public static int TimeForControl;
 
         /// <summary>
-        /// 期望控制速度
-        /// </summary>
-        public static int xSpeed = 0, ySpeed = 0, aSpeed = 0;
-        
-        
-        /// <summary>
         /// 超声波传感器编号
         /// </summary>
         public enum Sonic { Head_L_X,Head_L_Y, Head_R_Y, Head_R_X,Tail_R_X, Tail_R_Y, Tail_L_Y, Tail_L_X } 
@@ -51,8 +45,10 @@ namespace AGVproject.Class
             public bool IsSetting;
             public bool IsGetting;
 
-            public bool IsSettingCommand;
-            public bool IsGettingCommand;
+            public bool IsSettingCurrentSpeed;
+            public bool IsGettingCurrentSpeed;
+            public bool IsSettingTargetSpeed;
+            public bool IsGettingTargetSpeed;
 
             public byte[] Command;
             public List<byte> Receive;
@@ -126,6 +122,10 @@ namespace AGVproject.Class
             try { config.Port.Close(); config.IsClosing = false; return true; }
             catch { config.IsClosing = false; return false; }
         }
+
+
+
+
         
         /// <summary>
         /// 小车行进控制
@@ -144,59 +144,65 @@ namespace AGVproject.Class
             if (aSpeed > 7200) { aSpeed = 7200; }
             if (aSpeed < -7200) { aSpeed = -7200; }
 
-            // 限跳变
-            //if (xSpeed - TH_SendCommand.xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed + 50; }
-            //if (TH_SendCommand.xSpeed - xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed - 50; }
-            //if (ySpeed - TH_SendCommand.ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed + 50; }
-            //if (TH_SendCommand.ySpeed - ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed - 50; }
-            //if (aSpeed - TH_SendCommand.aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed + 100; }
-            //if (TH_SendCommand.aSpeed - aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed - 100; }
-
-            // 记录给出速度
-            TH_SendCommand.xSpeed = xSpeed;
-            TH_SendCommand.ySpeed = ySpeed;
-            TH_SendCommand.aSpeed = aSpeed;
-
-            // 给速度
-            int speed = 0, direction = 0, rotate = (int)Math.Round(aSpeed * 3.14159 / 180);
-            if (rotate < 0) { rotate = 128 - rotate; }
+            // 填充目标速度
+            while (config.IsGettingTargetSpeed) ;
+            config.IsSettingTargetSpeed = true;
             
-            speed = (int)(Math.Sqrt(xSpeed * xSpeed + ySpeed * ySpeed));
-            if (xSpeed == 0 && ySpeed > 0) { direction = 90; }
-            if (xSpeed == 0 && ySpeed < 0) { direction = 270; }
-            if (xSpeed > 0 && ySpeed == 0) { direction = 0; }
-            if (xSpeed < 0 && ySpeed == 0) { direction = 180; }
-            if (xSpeed != 0 && ySpeed != 0)
-            {
-                double angle = Math.Atan( (Math.Abs((double)ySpeed)) / Math.Abs((double)xSpeed));
-                direction = (int)((angle) * 180 / Math.PI);
-                if (xSpeed > 0 && ySpeed > 0) { }
-                if (xSpeed > 0 && ySpeed < 0) { direction = 360 - direction; }
-                if (xSpeed < 0 && ySpeed > 0) { direction = 180 - direction; }
-                if (xSpeed < 0 && ySpeed < 0) { direction = 180 + direction; }
-            }
-            
-            // 填充 0x70 命令
-            byte[] ControlCommand = new byte[11];
-            ControlCommand[0] = 0xf1;
-            ControlCommand[1] = 0x70;
-            ControlCommand[2] = (byte)(speed >> 8);
-            ControlCommand[3] = (byte)(speed);
-            ControlCommand[4] = (byte)(direction >> 8);
-            ControlCommand[5] = (byte)(direction);
-            ControlCommand[6] = (byte)(rotate);
-            ControlCommand[7] = 0x00;
-            Fill_CheckBytes(ref ControlCommand);
+            config.TargetSpeed.xSpeed = xSpeed;
+            config.TargetSpeed.ySpeed = ySpeed;
+            config.TargetSpeed.aSpeed = aSpeed;
 
-            // 写入
-            config.IsSettingCommand = true;
-            while (config.IsGettingCommand) ;
-            
-            config.Command = ControlCommand;
-
-            config.IsSettingCommand = false;
+            config.IsSettingTargetSpeed = false;
             return true;
         }
+
+
+
+
+        /// <summary>
+        /// 获取当前 X 方向的控制速度
+        /// </summary>
+        /// <returns></returns>
+        public static int getCurrentSpeedX()
+        {
+            while (config.IsSettingCurrentSpeed) ;
+            config.IsGettingCurrentSpeed = true;
+
+            int xSpeed = config.CurrentSpeed.xSpeed;
+
+            config.IsGettingCurrentSpeed = false;
+            return xSpeed;
+        }
+        /// <summary>
+        /// 获取当前 Y 方向的控制速度
+        /// </summary>
+        /// <returns></returns>
+        public static int getCurrentSpeedY()
+        {
+            while (config.IsSettingCurrentSpeed) ;
+            config.IsGettingCurrentSpeed = true;
+
+            int ySpeed = config.CurrentSpeed.ySpeed;
+
+            config.IsGettingCurrentSpeed = false;
+            return ySpeed;
+        }
+        /// <summary>
+        /// 获取当前 A 方向的控制速度
+        /// </summary>
+        /// <returns></returns>
+        public static int getCurrentSpeedA()
+        {
+            while (config.IsSettingCurrentSpeed) ;
+            config.IsGettingCurrentSpeed = true;
+
+            int aSpeed = config.CurrentSpeed.aSpeed;
+
+            config.IsGettingCurrentSpeed = false;
+            return aSpeed;
+        }
+
+
 
         /// <summary>
         /// 获取所有超声波传感器所测得的距离信息，无效值返回 0， 单位：mm
@@ -222,7 +228,7 @@ namespace AGVproject.Class
         public static int getUltraSonicData(Sonic No)
         {
             // 取数据
-            int SonicData = 0;
+            int SonicData = 0; if (!IsOpen) { return 0; }
 
             while (config.IsSetting) ;
             config.IsGetting = true;
@@ -285,7 +291,6 @@ namespace AGVproject.Class
         {
             return getUltraSonicData((Sonic)No);
         }
-
         /// <summary>
         /// 获取超声波传感器所得到的点（无效点返回 NegPoint）
         /// </summary>
@@ -294,6 +299,7 @@ namespace AGVproject.Class
         public static CoordinatePoint.POINT getUltraSonicPoint(Sonic No)
         {
             CoordinatePoint.POINT point = CoordinatePoint.getNegPoint();
+            if (!IsOpen) { return point; }
 
             while (config.IsSetting) ;
             config.IsGetting = true;
@@ -410,17 +416,12 @@ namespace AGVproject.Class
                 try
                 {
                     config.Port.DiscardOutBuffer();
+                    Fill_Command();
                     
-
-
-                    while (config.IsSettingCommand) ;
-                    config.IsGettingCommand = true;
                     config.Port.Write(config.Command, 0, config.Command.Length);
-                    config.IsGettingCommand = false;
-
                     System.Threading.Thread.Sleep(TimeForControl);
                 }
-                catch { config.IsGettingCommand = false; continue; }
+                catch { continue; }
             }
         }
         private static void portDataReceived(object sender, EventArgs e)
@@ -496,8 +497,10 @@ namespace AGVproject.Class
             config.IsGetting = false;
             config.IsSetting = false;
 
-            config.IsSettingCommand = false;
-            config.IsGettingCommand = false;
+            config.IsSettingCurrentSpeed = false;
+            config.IsGettingCurrentSpeed = false;
+            config.IsSettingTargetSpeed = false;
+            config.IsGettingTargetSpeed = false;
 
             config.Command = new byte[0];
             config.Receive = new List<byte>();
@@ -509,22 +512,33 @@ namespace AGVproject.Class
         
         private static void Fill_Command()
         {
-            int xSpeed = config.CurrentSpeed.xSpeed;
-            int ySpeed = config.CurrentSpeed.ySpeed;
-            int aSpeed = config.CurrentSpeed.aSpeed;
+            // 取出目标速度
+            config.IsGettingTargetSpeed = true;
+            while (config.IsSettingTargetSpeed) ;
+
+            int xSpeed = config.TargetSpeed.xSpeed;
+            int ySpeed = config.TargetSpeed.ySpeed;
+            int aSpeed = config.TargetSpeed.aSpeed;
+
+            config.IsGettingTargetSpeed = false;
 
             // 限跳变
-            if (xSpeed - TH_SendCommand.xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed + 50; }
-            if (TH_SendCommand.xSpeed - xSpeed > 50) { xSpeed = TH_SendCommand.xSpeed - 50; }
-            if (ySpeed - TH_SendCommand.ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed + 50; }
-            if (TH_SendCommand.ySpeed - ySpeed > 50) { ySpeed = TH_SendCommand.ySpeed - 50; }
-            if (aSpeed - TH_SendCommand.aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed + 100; }
-            if (TH_SendCommand.aSpeed - aSpeed > 100) { aSpeed = TH_SendCommand.aSpeed - 100; }
+            if (xSpeed - config.CurrentSpeed.xSpeed > 50) { xSpeed = config.CurrentSpeed.xSpeed + 50; }
+            if (config.CurrentSpeed.xSpeed - xSpeed > 50) { xSpeed = config.CurrentSpeed.xSpeed - 50; }
+            if (ySpeed - config.CurrentSpeed.ySpeed > 50) { ySpeed = config.CurrentSpeed.ySpeed + 50; }
+            if (config.CurrentSpeed.ySpeed - ySpeed > 50) { ySpeed = config.CurrentSpeed.ySpeed - 50; }
+            if (aSpeed - config.CurrentSpeed.aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed + 100; }
+            if (config.CurrentSpeed.aSpeed - aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed - 100; }
 
             // 记录给出速度
-            TH_SendCommand.xSpeed = xSpeed;
-            TH_SendCommand.ySpeed = ySpeed;
-            TH_SendCommand.aSpeed = aSpeed;
+            config.IsSettingCurrentSpeed = true;
+            while (config.IsGettingCurrentSpeed) ;
+
+            config.CurrentSpeed.xSpeed = xSpeed;
+            config.CurrentSpeed.ySpeed = ySpeed;
+            config.CurrentSpeed.aSpeed = aSpeed;
+
+            config.IsSettingCurrentSpeed = false;
 
             // 给速度
             int speed = 0, direction = 0, rotate = (int)Math.Round(aSpeed * 3.14159 / 180);
@@ -558,12 +572,7 @@ namespace AGVproject.Class
             Fill_CheckBytes(ref ControlCommand);
 
             // 写入
-            config.IsSettingCommand = true;
-            while (config.IsGettingCommand) ;
-
             config.Command = ControlCommand;
-
-            config.IsSettingCommand = false;
         }
         private static void Fill_CheckBytes(ref byte[] command)
         {
