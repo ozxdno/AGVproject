@@ -56,6 +56,7 @@
             this.label13 = new System.Windows.Forms.Label();
             this.iDistance = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
+            this.StackNoLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -114,6 +115,7 @@
             // 
             this.iStackNo.Location = new System.Drawing.Point(69, 14);
             this.iStackNo.Name = "iStackNo";
+            this.iStackNo.ReadOnly = true;
             this.iStackNo.Size = new System.Drawing.Size(72, 21);
             this.iStackNo.TabIndex = 8;
             // 
@@ -307,11 +309,23 @@
             this.label14.Text = "---------------------------------------------------------------------------------" +
     "-------";
             // 
+            // StackNoLabel
+            // 
+            this.StackNoLabel.AutoSize = true;
+            this.StackNoLabel.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.StackNoLabel.Font = new System.Drawing.Font("宋体", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.StackNoLabel.Location = new System.Drawing.Point(133, 135);
+            this.StackNoLabel.Name = "StackNoLabel";
+            this.StackNoLabel.Size = new System.Drawing.Size(47, 33);
+            this.StackNoLabel.TabIndex = 34;
+            this.StackNoLabel.Text = "99";
+            // 
             // Form_Stack
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 267);
+            this.Controls.Add(this.StackNoLabel);
             this.Controls.Add(this.label14);
             this.Controls.Add(this.iDistance);
             this.Controls.Add(this.label13);
@@ -381,5 +395,6 @@
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.TextBox iDistance;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label StackNoLabel;
     }
 }

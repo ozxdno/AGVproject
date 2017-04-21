@@ -122,6 +122,7 @@ namespace AGVproject.Class
             Form_Start.config.CheckLocatePort = getFieldValue1_INT("FormStart.CheckLocatePort") == 1;
 
             Form_Start.config.urgRange = getFieldValue1_INT("FormStart.urgRange");
+            Form_Start.config.PixLength = getFieldValue1_DOUBLE("FormStart.PixLength");
         }
         private static void Save_FormStart()
         {
@@ -166,6 +167,7 @@ namespace AGVproject.Class
             setFieldValue("FormStart.CheckLocatePort", Form_Start.config.CheckLocatePort);
 
             setFieldValue("FormStart.urgRange", Form_Start.config.urgRange);
+            setFieldValue("FormStart.PixLength", Form_Start.config.PixLength);
         }
         private static void Load_HouseMap()
         {
@@ -178,9 +180,7 @@ namespace AGVproject.Class
             HouseMap.DefaultAisleWidth = getFieldValue1_DOUBLE("HouseMap.DefaultAisleWidth");
             HouseMap.DefaultStackLength = getFieldValue1_DOUBLE("HouseMap.DefaultStackLength");
             HouseMap.DefaultStackWidth = getFieldValue1_DOUBLE("HouseMap.DefaultStackWidth");
-
-            HouseMap.PixLength = getFieldValue1_DOUBLE("HouseMap.PixLength");
-
+            
             HouseMap.Initial();
         }
         private static void Save_HouseMap()
@@ -194,8 +194,6 @@ namespace AGVproject.Class
             setFieldValue("HouseMap.DefaultAisleWidth", HouseMap.DefaultAisleWidth);
             setFieldValue("HouseMap.DefaultStackLength", HouseMap.DefaultStackLength);
             setFieldValue("HouseMap.DefaultStackWidth", HouseMap.DefaultStackWidth);
-
-            setFieldValue("HouseMap.PixLength", HouseMap.PixLength);
         }
         private static void Load_Hardware()
         {
@@ -408,6 +406,27 @@ namespace AGVproject.Class
 
             setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
             setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
+        }
+        public static void Load_Map()
+        {
+
+        }
+        public static void Save_Map()
+        {
+            string exe_path = Application.ExecutablePath;
+            exe_path = exe_path.Substring(0, exe_path.LastIndexOf('\\'));
+            CFG = new List<CFG_FILE>();
+
+            string FullPath = exe_path + "\\cqu_agv.cfg";
+            if (!File.Exists(FullPath)) { return; }
+        }
+        public static void Load_Route()
+        {
+
+        }
+        public static void Save_Route()
+        {
+
         }
 
         private static string getFieldValue1_STRING(string Field)

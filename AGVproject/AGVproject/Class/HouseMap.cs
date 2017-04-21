@@ -33,11 +33,6 @@ namespace AGVproject.Class
         public static double DefaultAisleWidth;
         public static double DefaultStackLength;
         public static double DefaultStackWidth;
-
-        /// <summary>
-        /// 每个像素点代表的实际长度 单位：mm
-        /// </summary>
-        public static double PixLength;
         
         /// <summary>
         /// 堆垛参数

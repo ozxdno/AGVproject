@@ -15,8 +15,6 @@ namespace AGVproject.Form_Stack
         public Form_Stack()
         {
             InitializeComponent();
-
-
         }
 
         public static int StackNo;
@@ -58,6 +56,8 @@ namespace AGVproject.Form_Stack
 
         private void Form_Stack_Load(object sender, EventArgs e)
         {
+            this.StackNoLabel.Text = StackNo.ToString();
+
             this.iStackNo.Text = StackNo.ToString();
             this.iDirection.SelectedIndex = Direction;
             this.iDistance.Text = Distance.ToString();

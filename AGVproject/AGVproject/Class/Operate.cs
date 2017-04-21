@@ -138,15 +138,18 @@ namespace AGVproject.Class
             // 获取字体
             int picLength = Math.Min(MapLength, MapWidth) / 2;
             int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6);
+            Font font = new Font("Arial", width / 6 + 1);
 
             // 添加堆垛
+            string istr; SizeF size;
             for (int i = 1; i < Stacks.Count; i++)
             {
                 g.FillRectangle(Brushes.LightBlue, Stacks[i].xBG, Stacks[i].yBG, Stacks[i].Length, Stacks[i].Width);
 
-                int x = Stacks[i].xBG + Stacks[i].Length / 2;
-                int y = Stacks[i].yBG + Stacks[i].Width / 2;
+                istr = i.ToString(); size = g.MeasureString(istr, font);
+
+                int x = Stacks[i].xBG + Stacks[i].Length / 2 - (int)size.Width / 2;
+                int y = Stacks[i].yBG + Stacks[i].Width / 2 - (int)size.Height / 2;
                 g.DrawString(i.ToString(), font, Brushes.Black, x, y);
             }
         }
@@ -171,7 +174,7 @@ namespace AGVproject.Class
 
             int picLength = Math.Min(MapLength, MapWidth) / 2;
             int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6);
+            Font font = new Font("Arial", width / 8 + 1);
 
             int L = (int)(picLength + Hardware_PlatForm.AxisSideL / Form_Start.config.urgRange * picLength);
             int U = (int)(picLength - Hardware_PlatForm.AxisSideU / Form_Start.config.urgRange * picLength);
@@ -244,7 +247,7 @@ namespace AGVproject.Class
             CoordinatePoint.POINT point = TH_MeasurePosition.getPosition();
             int picLength = Math.Min(MapLength, MapWidth) / 2;
             int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6);
+            Font font = new Font("Arial", width / 6 + 1);
 
             SizeF size = g.MeasureString("X", font);
             int centre = MapLength / 2;
@@ -472,7 +475,7 @@ namespace AGVproject.Class
 
             int picLength = Math.Min(OperateMap.MapLength, OperateMap.MapWidth) / 2;
             int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6);
+            Font font = new Font("Arial", width / 6 + 1);
 
             OperateMap.g.DrawEllipse(Pens.Red, Route[0].MapPoint.X - 2, Route[0].MapPoint.Y - 2, 4, 4);
             OperateMap.g.DrawString("S", font, Brushes.Red, Route[0].MapPoint);
@@ -495,13 +498,16 @@ namespace AGVproject.Class
 
             OperateMap.MOUSE mousePos = OperateMap.getMousePosition();
 
-            if (mousePos.No == 0) { return; }
-            if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { return; }
+            if (mousePos.No == 0) { OperateMap.Cursor = Cursors.No; return; }
+            if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { OperateMap.Cursor = Cursors.No; return; }
 
             if (Route != null && Route.Count != 0)
             {
                 ROUTE last = Route[Route.Count - 1];
                 OperateMap.STACK stack = OperateMap.Stacks[last.No];
+
+                if (Math.Abs(mousePos.x - last.MapPoint.X) > 3 && Math.Abs(mousePos.y - last.MapPoint.Y) > 3)
+                { OperateMap.Cursor = Cursors.No; return; }
 
                 int BG = stack.yBG - stack.AisleWidth_U;
                 int ED = stack.yBG;

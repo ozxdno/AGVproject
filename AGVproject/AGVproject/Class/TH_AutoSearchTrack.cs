@@ -14,7 +14,10 @@ namespace AGVproject.Class
         /// 小车控制过程所需要的变量集合
         /// </summary>
         public static AST_CONTROL control;
-        
+
+        /// <summary>
+        /// 小车控制过程所需要的变量集合
+        /// </summary>
         public struct AST_CONTROL
         {
             /// <summary>
@@ -89,7 +92,13 @@ namespace AGVproject.Class
             public System.Threading.Thread Thread;
         }
 
+        /// <summary>
+        /// 所有的动作集合
+        /// </summary>
         public enum Action { Wait,Begin,Forward,Backward,Upward,Downward,RotateL,Reverse,RotateR,AlignF,AlignB,OutAisle,Return,ByHand,Stop,Continue,Abort,Error }
+        /// <summary>
+        /// 方向或位置信息
+        /// </summary>
         public enum Direction { Left,Right,Up,Down,Tuning }
 
         ////////////////////////////////////////// private attribute ///////////////////////////////////////////////
@@ -161,8 +170,8 @@ namespace AGVproject.Class
                 
                 // 检测串口状态
                 if (!TH_SendCommand.IsOpen) { control.Event = "Control Port Closed !"; continue; }
-                //if (!TH_MeasureSurrounding.IsOpen) { control.Event = "URG Port Closed !"; continue; }
-                //if (!TH_MeasurePosition.IsOpen) { control.Event = "Locate Port Closed !"; continue; }
+                if (!TH_MeasureSurrounding.IsOpen) { control.Event = "URG Port Closed !"; continue; }
+                if (!TH_MeasurePosition.IsOpen) { control.Event = "Locate Port Closed !"; continue; }
 
                 // 测试
 

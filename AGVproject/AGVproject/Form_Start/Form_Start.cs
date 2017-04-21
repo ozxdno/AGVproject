@@ -26,6 +26,7 @@ namespace AGVproject
         {
             public System.Timers.Timer Timer;
             public DateTime Time;
+            public List<int> KeyValue;
 
             public List<FILE> Map;
             public List<FILE> Route;
@@ -265,8 +266,9 @@ namespace AGVproject
             }
 
             this.checkLocPort.Checked = config.CheckLocatePort;
-            
+
             // config
+            config.KeyValue = new List<int>();
             config.Timer = new System.Timers.Timer(100);
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
             config.Timer.AutoReset = true;
@@ -294,8 +296,8 @@ namespace AGVproject
 
             this.TimeLabel.Location = new Point(12, this.Height - 60);
 
-            this.EventLabel.Width = this.Width - 180;
-            this.EventLabel.Location = new Point(this.Width - this.EventLabel.Width - 12, this.Height - 60);
+            this.EventLabel.Width = this.Width - 185;
+            this.EventLabel.Location = new Point(this.Width - this.EventLabel.Width - 20, this.Height - 60);
         }
 
 
@@ -423,31 +425,31 @@ namespace AGVproject
 
         private void Start(object sender, EventArgs e)
         {
-            //TH_MeasurePosition.Open();
-            //TH_MeasureSurrounding.Open();
-            //TH_SendCommand.Open();
+            TH_MeasurePosition.Open();
+            TH_MeasureSurrounding.Open();
+            TH_SendCommand.Open();
 
-            //if (this.button1.Text == "Stop")
-            //{
-            //    TH_AutoSearchTrack.control.ActionList.Insert(0, TH_AutoSearchTrack.Action.Stop);
-            //    TH_AutoSearchTrack.control.EMA = true;
-            //    this.button1.Text = "Continue"; return;
-            //}
+            if (this.btnStart.Text == "Stop")
+            {
+                TH_AutoSearchTrack.control.ActionList.Insert(0, TH_AutoSearchTrack.Action.Stop);
+                TH_AutoSearchTrack.control.EMA = true;
+                this.btnStart.Text = "Continue"; return;
+            }
 
-            //if (this.button1.Text == "Continue")
-            //{
-            //    if (TH_AutoSearchTrack.control.ActionList != null &&
-            //        TH_AutoSearchTrack.control.ActionList.Count > 0 &&
-            //        TH_AutoSearchTrack.control.ActionList[0] == TH_AutoSearchTrack.Action.Stop)
-            //    { TH_AutoSearchTrack.control.ActionList.RemoveAt(0); }
-                
-            //    TH_AutoSearchTrack.control.EMA = false;
-            //    this.button1.Text = "Stop"; return;
-            //}
+            if (this.btnStart.Text == "Continue")
+            {
+                if (TH_AutoSearchTrack.control.ActionList != null &&
+                    TH_AutoSearchTrack.control.ActionList.Count > 0 &&
+                    TH_AutoSearchTrack.control.ActionList[0] == TH_AutoSearchTrack.Action.Stop)
+                { TH_AutoSearchTrack.control.ActionList.RemoveAt(0); }
 
-            //this.button1.Text = "Stop";
-            //TH_AutoSearchTrack.control.ActionList.Add(TH_AutoSearchTrack.Action.AlignF);
-            //TH_AutoSearchTrack.Start();
+                TH_AutoSearchTrack.control.EMA = false;
+                this.btnStart.Text = "Stop"; return;
+            }
+
+            this.btnStart.Text = "Stop";
+            TH_AutoSearchTrack.control.ActionList.Add(TH_AutoSearchTrack.Action.AlignF);
+            TH_AutoSearchTrack.Start();
         }
         private void Restart(object sender, EventArgs e)
         {
@@ -458,7 +460,23 @@ namespace AGVproject
             DialogResult dr = MessageBox.Show("Do you want to Restart ?", "Attention", MessageBoxButtons.OKCancel);
             if (dr == DialogResult.Cancel) { return; }
 
+            this.btnStart.Text = "Stop";
             TH_AutoSearchTrack.Restart();
+        }
+        private void formKeyDown(object sender, KeyEventArgs e)
+        {
+            // 1-49 a-65
+            if (49 <= e.KeyValue && e.KeyValue <= 58)
+            { config.KeyValue.Clear(); config.KeyValue.Add(e.KeyValue); return; }
+
+            // a
+            if (e.KeyValue == 65)
+            {
+                //TH_AutoSearchTrack.control.ActionList.Clear();
+                //TH_AutoSearchTrack.control.EMA = true;
+
+                //TH_AutoSearchTrack.control.ActionList.Add(TH_AutoSearchTrack.Action.Wait);
+            }
         }
 
         private void setSelectedMap(object sender, EventArgs e)
