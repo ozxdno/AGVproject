@@ -170,7 +170,9 @@ namespace AGVproject.Class
             if (!Form_Start.config.CheckMap) { return; }
 
             // 添加堆垛
+            if (Stacks.Count == 0) { return; }
             string istr; SizeF size;
+            g.FillRectangle(Brushes.LightBlue, Stacks[0].xBG, Stacks[0].yBG, Stacks[0].Length, Stacks[0].Width);
             for (int i = 1; i < Stacks.Count; i++)
             {
                 g.FillRectangle(Brushes.LightBlue, Stacks[i].xBG, Stacks[i].yBG, Stacks[i].Length, Stacks[i].Width);
@@ -189,7 +191,8 @@ namespace AGVproject.Class
             MOUSE mouse = getMousePosition();
 
             if (!Form_Start.config.CheckMap && !Form_Start.config.CheckRoute) { Cursor = Cursors.Default; return; }
-            if (mouse.No == 0) { Cursor = Cursors.Default; return; }
+            if (mouse.No == -1) { Cursor = Cursors.Default; return; }
+            if (mouse.No == 0) { Cursor = Cursors.Cross; return; }
             if (mouse.Direction == TH_AutoSearchTrack.Direction.Tuning) { Cursor = Cursors.Default; return; }
 
             Cursor = Cursors.Cross;
@@ -350,7 +353,7 @@ namespace AGVproject.Class
             g.DrawString("S", StrFont, Brushes.Red, Route[0].MapPoint);
 
             // 终点
-            if (Route.Count <= 1) { return; }
+            if (Route.Count <= 2) { return; }
             g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
             g.DrawString("E", StrFont, Brushes.Red, Route[Route.Count - 1].MapPoint);
         }
@@ -372,6 +375,7 @@ namespace AGVproject.Class
         {
             int xBG, yBG, xED, yED;
             MOUSE p = new MOUSE();
+            p.No = -1;
 
             foreach (STACK stack in Stacks)
             {
@@ -442,7 +446,7 @@ namespace AGVproject.Class
                     p.IsLeft = stack.IsLeft;
                     p.No = stack.No;
                     p.Direction = TH_AutoSearchTrack.Direction.Tuning;
-                    p.Distance = 0; break;
+                    p.Distance = xED - X; break;
                 }
             }
 
@@ -477,7 +481,7 @@ namespace AGVproject.Class
         }
         public static STACK RealStack2MapStack(int No)
         {
-            if (No < 1 || No > HouseMap.TotalStacks) { return new STACK(); }
+            if (No < 0 || No > HouseMap.TotalStacks) { return new STACK(); }
             STACK stack = new STACK();
 
             stack.IsLeft = HouseMap.Stacks[No].IsLeft;
@@ -496,10 +500,14 @@ namespace AGVproject.Class
             stack.SetKeepL = (int)(HouseMap.Stacks[No].KeepDistanceL / Form_Start.config.PixLength);
             stack.SetKeepR = (int)(HouseMap.Stacks[No].KeepDistanceR / Form_Start.config.PixLength);
 
-            //stack.SetKeepU -= 1;
-            //stack.SetKeepD -= 1;
-            //stack.SetKeepL -= 4;
-            //stack.SetKeepR -= 4;
+            if (No != 0)
+            {
+                stack.SetKeepU -= 1;
+                stack.SetKeepD -= 1;
+                stack.SetKeepL -= 4;
+                stack.SetKeepR -= 4;
+            }
+            
 
             double xBG = 0, yBG = 0;
             if (HouseMap.Stacks[No].IsLeft)
@@ -545,6 +553,11 @@ namespace AGVproject.Class
                 pt.X = stack.xBG + stack.Length - route.Distance;
                 pt.Y = stack.yBG + stack.Width + stack.SetKeepD;
             }
+            if (route.Direction == TH_AutoSearchTrack.Direction.Tuning)
+            {
+                pt.X = stack.xBG + stack.Length - route.Distance;
+                pt.Y = stack.yBG + stack.Width + stack.SetKeepD;
+            }
 
             return pt;
         }
@@ -558,48 +571,464 @@ namespace AGVproject.Class
 
             MOUSE mousePos = getMousePosition();
 
-            if (mousePos.No == 0) { PushedCursor = true; Cursor = Cursors.No; return; }
-            if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { PushedCursor = true; Cursor = Cursors.No; return; }
+            if (mousePos.No == -1) { PushedCursor = true; Cursor = Cursors.No; return; }
+            if (mousePos.No != 0 && mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning)
+            { PushedCursor = true; Cursor = Cursors.No; return; }
+            if (mousePos.IsLeft && mousePos.Direction == TH_AutoSearchTrack.Direction.Left)
+            { PushedCursor = true; Cursor = Cursors.No; return; }
+            if (!mousePos.IsLeft && mousePos.Direction == TH_AutoSearchTrack.Direction.Right)
+            { PushedCursor = true; Cursor = Cursors.No; return; }
 
-            if (Route != null && Route.Count != 0)
+            // 当前关键点
+            ROUTE next = new ROUTE();
+            next.IsLeft = mousePos.IsLeft;
+            next.No = mousePos.No;
+            next.Direction = mousePos.Direction;
+            next.Distance = mousePos.Distance;
+            next.MapPoint = new Point(mousePos.x, mousePos.y);
+            next.MapPoint = getRouteMapPoint(next);
+            if (Route.Count == 0) { Route.Add(next); return; }
+
+            // 自动添加关键点
+            ROUTE last = Route[Route.Count - 1];
+            STACK lastStack = Stacks[last.No];
+            STACK nextStack = Stacks[next.No];
+
+            // 原点
+            if (last.No == 0 && next.No == 0) { Route.Add(next); return; }
+
+            #region 同一通道内
+
+            bool InSameAisleRow =
+                (last.IsLeft && next.IsLeft && last.No - next.No == 1 && last.Direction == TH_AutoSearchTrack.Direction.Down && next.Direction == TH_AutoSearchTrack.Direction.Up) ||
+                (last.IsLeft && next.IsLeft && next.No - last.No == 1 && last.Direction == TH_AutoSearchTrack.Direction.Up && next.Direction == TH_AutoSearchTrack.Direction.Down) ||
+                (!last.IsLeft && !next.IsLeft && last.No - next.No == 1 && last.Direction == TH_AutoSearchTrack.Direction.Up && next.Direction == TH_AutoSearchTrack.Direction.Down) ||
+                (!last.IsLeft && !next.IsLeft && next.No - last.No == 1 && last.Direction == TH_AutoSearchTrack.Direction.Down && next.Direction == TH_AutoSearchTrack.Direction.Up) ||
+                (last.No == next.No && last.Direction == next.Direction && last.Direction == TH_AutoSearchTrack.Direction.Up) ||
+                (last.No == next.No && last.Direction == next.Direction && last.Direction == TH_AutoSearchTrack.Direction.Down);
+
+            if (InSameAisleRow)
             {
-                ROUTE last = Route[Route.Count - 1];
-                STACK stack = Stacks[last.No];
+                // 先跨越
+                bool jump = last.MapPoint.Y != next.MapPoint.Y;
+                int gapX = next.MapPoint.X - last.MapPoint.X;
 
-                if (Math.Abs(mousePos.x - last.MapPoint.X) > 3 && Math.Abs(mousePos.y - last.MapPoint.Y) > 3)
-                { PushedCursor = true; Cursor = Cursors.No; return; }
+                if (jump)
+                {
+                    ROUTE jumpRoute = new ROUTE(); jumpRoute.IsLeft = next.IsLeft; jumpRoute.No = next.No; jumpRoute.Direction = next.Direction;
+                    jumpRoute.Distance = next.Direction == TH_AutoSearchTrack.Direction.Up ? next.Distance - gapX : next.Distance + gapX;
+                    jumpRoute.MapPoint = getRouteMapPoint(jumpRoute);
+                    Route.Add(jumpRoute);
+                }
 
-                int BG = stack.yBG - stack.AisleWidth_U;
-                int ED = stack.yBG;
-                bool InAisleU = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
-
-                BG = stack.yBG + stack.Width;
-                ED = BG + stack.AisleWidth_D;
-                bool InAisleD = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
-
-                BG = stack.xBG - stack.AisleWidth_L;
-                ED = stack.xBG;
-                bool InAisleL = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
-                if (last.IsLeft) { InAisleL = false; }
-
-                BG = stack.xBG + stack.Length;
-                ED = BG + stack.AisleWidth_R;
-                bool InAisleR = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
-                if (!last.IsLeft) { InAisleR = false; }
-
-                if (!InAisleL && !InAisleR && !InAisleU && !InAisleD)
-                { PushedCursor = true; Cursor = Cursors.No; return; }
+                Route.Add(next); return;
             }
 
-            ROUTE route = new ROUTE();
-            route.IsLeft = mousePos.IsLeft;
-            route.No = mousePos.No;
-            route.Direction = mousePos.Direction;
-            route.Distance = mousePos.Distance;
-            route.MapPoint = getRouteMapPoint(route);
+            #endregion
 
-            if (Route == null) { Route = new List<ROUTE>(); }
-            Route.Add(route);
+            #region 出通道
+
+            bool InCentreRoad = last.Direction == TH_AutoSearchTrack.Direction.Left || last.Direction == TH_AutoSearchTrack.Direction.Right;
+            if (!InCentreRoad && last.No != 0)
+            {
+                ROUTE outAisle = new ROUTE(); outAisle.IsLeft = last.IsLeft; outAisle.No = last.No; outAisle.Direction = last.Direction;
+                outAisle.Distance = last.Direction == TH_AutoSearchTrack.Direction.Up ?
+                    (last.IsLeft ? lastStack.Length + lastStack.SetKeepR : -lastStack.SetKeepL) :
+                    (last.IsLeft ? -lastStack.SetKeepR : lastStack.SetKeepL + lastStack.Length);
+                outAisle.MapPoint = getRouteMapPoint(outAisle);
+
+                Route.Add(outAisle);
+                last = outAisle;
+            }
+
+            #endregion
+            
+            #region 跳转
+
+            bool jumpX = last.IsLeft != next.IsLeft && last.No != 0 && next.No != 0;
+
+            if (jumpX)
+            {
+                last.No = HouseMap.TotalStacks + 1 - last.No;
+                lastStack = Stacks[last.No];
+
+                if (last.IsLeft)
+                {
+                    last.IsLeft = false;
+                    last.Direction = TH_AutoSearchTrack.Direction.Left;
+                    last.Distance = lastStack.yBG + lastStack.Width - last.MapPoint.Y;
+                    last.MapPoint = getRouteMapPoint(last);
+                }
+                else
+                {
+                    last.IsLeft = true;
+                    last.Direction = TH_AutoSearchTrack.Direction.Right;
+                    last.Distance = last.MapPoint.Y - lastStack.yBG;
+                    last.MapPoint = getRouteMapPoint(last);
+                }
+                Route.Add(last); return;
+            }
+
+            #endregion
+
+            // 中间
+            bool jumpY = last.MapPoint.Y != next.MapPoint.Y;
+
+            if (next.No == 0)
+            {
+                #region 左边
+
+                if (last.IsLeft)
+                {
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Right || last.Distance != -lastStack.SetKeepU) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Up || last.Distance != lastStack.Length + lastStack.SetKeepR))
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        tRoute.Distance = -lastStack.SetKeepU;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No + 1; i <= HouseMap.TotalStacks; i++)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        dRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = true; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        uRoute.Distance = -Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+                    }
+
+                    ROUTE oRoute = new ROUTE(); oRoute.IsLeft = false; oRoute.No = 0; oRoute.Direction = TH_AutoSearchTrack.Direction.Tuning;
+                    oRoute.Distance = Stacks[0].xBG + Stacks[0].Length - last.MapPoint.X;
+                    oRoute.MapPoint = getRouteMapPoint(oRoute);
+                    Route.Add(oRoute);
+                    Route.Add(next); return;
+                }
+
+                #endregion
+
+                #region 右边
+
+                else
+                {
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Down || last.Distance != lastStack.Length + lastStack.SetKeepL) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Left || last.Distance != lastStack.Width + lastStack.SetKeepU))
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        tRoute.Distance = lastStack.Width + lastStack.SetKeepU;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No - 1; i >= 1; i--)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = false; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        dRoute.Distance = -Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = false; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        uRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+                    }
+
+                    ROUTE oRoute = new ROUTE(); oRoute.IsLeft = false; oRoute.No = 0; oRoute.Direction = TH_AutoSearchTrack.Direction.Tuning;
+                    oRoute.Distance = Stacks[0].xBG + Stacks[0].Length - last.MapPoint.X;
+                    oRoute.MapPoint = getRouteMapPoint(oRoute);
+                    Route.Add(oRoute);
+                    Route.Add(next); return;
+                }
+
+                #endregion
+            }
+
+            if (jumpY)
+            {
+                #region 从原点出来
+
+                if (last.No == 0)
+                {
+                    ROUTE oRoute = new ROUTE(); oRoute.IsLeft = false; oRoute.No = 0; oRoute.Direction = TH_AutoSearchTrack.Direction.Tuning;
+                    oRoute.Distance = next.IsLeft ?
+                        Stacks[0].xBG + Stacks[0].Length + Stacks[0].SetKeepR - (Stacks[Stacks.Count - 1].xBG + Stacks[Stacks.Count - 1].Length + Stacks[Stacks.Count - 1].SetKeepR) :
+                        Stacks[0].xBG + Stacks[0].Length + Stacks[0].SetKeepR - Stacks[1].xBG + Stacks[1].SetKeepL;
+                    oRoute.MapPoint = getRouteMapPoint(oRoute);
+                    Route.Add(oRoute);
+
+                    last.No = next.IsLeft ? HouseMap.TotalStacks : 1;
+                    last.Direction = next.IsLeft ? TH_AutoSearchTrack.Direction.Right : TH_AutoSearchTrack.Direction.Left;
+                    last.Distance = next.IsLeft ?
+                        -Stacks[Stacks.Count - 1].SetKeepU :
+                        Stacks[1].Width + Stacks[1].SetKeepU;
+                    last.MapPoint = getRouteMapPoint(last);
+                    Route.Add(last);
+                }
+
+                #endregion
+
+                #region 左边
+
+                if (next.IsLeft)
+                {
+                    bool Upward = next.No - last.No > 0;
+                    bool Downward = next.No - last.No < 0;
+
+                    #region 向上
+
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Right || last.Distance != -lastStack.SetKeepU) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Up || last.Distance != lastStack.Length + lastStack.SetKeepR) &&
+                        Upward)
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        tRoute.Distance = -lastStack.SetKeepU;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No + 1; i < next.No; i++)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        dRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = true; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        uRoute.Distance = -Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+                    }
+
+                    if (Upward)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = next.No; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        dRoute.Distance = Stacks[next.No].Width + Stacks[next.No].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = true; uRoute.No = next.No; uRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        uRoute.Distance = -Stacks[next.No].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        if (next.Direction == TH_AutoSearchTrack.Direction.Up) { Route.Add(uRoute); }
+                    }
+
+                    if (Upward && next.MapPoint.X == Route[Route.Count - 1].MapPoint.X)
+                    {
+                        ROUTE dRoute = Route[Route.Count - 1];
+                        if (next.Distance != dRoute.Distance) { Route.Add(next); }
+                        return;
+                    }
+
+                    #endregion
+
+                    #region 向下
+
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Right || last.Distance != lastStack.Width + lastStack.SetKeepD) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Down || last.Distance != -lastStack.SetKeepR) &&
+                        Downward)
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        tRoute.Distance = lastStack.Width + lastStack.SetKeepD;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No - 1; i > next.No; i--)
+                    {
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = true; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        uRoute.Distance = -Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        dRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+                    }
+
+                    if(Downward)
+                    {
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = true; uRoute.No = next.No; uRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        uRoute.Distance = -Stacks[next.No].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = next.No; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
+                        dRoute.Distance = Stacks[next.No].Width + Stacks[next.No].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        if (next.Direction == TH_AutoSearchTrack.Direction.Down) { Route.Add(dRoute); }
+                    }
+
+                    if (Downward && next.MapPoint.X == Route[Route.Count - 1].MapPoint.X)
+                    {
+                        ROUTE dRoute = Route[Route.Count - 1];
+                        if (next.Distance != dRoute.Distance) { Route.Add(next); }
+                        return;
+                    }
+
+                    #endregion
+                }
+
+                #endregion
+
+                #region 右边
+
+                if (!next.IsLeft)
+                {
+                    bool Upward = next.No - last.No < 0;
+                    bool Downward = next.No - last.No > 0;
+
+                    #region 向上
+
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Down || last.Distance != lastStack.Length + lastStack.SetKeepL) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Left || last.Distance != lastStack.Width + lastStack.SetKeepU) &&
+                        Upward)
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        tRoute.Distance = lastStack.Width + lastStack.SetKeepU;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No - 1; i > next.No; i--)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = false; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        dRoute.Distance = -Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = false; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        uRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+                    }
+
+                    if (Upward)
+                    {
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = false; dRoute.No = next.No; dRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        dRoute.Distance = -Stacks[next.No].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = false; uRoute.No = next.No; uRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        uRoute.Distance = Stacks[next.No].Width + Stacks[next.No].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        if (next.Direction == TH_AutoSearchTrack.Direction.Up) { Route.Add(uRoute); }
+                    }
+
+                    if (Upward && next.MapPoint.X == Route[Route.Count - 1].MapPoint.X)
+                    {
+                        ROUTE dRoute = Route[Route.Count - 1];
+                        if (next.Distance != dRoute.Distance) { Route.Add(next); }
+                        return;
+                    }
+
+                    #endregion
+
+                    #region 向下
+
+                    if ((last.Direction != TH_AutoSearchTrack.Direction.Down || last.Distance != lastStack.Length + lastStack.SetKeepL) &&
+                        (last.Direction != TH_AutoSearchTrack.Direction.Left || last.Distance != -lastStack.SetKeepD) &&
+                        Downward)
+                    {
+                        ROUTE tRoute = new ROUTE(); tRoute.IsLeft = last.IsLeft; tRoute.No = last.No; tRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        tRoute.Distance = -lastStack.SetKeepD;
+                        tRoute.MapPoint = getRouteMapPoint(tRoute);
+                        Route.Add(tRoute);
+                    }
+
+                    for (int i = last.No + 1; i < next.No; i++)
+                    {
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = false; uRoute.No = i; uRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        uRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = false; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        dRoute.Distance = -Stacks[i].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        Route.Add(dRoute);
+                    }
+
+                    if (Downward)
+                    {
+                        ROUTE uRoute = new ROUTE(); uRoute.IsLeft = false; uRoute.No = next.No; uRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        uRoute.Distance = Stacks[next.No].Width + Stacks[next.No].SetKeepU;
+                        uRoute.MapPoint = getRouteMapPoint(uRoute);
+                        Route.Add(uRoute);
+
+                        ROUTE dRoute = new ROUTE(); dRoute.IsLeft = false; dRoute.No = next.No; dRoute.Direction = TH_AutoSearchTrack.Direction.Left;
+                        dRoute.Distance = -Stacks[next.No].SetKeepD;
+                        dRoute.MapPoint = getRouteMapPoint(dRoute);
+                        if (next.Direction == TH_AutoSearchTrack.Direction.Down) { Route.Add(dRoute); }
+                    }
+
+                    if (Downward && next.MapPoint.X == Route[Route.Count - 1].MapPoint.X)
+                    {
+                        ROUTE dRoute = Route[Route.Count - 1];
+                        if (next.Distance != dRoute.Distance) { Route.Add(next); }
+                        return;
+                    }
+
+                    #endregion
+                }
+
+                #endregion
+            }
+
+            #region 到达目标点
+
+            last = Route[Route.Count - 1];
+            lastStack = Stacks[last.No];
+
+            if (next.IsLeft && next.Direction == TH_AutoSearchTrack.Direction.Up)
+            {
+                if (last.Distance != -lastStack.SetKeepU)
+                {
+                    last.Direction = TH_AutoSearchTrack.Direction.Right;
+                    last.Distance = -lastStack.SetKeepU;
+                    last.MapPoint = getRouteMapPoint(last);
+                    Route.Add(last);
+                }
+            }
+            if (next.IsLeft && next.Direction == TH_AutoSearchTrack.Direction.Down)
+            {
+                if (last.Distance != lastStack.Width + lastStack.SetKeepD)
+                {
+                    last.Direction = TH_AutoSearchTrack.Direction.Right;
+                    last.Distance = lastStack.Width + lastStack.SetKeepD;
+                    last.MapPoint = getRouteMapPoint(last);
+                    Route.Add(last);
+                }
+            }
+            if (!next.IsLeft && next.Direction == TH_AutoSearchTrack.Direction.Up)
+            {
+                if (last.Distance != lastStack.Width + lastStack.SetKeepU)
+                {
+                    last.Direction = TH_AutoSearchTrack.Direction.Left;
+                    last.Distance = lastStack.Width + lastStack.SetKeepU;
+                    last.MapPoint = getRouteMapPoint(last);
+                    Route.Add(last);
+                }
+            }
+            if (!next.IsLeft && next.Direction == TH_AutoSearchTrack.Direction.Down)
+            {
+                if (last.Distance != -lastStack.SetKeepD)
+                {
+                    last.Direction = TH_AutoSearchTrack.Direction.Left;
+                    last.Distance = -lastStack.SetKeepD;
+                    last.MapPoint = getRouteMapPoint(last);
+                    Route.Add(last);
+                }
+            }
+
+            Route.Add(next);
+
+            #endregion
         }
         public static void ClieckedClear()
         {

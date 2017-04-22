@@ -411,10 +411,11 @@ namespace AGVproject.Class
             setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
             setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
         }
-        public static void Save_Map(ref string path, ref string name)
+        public static void Save_Map(ref int index)
         {
             string MapPath = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Path;
             string MapName = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Name;
+            string path = "", name = "";
 
             SaveFileDialog sf = new SaveFileDialog();
             sf.Filter = "MAP（*.map）|*.map";
@@ -426,7 +427,8 @@ namespace AGVproject.Class
             path = sf.FileName.Substring(0, cut);
             name = sf.FileName.Substring(cut + 1);
             name = name.Substring(0, name.Length - 4);
-            
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
+
             StreamWriter sw = new StreamWriter(sf.FileName);
 
             foreach (HouseMap.STACK stack in HouseMap.Stacks)
@@ -452,12 +454,25 @@ namespace AGVproject.Class
             }
 
             sw.Close();
-            if (path == MapPath && name == MapName) { path = ""; name = ""; }
+            
+            foreach (Form_Start.CONFIG.FILE map in Form_Start.config.Map)
+            {
+                index++;
+                if (map.Path != path || map.Name != name) { continue; }
+                return;
+            }
+            Form_Start.CONFIG.FILE newMap = new Form_Start.CONFIG.FILE();
+            newMap.Full = path + "\\" + name + ".map";
+            newMap.Path = path;
+            newMap.Name = name;
+            newMap.Text = new string[0];
+            Form_Start.config.Map.Add(newMap);
         }
-        public static void Save_Route(ref string path, ref string name)
+        public static void Save_Route(ref int index)
         {
             string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Path;
             string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Name;
+            string path = "", name = "";
 
             SaveFileDialog sf = new SaveFileDialog();
             sf.Filter = "ROUTE（*.route）|*.route";
@@ -469,6 +484,7 @@ namespace AGVproject.Class
             path = sf.FileName.Substring(0, cut);
             name = sf.FileName.Substring(cut + 1);
             name = name.Substring(0, name.Length - 6);
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
 
             StreamWriter sw = new StreamWriter(sf.FileName);
 
@@ -482,7 +498,19 @@ namespace AGVproject.Class
             }
 
             sw.Close();
-            if (path == RoutePath && name == RouteName) { path = ""; name = ""; }
+            
+            foreach (Form_Start.CONFIG.FILE route in Form_Start.config.Route)
+            {
+                index++;
+                if (route.Path != path || route.Name != name) { continue; }
+                return;
+            }
+            Form_Start.CONFIG.FILE newRoute = new Form_Start.CONFIG.FILE();
+            newRoute.Full = path + "\\" + name + ".route";
+            newRoute.Path = path;
+            newRoute.Name = name;
+            newRoute.Text = new string[0];
+            Form_Start.config.Route.Add(newRoute);
         }
 
         private static string getFieldValue1_STRING(string Field)

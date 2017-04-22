@@ -60,6 +60,7 @@ namespace AGVproject.Form_Stack
             CANCLE = true;
 
             this.StackNoLabel.Text = StackNo.ToString();
+            if (StackNo == 0) { this.StackNoLabel.Text = "门"; }
             this.iDirection.SelectedIndex = Direction;
             this.iDistance.Text = Distance.ToString();
 

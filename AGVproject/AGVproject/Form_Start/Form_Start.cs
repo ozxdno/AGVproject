@@ -263,6 +263,8 @@ namespace AGVproject
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
             config.Timer.AutoReset = true;
             config.Timer.Start();
+
+            Form_SizeChanged(sender, e);
         }
         private void Form_SizeChanged(object sender, EventArgs e)
         {
@@ -314,8 +316,9 @@ namespace AGVproject
             if (!config.CheckMap && !config.CheckRoute) { return; }
 
             TH_UpdataPictureBox.MOUSE mousePos = TH_UpdataPictureBox.getMousePosition();
-            if (mousePos.No == 0) { return; }
+            if (mousePos.No == -1) { return; }
             if (mousePos.Direction != TH_AutoSearchTrack.Direction.Tuning) { return; }
+            if (mousePos.No == 0) { TH_UpdataPictureBox.Route.RemoveAt(TH_UpdataPictureBox.Route.Count - 1); }
 
             HouseMap.STACK stack = HouseMap.Stacks[mousePos.No];
 
@@ -358,6 +361,7 @@ namespace AGVproject
             stack.KeepDistanceR = Form_Stack.Form_Stack.SetKeepR;
 
             HouseMap.Stacks[mousePos.No] = stack;
+            if (stack.No == 0) { TH_UpdataPictureBox.Stacks[0] = TH_UpdataPictureBox.RealStack2MapStack(0); return; }
 
             if (mousePos.No != 1 && mousePos.No != HouseMap.TotalStacks)
             {
@@ -399,50 +403,35 @@ namespace AGVproject
             string item = e.ClickedItem.Text;
             contextMenuStrip.Close();
 
-            if (item == "Finish") { TH_UpdataPictureBox.DrawOver = true; }
-            if (item == "Save Map")
+            if (item == "Finish")
             {
-                TH_UpdataPictureBox.DrawOver = true;
-
-                string path = "", name = "";
-                Configuration.Save_Map(ref path, ref name);
-                if (path.Length != 0)
-                {
-                    CONFIG.FILE map = new CONFIG.FILE();
-                    map.Full = path + "\\" + name + ".map";
-                    map.Path = path;
-                    map.Name = name;
-                    map.Text = new string[0];
-                    config.Map.Add(map);
-
-                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
-                    NewMenu.Click += setSelectedMap;
-                    this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
-                    setSelectedMap(NewMenu, e);
-                }
+                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
             }
-            if (item == "Save Route")
+            if (item == "Save Map" && config.CheckMap)
             {
-                TH_UpdataPictureBox.DrawOver = true;
+                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
 
-                string path = "", name = "";
-                Configuration.Save_Route(ref path, ref name);
-                if (path.Length != 0)
-                {
-                    CONFIG.FILE route = new CONFIG.FILE();
-                    route.Full = path + "\\" + name + ".route";
-                    route.Path = path;
-                    route.Name = name;
-                    route.Text = new string[0];
-                    config.Route.Add(route);
+                int index = -1;
+                Configuration.Save_Map(ref index);
+                if (index == -1) { return; }
 
-                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
-                    NewMenu.Click += setSelectedMap;
-                    this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
-                    setSelectedRoute(NewMenu, e);
-                }
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Map[config.Map.Count - 1].Name);
+                NewMenu.Click += setSelectedMap;
+                this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+                setSelectedMap(NewMenu, e);
+            }
+            if (item == "Save Route" && config.CheckRoute)
+            {
+                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
 
-                return;
+                int index = -1;
+                Configuration.Save_Route(ref index);
+                if (index == -1) { return; }
+
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[config.Route.Count - 1].Name);
+                NewMenu.Click += setSelectedMap;
+                this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+                setSelectedRoute(NewMenu, e);
             }
             if (item == "Clear") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedClear(); }
             if (item == "Undo") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedUndo(); }

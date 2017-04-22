@@ -35,6 +35,7 @@
             this.finishToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveRouteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.mapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputToolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
@@ -88,7 +89,6 @@
             this.TimeLabel = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.pictureBox = new System.Windows.Forms.PictureBox();
-            this.saveRouteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -130,6 +130,12 @@
             this.showToolStripMenuItem.Name = "showToolStripMenuItem";
             this.showToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.showToolStripMenuItem.Text = "Save Map";
+            // 
+            // saveRouteToolStripMenuItem
+            // 
+            this.saveRouteToolStripMenuItem.Name = "saveRouteToolStripMenuItem";
+            this.saveRouteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveRouteToolStripMenuItem.Text = "Save Route";
             // 
             // menuStrip1
             // 
@@ -210,38 +216,38 @@
             // buildToolStripMenuItem
             // 
             this.buildToolStripMenuItem.Name = "buildToolStripMenuItem";
-            this.buildToolStripMenuItem.Size = new System.Drawing.Size(108, 22);
+            this.buildToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.buildToolStripMenuItem.Text = "Undo";
             // 
             // clearToolStripMenuItem1
             // 
             this.clearToolStripMenuItem1.Name = "clearToolStripMenuItem1";
-            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(108, 22);
+            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.clearToolStripMenuItem1.Text = "Clear";
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(108, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Save";
             // 
             // deleteToolStripMenuItem6
             // 
             this.deleteToolStripMenuItem6.Name = "deleteToolStripMenuItem6";
-            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(108, 22);
-            this.deleteToolStripMenuItem6.Text = "Finish";
+            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem6.Text = "Delete";
             // 
             // CheckRoute
             // 
             this.CheckRoute.CheckOnClick = true;
             this.CheckRoute.Name = "CheckRoute";
-            this.CheckRoute.Size = new System.Drawing.Size(108, 22);
+            this.CheckRoute.Size = new System.Drawing.Size(152, 22);
             this.CheckRoute.Text = "Show";
             // 
             // autoRoute
             // 
             this.autoRoute.Name = "autoRoute";
-            this.autoRoute.Size = new System.Drawing.Size(108, 22);
+            this.autoRoute.Size = new System.Drawing.Size(152, 22);
             this.autoRoute.Text = "Auto";
             this.autoRoute.Click += new System.EventHandler(this.setSelectedRoute);
             // 
@@ -551,12 +557,6 @@
             this.pictureBox.MouseEnter += new System.EventHandler(this.MouseEnterMap);
             this.pictureBox.MouseLeave += new System.EventHandler(this.MouseLeaveMap);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MapMouseMove);
-            // 
-            // saveRouteToolStripMenuItem
-            // 
-            this.saveRouteToolStripMenuItem.Name = "saveRouteToolStripMenuItem";
-            this.saveRouteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.saveRouteToolStripMenuItem.Text = "Save Route";
             // 
             // Form_Start
             // 

@@ -114,11 +114,13 @@ namespace AGVproject.Class
             STACK stack0 = new STACK();
             stack0.IsLeft = false;
             stack0.No = 0;
-            stack0.AisleWidth_R = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
-            stack0.AisleWidth_L = DefaultCentreRoadWidth;
-            stack0.AisleWidth_U = DefaultAisleWidth;
-            stack0.AisleWidth_D = DefaultAisleWidth;
-            stack0.CarPosition = TH_AutoSearchTrack.Direction.Up;
+            stack0.AisleWidth_L = (HouseWidth - 2000) / 2;
+            stack0.AisleWidth_R = (HouseWidth - 2000) / 2;
+            stack0.AisleWidth_U = 0;
+            stack0.AisleWidth_D = 0;
+            stack0.CarPosition = TH_AutoSearchTrack.Direction.Tuning;
+            stack0.Length = 2000;
+            stack0.Width = 100;
             Stacks.Add(stack0);
 
             for (int i = 1; i <= TotalStacksL; i++)
