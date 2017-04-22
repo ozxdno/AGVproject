@@ -17,6 +17,8 @@ namespace AGVproject.Form_Stack
             InitializeComponent();
         }
 
+        public static bool CANCLE = false;
+
         public static int StackNo;
         public static int Direction;
         public static double Distance;
@@ -36,7 +38,6 @@ namespace AGVproject.Form_Stack
 
         private void Form_Stack_FormClosing(object sender, FormClosingEventArgs e)
         {
-            try { StackNo = int.Parse(this.iStackNo.Text); } catch { }
             try { Direction = int.Parse(this.iDirection.Text); } catch { }
             try { Distance = double.Parse(this.iDistance.Text); } catch { }
 
@@ -56,9 +57,9 @@ namespace AGVproject.Form_Stack
 
         private void Form_Stack_Load(object sender, EventArgs e)
         {
-            this.StackNoLabel.Text = StackNo.ToString();
+            CANCLE = true;
 
-            this.iStackNo.Text = StackNo.ToString();
+            this.StackNoLabel.Text = StackNo.ToString();
             this.iDirection.SelectedIndex = Direction;
             this.iDistance.Text = Distance.ToString();
 
@@ -74,6 +75,11 @@ namespace AGVproject.Form_Stack
             this.iSetKeepD.Text = SetKeepD.ToString();
             this.iSetKeepL.Text = SetKeepL.ToString();
             this.iSetKeepR.Text = SetKeepR.ToString();
+        }
+
+        private void Confirm_Click(object sender, EventArgs e)
+        {
+            CANCLE = false; MessageBox.Show("Confirmed !");
         }
     }
 }

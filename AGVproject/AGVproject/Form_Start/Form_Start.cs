@@ -106,6 +106,8 @@ namespace AGVproject
                 OperateRoute.getCurrentRoute();
                 OperateRoute.MouseMove();
 
+                OperateRoute.Clear();
+                OperateRoute.Undo();
                 OperateRoute.Save();
 
                 this.pictureBox.Height = OperateMap.BaseMapPicture.Height;
@@ -421,6 +423,8 @@ namespace AGVproject
 
             if (e.ClickedItem.Text == "Finish") { OperateMap.Operate = OperateMap.OPERATE.Finish; }
             if (e.ClickedItem.Text == "Save") { OperateMap.Operate = OperateMap.OPERATE.Save; }
+            if (e.ClickedItem.Text == "Clear") { OperateMap.Operate = OperateMap.OPERATE.Clear; }
+            if (e.ClickedItem.Text == "Undo") { OperateMap.Operate = OperateMap.OPERATE.Undo; }
         }
 
         private void Start(object sender, EventArgs e)
@@ -482,9 +486,11 @@ namespace AGVproject
         private void setSelectedMap(object sender, EventArgs e)
         {
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
+            int N = this.mapToolStripMenuItem.DropDownItems.Count;
 
-            foreach (ToolStripMenuItem iMenu in this.mapToolStripMenuItem.DropDownItems)
+            for (int i = 4; i < N; i++)
             {
+                ToolStripMenuItem iMenu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[i];
                 iMenu.Checked = false;
             }
             
@@ -500,9 +506,11 @@ namespace AGVproject
         private void setSelectedRoute(object sender, EventArgs e)
         {
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
+            int N = this.routeToolStripMenuItem.DropDownItems.Count;
 
-            foreach (ToolStripMenuItem iMenu in this.routeToolStripMenuItem.DropDownItems)
+            for (int i = 5; i < N; i++)
             {
+                ToolStripMenuItem iMenu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[i];
                 iMenu.Checked = false;
             }
 

@@ -407,27 +407,6 @@ namespace AGVproject.Class
             setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
             setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
         }
-        public static void Load_Map()
-        {
-
-        }
-        public static void Save_Map()
-        {
-            string exe_path = Application.ExecutablePath;
-            exe_path = exe_path.Substring(0, exe_path.LastIndexOf('\\'));
-            CFG = new List<CFG_FILE>();
-
-            string FullPath = exe_path + "\\cqu_agv.cfg";
-            if (!File.Exists(FullPath)) { return; }
-        }
-        public static void Load_Route()
-        {
-
-        }
-        public static void Save_Route()
-        {
-
-        }
 
         private static string getFieldValue1_STRING(string Field)
         {

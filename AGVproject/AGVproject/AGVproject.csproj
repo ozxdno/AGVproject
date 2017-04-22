@@ -62,6 +62,7 @@
     <Compile Include="Class\TH_MeasureSurrounding.cs" />
     <Compile Include="Class\TH_SendCommand.cs" />
     <Compile Include="Class\HouseMap.cs" />
+    <Compile Include="Class\TH_UpdataFormStart.cs" />
     <Compile Include="Form_Input\Form_Input.cs">
       <SubType>Form</SubType>
     </Compile>

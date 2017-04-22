@@ -9,24 +9,29 @@ using System.Windows.Forms;
 
 namespace AGVproject.Class
 {
-    class OperateMap
+    /// <summary>
+    /// 备用线程，界面刷新
+    /// </summary>
+    class TH_UpdataFormStart
     {
+        /////////////////////////////////////////////////// Attribute ///////////////////////////////////////////
+
         public static Bitmap BaseMapPicture;
         public static Graphics g;
         public static Cursor Cursor;
         public static bool CurrsorInMap;
-        
+
         public static MOUSE MousePosition;
+        public static Font StrFont;
 
         public static int MapWidth { get { return (int)(HouseMap.HouseLength / Form_Start.config.PixLength); } }
         public static int MapLength { get { return (int)(HouseMap.HouseWidth / Form_Start.config.PixLength); } }
 
         public static List<STACK> Stacks;
-        public static MOUSE_EVENT MouseEvent;
         public static OPERATE Operate;
-
-        public enum MOUSE_EVENT { Wait,Move,LeftClicked,RightClicked,DoubleClicked }
-        public enum OPERATE { Wait,Clear,Undo,Finish,Save }
+        public static List<ROUTE> Route;
+        
+        public enum OPERATE { Wait, Clear, Undo, Finish, No }
         public struct STACK
         {
             /// <summary>
@@ -99,6 +104,15 @@ namespace AGVproject.Class
             /// </summary>
             public int SetKeepR;
         }
+        public struct ROUTE
+        {
+            public bool IsLeft;
+            public int No;
+            public TH_AutoSearchTrack.Direction Direction;
+            public int Distance;
+
+            public Point MapPoint;
+        }
         public struct MOUSE
         {
             public bool IsSetting;
@@ -113,12 +127,22 @@ namespace AGVproject.Class
             public int y;
         }
 
+        ////////////////////////////////////////////////////////// Method //////////////////////////////////////////
+
         public static void Initial()
         {
             Stacks = new List<STACK>();
             for (int i = 0; i <= HouseMap.TotalStacks; i++)
             { Stacks.Add(RealStack2MapStack(i)); }
         }
+
+        public static void Updata()
+        {
+            getFont();
+            getBaseMapPicture();
+        }
+
+        
 
         public static void getBaseMapPicture()
         {
@@ -162,11 +186,17 @@ namespace AGVproject.Class
 
             Cursor = Cursors.Cross;
         }
+        public static void getFont()
+        {
+            int picLength = Math.Min(MapLength, MapWidth) / 2;
+            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
+            StrFont = new Font("Arial", width / 6 + 1);
+        }
 
         public static void getUltraSonicData()
         {
             if (!Form_Start.config.CheckControlPort) { return; }
-            
+
             int[] SonicData = TH_SendCommand.getUltraSonicData();
             if (SonicData == null) { SonicData = new int[8]; }
 
@@ -402,216 +432,6 @@ namespace AGVproject.Class
 
             stack.xBG = (int)(xBG / Form_Start.config.PixLength);
             stack.yBG = (int)(yBG / Form_Start.config.PixLength); return stack;
-        }
-    }
-
-    class OperateRoute
-    {
-        public static List<ROUTE> Route;
-        public struct ROUTE
-        {
-            public bool IsLeft;
-            public int No;
-            public TH_AutoSearchTrack.Direction Direction;
-            public int Distance;
-
-            public Point MapPoint;
-        }
-
-        public static void getPermitRoute()
-        {
-            if (OperateMap.Stacks == null || OperateMap.Stacks.Count == 0) { return; }
-            if (!Form_Start.config.CheckRoute) { return; }
-
-            int xBG, xED, yBG, yED;
-
-            foreach (OperateMap.STACK stack in OperateMap.Stacks)
-            {
-                // 左
-                xBG = stack.xBG - stack.SetKeepL;
-                xED = xBG;
-                yBG = stack.yBG - stack.SetKeepU;
-                yED = stack.yBG + stack.Width + stack.SetKeepD;
-                OperateMap.g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
-
-                // 上
-                xBG = stack.xBG - stack.SetKeepL;
-                xED = stack.xBG + stack.Length + stack.SetKeepR;
-                yBG = stack.yBG - stack.SetKeepU;
-                yED = yBG;
-                OperateMap.g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
-
-                // 右
-                xBG = stack.xBG + stack.Length + stack.SetKeepR;
-                xED = xBG;
-                yBG = stack.yBG - stack.SetKeepU;
-                yED = stack.yBG + stack.Width + stack.SetKeepD;
-                OperateMap.g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
-
-                // 下
-                xBG = stack.xBG - stack.SetKeepL;
-                xED = stack.xBG + stack.Length + stack.SetKeepR;
-                yBG = stack.yBG + stack.Width + stack.SetKeepD;
-                yED = yBG;
-                OperateMap.g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
-            }
-        }
-        public static void getCurrentRoute()
-        {
-            if (!Form_Start.config.CheckRoute) { return; }
-            if (Route == null || Route.Count == 0) { return; }
-            
-            for (int i = 0; i < Route.Count - 1; i++)
-            {
-                OperateMap.g.DrawLine(Pens.Blue, Route[i].MapPoint, Route[i + 1].MapPoint);
-            }
-
-            for (int i = 1; i < Route.Count - 1; i++)
-            {
-                OperateMap.g.DrawEllipse(Pens.Blue, Route[i].MapPoint.X - 2, Route[i].MapPoint.Y - 2, 4, 4);
-            }
-
-            int picLength = Math.Min(OperateMap.MapLength, OperateMap.MapWidth) / 2;
-            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6 + 1);
-
-            OperateMap.g.DrawEllipse(Pens.Red, Route[0].MapPoint.X - 2, Route[0].MapPoint.Y - 2, 4, 4);
-            OperateMap.g.DrawString("S", font, Brushes.Red, Route[0].MapPoint);
-
-            if (Route.Count <= 1) { return; }
-
-            OperateMap.g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
-            OperateMap.g.DrawString("E", font, Brushes.Red, Route[Route.Count - 1].MapPoint);
-        }
-
-        public static void MouseLeftClicked()
-        {
-            if (OperateMap.MouseEvent != OperateMap.MOUSE_EVENT.LeftClicked) { return; }
-            OperateMap.MouseEvent = OperateMap.MOUSE_EVENT.Wait;
-
-            if (!Form_Start.config.CheckRoute) { return; }
-            if (!OperateMap.CurrsorInMap) { return; }
-            if (OperateMap.Operate == OperateMap.OPERATE.Finish) { return; }
-            
-
-            OperateMap.MOUSE mousePos = OperateMap.getMousePosition();
-
-            if (mousePos.No == 0) { OperateMap.Cursor = Cursors.No; return; }
-            if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { OperateMap.Cursor = Cursors.No; return; }
-
-            if (Route != null && Route.Count != 0)
-            {
-                ROUTE last = Route[Route.Count - 1];
-                OperateMap.STACK stack = OperateMap.Stacks[last.No];
-
-                if (Math.Abs(mousePos.x - last.MapPoint.X) > 3 && Math.Abs(mousePos.y - last.MapPoint.Y) > 3)
-                { OperateMap.Cursor = Cursors.No; return; }
-
-                int BG = stack.yBG - stack.AisleWidth_U;
-                int ED = stack.yBG;
-                bool InAisleU = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
-
-                BG = stack.yBG + stack.Width;
-                ED = BG + stack.AisleWidth_D;
-                bool InAisleD = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
-
-                BG = stack.xBG - stack.AisleWidth_L;
-                ED = stack.xBG;
-                bool InAisleL = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
-                if (last.IsLeft) { InAisleL = false; }
-
-                BG = stack.xBG + stack.Length;
-                ED = BG + stack.AisleWidth_R;
-                bool InAisleR = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
-                if (!last.IsLeft) { InAisleR = false; }
-
-                if (!InAisleL && !InAisleR && !InAisleU && !InAisleD) { OperateMap.Cursor = Cursors.No; return; }
-            }
-
-            ROUTE route = new ROUTE();
-            route.IsLeft = mousePos.IsLeft;
-            route.No = mousePos.No;
-            route.Direction = mousePos.Direction;
-            route.Distance = mousePos.Distance;
-            route.MapPoint = getRouteMapPoint(route);
-            
-            if (Route == null) { Route = new List<ROUTE>(); }
-            Route.Add(route);
-        }
-        public static void MouseMove()
-        {
-            if (!Form_Start.config.CheckRoute) { return; }
-            if (!OperateMap.CurrsorInMap) { return; }
-            if (OperateMap.Operate == OperateMap.OPERATE.Finish) { return; }
-            if (OperateMap.Operate == OperateMap.OPERATE.Save) { return; }
-            if (Route == null || Route.Count == 0) { return; }
-
-            OperateMap.MOUSE mousePos = OperateMap.getMousePosition();
-
-            Point ptBG = Route[Route.Count - 1].MapPoint;
-            Point ptED = new Point(mousePos.x, mousePos.y);
-
-            OperateMap.g.DrawLine(Pens.Blue, ptBG, ptED);
-        }
-
-        public static void Save()
-        {
-            if (OperateMap.Operate != OperateMap.OPERATE.Save) { return; }
-            OperateMap.Operate = OperateMap.OPERATE.Finish;
-            if (!Form_Start.config.CheckMap && !Form_Start.config.CheckRoute) { return; }
-
-            string exe_path = Application.ExecutablePath;
-            exe_path = exe_path.Substring(0, exe_path.LastIndexOf('\\'));
-            string FullPath = exe_path + "\\testMap.jpg";
-
-            OperateMap.BaseMapPicture.Save(FullPath);
-        }
-        public static void Clear()
-        {
-            if (OperateMap.Operate != OperateMap.OPERATE.Clear) { return; }
-            OperateMap.Operate = OperateMap.OPERATE.Wait;
-
-            if (Route == null) { Route = new List<ROUTE>(); }
-            Route.Clear();
-        }
-        public static void Undo()
-        {
-            if (OperateMap.Operate != OperateMap.OPERATE.Undo) { return; }
-            OperateMap.Operate = OperateMap.OPERATE.Wait;
-
-            if (!Form_Start.config.CheckRoute) { return; }
-
-            if (Route == null || Route.Count == 0) { return; }
-            Route.RemoveAt(Route.Count - 1);
-        }
-
-        public static Point getRouteMapPoint(ROUTE route)
-        {
-            OperateMap.STACK stack = OperateMap.Stacks[route.No];
-            Point pt = new Point();
-
-            if (route.Direction == TH_AutoSearchTrack.Direction.Left)
-            {
-                pt.X = stack.xBG - stack.SetKeepL;
-                pt.Y = stack.yBG + stack.Width - route.Distance;
-            }
-            if (route.Direction == TH_AutoSearchTrack.Direction.Up)
-            {
-                pt.X = stack.xBG + route.Distance;
-                pt.Y = stack.yBG - stack.SetKeepU;
-            }
-            if (route.Direction == TH_AutoSearchTrack.Direction.Right)
-            {
-                pt.X = stack.xBG + stack.Length + stack.SetKeepR;
-                pt.Y = stack.yBG + route.Distance;
-            }
-            if (route.Direction == TH_AutoSearchTrack.Direction.Down)
-            {
-                pt.X = stack.xBG + stack.Length - route.Distance;
-                pt.Y = stack.yBG + stack.Width + stack.SetKeepD;
-            }
-
-            return pt;
         }
     }
 }

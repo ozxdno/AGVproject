@@ -134,6 +134,11 @@ namespace AGVproject.Class
                 NewStack.AisleWidth_U = DefaultAisleWidth;
                 NewStack.AisleWidth_D = DefaultAisleWidth;
 
+                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
+                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
+                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
+                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
+
                 Stacks.Add(NewStack);
             }
             for (int i = TotalStacksL + 1; i <= TotalStacks; i++)
@@ -148,6 +153,11 @@ namespace AGVproject.Class
                 NewStack.AisleWidth_R = DefaultCentreRoadWidth;
                 NewStack.AisleWidth_U = DefaultAisleWidth;
                 NewStack.AisleWidth_D = DefaultAisleWidth;
+
+                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
+                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
+                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
+                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
 
                 Stacks.Add(NewStack);
             }

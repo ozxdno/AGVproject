@@ -163,32 +163,32 @@
             // inputToolStripMenuItem3
             // 
             this.inputToolStripMenuItem3.Name = "inputToolStripMenuItem3";
-            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(113, 22);
+            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(152, 22);
             this.inputToolStripMenuItem3.Text = "Input";
             // 
             // outputToolStripMenuItem
             // 
             this.outputToolStripMenuItem.Name = "outputToolStripMenuItem";
-            this.outputToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.outputToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.outputToolStripMenuItem.Text = "Save";
             // 
             // deleteToolStripMenuItem7
             // 
             this.deleteToolStripMenuItem7.Name = "deleteToolStripMenuItem7";
-            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(113, 22);
+            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(152, 22);
             this.deleteToolStripMenuItem7.Text = "Delete";
             // 
             // CheckMap
             // 
             this.CheckMap.CheckOnClick = true;
             this.CheckMap.Name = "CheckMap";
-            this.CheckMap.Size = new System.Drawing.Size(113, 22);
+            this.CheckMap.Size = new System.Drawing.Size(152, 22);
             this.CheckMap.Text = "Show";
             // 
             // autoMap
             // 
             this.autoMap.Name = "autoMap";
-            this.autoMap.Size = new System.Drawing.Size(113, 22);
+            this.autoMap.Size = new System.Drawing.Size(152, 22);
             this.autoMap.Text = "Auto";
             this.autoMap.Click += new System.EventHandler(this.setSelectedMap);
             // 
@@ -208,38 +208,38 @@
             // buildToolStripMenuItem
             // 
             this.buildToolStripMenuItem.Name = "buildToolStripMenuItem";
-            this.buildToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
-            this.buildToolStripMenuItem.Text = "Edit";
+            this.buildToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.buildToolStripMenuItem.Text = "Undo";
             // 
             // clearToolStripMenuItem1
             // 
             this.clearToolStripMenuItem1.Name = "clearToolStripMenuItem1";
-            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(113, 22);
+            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.clearToolStripMenuItem1.Text = "Clear";
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Save";
             // 
             // deleteToolStripMenuItem6
             // 
             this.deleteToolStripMenuItem6.Name = "deleteToolStripMenuItem6";
-            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(113, 22);
-            this.deleteToolStripMenuItem6.Text = "Delete";
+            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem6.Text = "Finish";
             // 
             // CheckRoute
             // 
             this.CheckRoute.CheckOnClick = true;
             this.CheckRoute.Name = "CheckRoute";
-            this.CheckRoute.Size = new System.Drawing.Size(113, 22);
+            this.CheckRoute.Size = new System.Drawing.Size(152, 22);
             this.CheckRoute.Text = "Show";
             // 
             // autoRoute
             // 
             this.autoRoute.Name = "autoRoute";
-            this.autoRoute.Size = new System.Drawing.Size(113, 22);
+            this.autoRoute.Size = new System.Drawing.Size(152, 22);
             this.autoRoute.Text = "Auto";
             this.autoRoute.Click += new System.EventHandler(this.setSelectedRoute);
             // 
