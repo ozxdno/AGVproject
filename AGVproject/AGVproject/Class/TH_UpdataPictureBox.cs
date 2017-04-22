@@ -12,26 +12,33 @@ namespace AGVproject.Class
     /// <summary>
     /// 备用线程，界面刷新
     /// </summary>
-    class TH_UpdataFormStart
+    class TH_UpdataPictureBox
     {
         /////////////////////////////////////////////////// Attribute ///////////////////////////////////////////
 
         public static Bitmap BaseMapPicture;
         public static Graphics g;
         public static Cursor Cursor;
+
         public static bool CurrsorInMap;
+        public static bool NoOperate;
+        public static bool DrawOver;
+        public static bool PushedCursor;
 
         public static MOUSE MousePosition;
         public static Font StrFont;
 
         public static int MapWidth { get { return (int)(HouseMap.HouseLength / Form_Start.config.PixLength); } }
         public static int MapLength { get { return (int)(HouseMap.HouseWidth / Form_Start.config.PixLength); } }
+        public static int BoxLength;
+        public static int BoxWidth;
 
         public static List<STACK> Stacks;
-        public static OPERATE Operate;
         public static List<ROUTE> Route;
+
+        public static bool IsSettingMousePosition;
+        public static bool IsGettingMousePosition;
         
-        public enum OPERATE { Wait, Clear, Undo, Finish, No }
         public struct STACK
         {
             /// <summary>
@@ -115,9 +122,6 @@ namespace AGVproject.Class
         }
         public struct MOUSE
         {
-            public bool IsSetting;
-            public bool IsGetting;
-
             public bool IsLeft;
             public int No;
             public TH_AutoSearchTrack.Direction Direction;
@@ -131,19 +135,27 @@ namespace AGVproject.Class
 
         public static void Initial()
         {
+            NoOperate = false;
+
             Stacks = new List<STACK>();
             for (int i = 0; i <= HouseMap.TotalStacks; i++)
             { Stacks.Add(RealStack2MapStack(i)); }
-        }
 
+            Route = new List<ROUTE>();
+        }
         public static void Updata()
         {
+            getCursorShape();
             getFont();
             getBaseMapPicture();
+            getPermitRoute();
+            getCurrentRoute();
+            getSelectRoute();
+            getUrgData();
+            getUltraSonicData();
+            getLocateData();
         }
-
         
-
         public static void getBaseMapPicture()
         {
             // 创建图片
@@ -157,42 +169,39 @@ namespace AGVproject.Class
             // 是否打开地图
             if (!Form_Start.config.CheckMap) { return; }
 
-            // 获取字体
-            int picLength = Math.Min(MapLength, MapWidth) / 2;
-            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6 + 1);
-
             // 添加堆垛
             string istr; SizeF size;
             for (int i = 1; i < Stacks.Count; i++)
             {
                 g.FillRectangle(Brushes.LightBlue, Stacks[i].xBG, Stacks[i].yBG, Stacks[i].Length, Stacks[i].Width);
 
-                istr = i.ToString(); size = g.MeasureString(istr, font);
+                istr = i.ToString(); size = g.MeasureString(istr, StrFont);
 
                 int x = Stacks[i].xBG + Stacks[i].Length / 2 - (int)size.Width / 2;
                 int y = Stacks[i].yBG + Stacks[i].Width / 2 - (int)size.Height / 2;
-                g.DrawString(i.ToString(), font, Brushes.Black, x, y);
+                g.DrawString(i.ToString(), StrFont, Brushes.Black, x, y);
             }
         }
         public static void getCursorShape()
         {
+            if (PushedCursor) { PushedCursor = false; return; }
+
             MOUSE mouse = getMousePosition();
 
             if (!Form_Start.config.CheckMap && !Form_Start.config.CheckRoute) { Cursor = Cursors.Default; return; }
             if (mouse.No == 0) { Cursor = Cursors.Default; return; }
             if (mouse.Direction == TH_AutoSearchTrack.Direction.Tuning) { Cursor = Cursors.Default; return; }
-            if (Operate == OPERATE.Finish) { Cursor = Cursors.Default; return; }
 
             Cursor = Cursors.Cross;
         }
         public static void getFont()
         {
-            int picLength = Math.Min(MapLength, MapWidth) / 2;
-            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            StrFont = new Font("Arial", width / 6 + 1);
+            int fontWidth = Math.Min(Math.Min(MapLength, MapWidth), Math.Min(BoxLength, BoxWidth));
+            fontWidth /= 50;
+            fontWidth++;
+            if (fontWidth > 40) { fontWidth = 40; }
+            StrFont = new Font("Arial", fontWidth);
         }
-
         public static void getUltraSonicData()
         {
             if (!Form_Start.config.CheckControlPort) { return; }
@@ -273,20 +282,93 @@ namespace AGVproject.Class
             if (!Form_Start.config.CheckLocatePort) { return; }
 
             CoordinatePoint.POINT point = TH_MeasurePosition.getPosition();
-            int picLength = Math.Min(MapLength, MapWidth) / 2;
-            int width = (int)(Hardware_PlatForm.Width / Form_Start.config.urgRange * picLength);
-            Font font = new Font("Arial", width / 6 + 1);
-
-            SizeF size = g.MeasureString("X", font);
+            SizeF size = g.MeasureString("X", StrFont);
             int centre = MapLength / 2;
 
-            g.DrawString("X: " + point.x.ToString(), font, Brushes.Black, 30, centre - size.Width * 3);
-            g.DrawString("Y: " + point.y.ToString(), font, Brushes.Black, 30, centre - size.Width * 1);
-            g.DrawString("A: " + point.aCar.ToString(), font, Brushes.Black, 30, centre + size.Width * 1);
-            g.DrawString("R: " + point.rCar.ToString(), font, Brushes.Black, 30, centre + size.Width * 3);
+            g.DrawString("X: " + point.x.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 3);
+            g.DrawString("Y: " + point.y.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 1);
+            g.DrawString("A: " + point.aCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 1);
+            g.DrawString("R: " + point.rCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 3);
+        }
+        public static void getPermitRoute()
+        {
+            if (Stacks == null || Stacks.Count == 0) { return; }
+            if (!Form_Start.config.CheckRoute) { return; }
+
+            int xBG, xED, yBG, yED;
+
+            foreach (STACK stack in Stacks)
+            {
+                // 左
+                xBG = stack.xBG - stack.SetKeepL;
+                xED = xBG;
+                yBG = stack.yBG - stack.SetKeepU;
+                yED = stack.yBG + stack.Width + stack.SetKeepD;
+                g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
+
+                // 上
+                xBG = stack.xBG - stack.SetKeepL;
+                xED = stack.xBG + stack.Length + stack.SetKeepR;
+                yBG = stack.yBG - stack.SetKeepU;
+                yED = yBG;
+                g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
+
+                // 右
+                xBG = stack.xBG + stack.Length + stack.SetKeepR;
+                xED = xBG;
+                yBG = stack.yBG - stack.SetKeepU;
+                yED = stack.yBG + stack.Width + stack.SetKeepD;
+                g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
+
+                // 下
+                xBG = stack.xBG - stack.SetKeepL;
+                xED = stack.xBG + stack.Length + stack.SetKeepR;
+                yBG = stack.yBG + stack.Width + stack.SetKeepD;
+                yED = yBG;
+                g.DrawLine(Pens.LightBlue, xBG, yBG, xED, yED);
+            }
+        }
+        public static void getCurrentRoute()
+        {
+            if (!Form_Start.config.CheckRoute) { return; }
+            if (Route == null || Route.Count == 0) { return; }
+
+            // 线
+            for (int i = 0; i < Route.Count - 1; i++)
+            {
+                g.DrawLine(Pens.Blue, Route[i].MapPoint, Route[i + 1].MapPoint);
+            }
+
+            // 点
+            for (int i = 1; i < Route.Count - 1; i++)
+            {
+                g.DrawEllipse(Pens.Blue, Route[i].MapPoint.X - 2, Route[i].MapPoint.Y - 2, 4, 4);
+            }
+            
+            // 起点
+            g.DrawEllipse(Pens.Red, Route[0].MapPoint.X - 2, Route[0].MapPoint.Y - 2, 4, 4);
+            g.DrawString("S", StrFont, Brushes.Red, Route[0].MapPoint);
+
+            // 终点
+            if (Route.Count <= 1) { return; }
+            g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
+            g.DrawString("E", StrFont, Brushes.Red, Route[Route.Count - 1].MapPoint);
+        }
+        public static void getSelectRoute()
+        {
+            if (!Form_Start.config.CheckRoute) { return; }
+            if (!CurrsorInMap) { return; }
+            if (NoOperate) { return; }
+            if (DrawOver) { return; }
+            if (Route.Count == 0) { return; }
+
+            MOUSE mousePos = getMousePosition();
+            Point ptBG = Route[Route.Count - 1].MapPoint;
+            Point ptED = new Point(mousePos.x, mousePos.y);
+            g.DrawLine(Pens.Blue, ptBG, ptED);
         }
 
-        public static MOUSE setMousePosition(int X, int Y)
+        public static void setMousePosition(int X, int Y)
         {
             int xBG, yBG, xED, yED;
             MOUSE p = new MOUSE();
@@ -364,14 +446,19 @@ namespace AGVproject.Class
                 }
             }
 
-            p.x = X; p.y = Y; return p;
+            p.x = X; p.y = Y;
+
+            IsSettingMousePosition = true;
+            while (IsGettingMousePosition) ;
+            MousePosition = p;
+            IsSettingMousePosition = false;
         }
         public static MOUSE getMousePosition()
         {
             MOUSE currPos = new MOUSE();
-
-            MousePosition.IsGetting = true;
-            while (MousePosition.IsSetting) ;
+            
+            while (IsSettingMousePosition) ;
+            IsGettingMousePosition = true;
 
             currPos.IsLeft = MousePosition.IsLeft;
             currPos.No = MousePosition.No;
@@ -380,13 +467,13 @@ namespace AGVproject.Class
             currPos.x = MousePosition.x;
             currPos.y = MousePosition.y;
 
-            MousePosition.IsGetting = false;
+            IsGettingMousePosition = false;
             return currPos;
         }
 
-        public static void MapStack2ReadStack(int No)
+        public static HouseMap.STACK MapStack2ReadStack(int No)
         {
-
+            return new HouseMap.STACK();
         }
         public static STACK RealStack2MapStack(int No)
         {
@@ -432,6 +519,102 @@ namespace AGVproject.Class
 
             stack.xBG = (int)(xBG / Form_Start.config.PixLength);
             stack.yBG = (int)(yBG / Form_Start.config.PixLength); return stack;
+        }
+        public static Point getRouteMapPoint(ROUTE route)
+        {
+            STACK stack = Stacks[route.No];
+            Point pt = new Point();
+
+            if (route.Direction == TH_AutoSearchTrack.Direction.Left)
+            {
+                pt.X = stack.xBG - stack.SetKeepL;
+                pt.Y = stack.yBG + stack.Width - route.Distance;
+            }
+            if (route.Direction == TH_AutoSearchTrack.Direction.Up)
+            {
+                pt.X = stack.xBG + route.Distance;
+                pt.Y = stack.yBG - stack.SetKeepU;
+            }
+            if (route.Direction == TH_AutoSearchTrack.Direction.Right)
+            {
+                pt.X = stack.xBG + stack.Length + stack.SetKeepR;
+                pt.Y = stack.yBG + route.Distance;
+            }
+            if (route.Direction == TH_AutoSearchTrack.Direction.Down)
+            {
+                pt.X = stack.xBG + stack.Length - route.Distance;
+                pt.Y = stack.yBG + stack.Width + stack.SetKeepD;
+            }
+
+            return pt;
+        }
+
+        public static void MouseLeftClicked()
+        {
+            if (!Form_Start.config.CheckRoute) { return; }
+            if (!CurrsorInMap) { return; }
+            if (NoOperate) { return; }
+            if (DrawOver) { return; }
+
+            MOUSE mousePos = getMousePosition();
+
+            if (mousePos.No == 0) { PushedCursor = true; Cursor = Cursors.No; return; }
+            if (mousePos.Direction == TH_AutoSearchTrack.Direction.Tuning) { PushedCursor = true; Cursor = Cursors.No; return; }
+
+            if (Route != null && Route.Count != 0)
+            {
+                ROUTE last = Route[Route.Count - 1];
+                STACK stack = Stacks[last.No];
+
+                if (Math.Abs(mousePos.x - last.MapPoint.X) > 3 && Math.Abs(mousePos.y - last.MapPoint.Y) > 3)
+                { PushedCursor = true; Cursor = Cursors.No; return; }
+
+                int BG = stack.yBG - stack.AisleWidth_U;
+                int ED = stack.yBG;
+                bool InAisleU = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
+
+                BG = stack.yBG + stack.Width;
+                ED = BG + stack.AisleWidth_D;
+                bool InAisleD = BG < mousePos.y && mousePos.y < ED && BG < last.MapPoint.Y && last.MapPoint.Y < ED;
+
+                BG = stack.xBG - stack.AisleWidth_L;
+                ED = stack.xBG;
+                bool InAisleL = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
+                if (last.IsLeft) { InAisleL = false; }
+
+                BG = stack.xBG + stack.Length;
+                ED = BG + stack.AisleWidth_R;
+                bool InAisleR = BG < mousePos.x && mousePos.x < ED && BG < last.MapPoint.X && last.MapPoint.X < ED;
+                if (!last.IsLeft) { InAisleR = false; }
+
+                if (!InAisleL && !InAisleR && !InAisleU && !InAisleD)
+                { PushedCursor = true; Cursor = Cursors.No; return; }
+            }
+
+            ROUTE route = new ROUTE();
+            route.IsLeft = mousePos.IsLeft;
+            route.No = mousePos.No;
+            route.Direction = mousePos.Direction;
+            route.Distance = mousePos.Distance;
+            route.MapPoint = getRouteMapPoint(route);
+
+            if (Route == null) { Route = new List<ROUTE>(); }
+            Route.Add(route);
+        }
+        public static void ClieckedClear()
+        {
+            if (!Form_Start.config.CheckRoute) { return; }
+            if (NoOperate) { return; }
+
+            Route.Clear();
+        }
+        public static void ClieckedUndo()
+        {
+            if (!Form_Start.config.CheckRoute) { return; }
+            if (NoOperate) { return; }
+
+            if (Route.Count == 0) { return; }
+            Route.RemoveAt(Route.Count - 1);
         }
     }
 }

@@ -27,8 +27,12 @@ namespace AGVproject.Class
             StreamReader sr = new StreamReader(FullPath);
             while (!sr.EndOfStream)
             {
-                string line = sr.ReadLine(); string[] part = line.Split(':');
-                if (part.Length != 2) { continue; }
+                string line = sr.ReadLine();
+                int cut = line.IndexOf(':'); if (cut == -1) { continue; }
+
+                string[] part = new string[2];
+                part[0] = line.Substring(0, cut);
+                part[1] = line.Substring(cut + 1);
 
                 CFG_FILE item = new CFG_FILE();
                 item.Field = part[0];
@@ -406,6 +410,79 @@ namespace AGVproject.Class
 
             setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
             setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
+        }
+        public static void Save_Map(ref string path, ref string name)
+        {
+            string MapPath = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Path;
+            string MapName = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Name;
+
+            SaveFileDialog sf = new SaveFileDialog();
+            sf.Filter = "MAP（*.map）|*.map";
+            sf.RestoreDirectory = true;
+            sf.FileName = MapName;
+            if (sf.ShowDialog() != DialogResult.OK) { return; }
+            
+            int cut = sf.FileName.LastIndexOf("\\");
+            path = sf.FileName.Substring(0, cut);
+            name = sf.FileName.Substring(cut + 1);
+            name = name.Substring(0, name.Length - 4);
+            
+            StreamWriter sw = new StreamWriter(sf.FileName);
+
+            foreach (HouseMap.STACK stack in HouseMap.Stacks)
+            {
+                sw.WriteLine("No = " + stack.No.ToString());
+                sw.WriteLine("Length = " + stack.Length.ToString());
+                sw.WriteLine("Width = " + stack.Width.ToString());
+
+                sw.WriteLine("AisleWidth_U = " + stack.AisleWidth_U.ToString());
+                sw.WriteLine("AisleWidth_D = " + stack.AisleWidth_D.ToString());
+                sw.WriteLine("AisleWidth_L = " + stack.AisleWidth_L.ToString());
+                sw.WriteLine("AisleWidth_R = " + stack.AisleWidth_R.ToString());
+
+                sw.WriteLine("KeepDistanceU = " + stack.KeepDistanceU.ToString());
+                sw.WriteLine("KeepDistanceD = " + stack.KeepDistanceU.ToString());
+                sw.WriteLine("KeepDistanceL = " + stack.KeepDistanceU.ToString());
+                sw.WriteLine("KeepDistanceR = " + stack.KeepDistanceU.ToString());
+
+                sw.WriteLine("CarPosition = " + ((int)stack.CarPosition).ToString());
+                sw.WriteLine("Distance = " + stack.Distance.ToString());
+
+                sw.WriteLine("");
+            }
+
+            sw.Close();
+            if (path == MapPath && name == MapName) { path = ""; name = ""; }
+        }
+        public static void Save_Route(ref string path, ref string name)
+        {
+            string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Path;
+            string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Name;
+
+            SaveFileDialog sf = new SaveFileDialog();
+            sf.Filter = "ROUTE（*.route）|*.route";
+            sf.RestoreDirectory = true;
+            sf.FileName = RouteName;
+            if (sf.ShowDialog() != DialogResult.OK) { return; }
+
+            int cut = sf.FileName.LastIndexOf("\\");
+            path = sf.FileName.Substring(0, cut);
+            name = sf.FileName.Substring(cut + 1);
+            name = name.Substring(0, name.Length - 6);
+
+            StreamWriter sw = new StreamWriter(sf.FileName);
+
+            foreach (TH_UpdataPictureBox.ROUTE route in TH_UpdataPictureBox.Route)
+            {
+                sw.WriteLine("No = " + route.No.ToString());
+                sw.WriteLine("Direction = " + ((int)route.Direction).ToString());
+                sw.WriteLine("Distance = " + (route.Distance * Form_Start.config.PixLength).ToString());
+
+                sw.WriteLine("");
+            }
+
+            sw.Close();
+            if (path == RoutePath && name == RouteName) { path = ""; name = ""; }
         }
 
         private static string getFieldValue1_STRING(string Field)

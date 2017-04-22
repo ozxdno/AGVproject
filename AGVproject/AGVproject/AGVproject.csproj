@@ -54,7 +54,6 @@
     <Compile Include="Class\AST_GuideByPosition.cs" />
     <Compile Include="Class\AST_GuideBySurrounding.cs" />
     <Compile Include="Class\CoordinatePoint.cs" />
-    <Compile Include="Class\Operate.cs" />
     <Compile Include="Class\TH_AutoSearchTrack.cs" />
     <Compile Include="Class\Configuration.cs" />
     <Compile Include="Class\Hardware.cs" />
@@ -62,7 +61,7 @@
     <Compile Include="Class\TH_MeasureSurrounding.cs" />
     <Compile Include="Class\TH_SendCommand.cs" />
     <Compile Include="Class\HouseMap.cs" />
-    <Compile Include="Class\TH_UpdataFormStart.cs" />
+    <Compile Include="Class\TH_UpdataPictureBox.cs" />
     <Compile Include="Form_Input\Form_Input.cs">
       <SubType>Form</SubType>
     </Compile>

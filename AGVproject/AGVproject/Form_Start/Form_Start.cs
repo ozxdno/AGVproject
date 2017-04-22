@@ -94,26 +94,14 @@ namespace AGVproject
                 if (TH_AutoSearchTrack.control.Event != null) { this.EventLabel.Text = TH_AutoSearchTrack.control.Event; }
 
                 // 刷新图片
-                OperateMap.getBaseMapPicture();
-                OperateMap.getCursorShape();
+                TH_UpdataPictureBox.BoxLength = this.pictureBox.Height;
+                TH_UpdataPictureBox.BoxWidth = this.pictureBox.Width;
+                TH_UpdataPictureBox.Updata();
 
-                OperateMap.getUrgData();
-                OperateMap.getUltraSonicData();
-                OperateMap.getLocateData();
-
-                OperateRoute.getPermitRoute();
-                OperateRoute.MouseLeftClicked();
-                OperateRoute.getCurrentRoute();
-                OperateRoute.MouseMove();
-
-                OperateRoute.Clear();
-                OperateRoute.Undo();
-                OperateRoute.Save();
-
-                this.pictureBox.Height = OperateMap.BaseMapPicture.Height;
-                this.pictureBox.Width = OperateMap.BaseMapPicture.Width;
-                this.pictureBox.Image = OperateMap.BaseMapPicture;
-                if (OperateMap.CurrsorInMap) { this.Cursor = OperateMap.Cursor; }
+                this.pictureBox.Height = TH_UpdataPictureBox.BaseMapPicture.Height;
+                this.pictureBox.Width = TH_UpdataPictureBox.BaseMapPicture.Width;
+                this.pictureBox.Image = TH_UpdataPictureBox.BaseMapPicture;
+                if (TH_UpdataPictureBox.CurrsorInMap) { this.Cursor = TH_UpdataPictureBox.Cursor; }
             });
         }
         private void Form_Start_FormClosed(object sender, FormClosedEventArgs e)
@@ -148,7 +136,7 @@ namespace AGVproject
                 [config.SelectedMap + 5];
             setSelectedMap(SelectedMap, e);
 
-            OperateMap.Initial();
+            TH_UpdataPictureBox.Initial();
 
             // Route
             foreach (CONFIG.FILE file in config.Route)
@@ -286,13 +274,13 @@ namespace AGVproject
             this.panel1.Width = this.Width - 30;
             
             Point picBoxPos = new Point(0, 0);
-            if (OperateMap.BaseMapPicture.Height < this.panel1.Height)
+            if (TH_UpdataPictureBox.MapLength < this.panel1.Height)
             {
-                picBoxPos.Y = (this.panel1.Height - OperateMap.BaseMapPicture.Height) / 2;
+                picBoxPos.Y = (this.panel1.Height - TH_UpdataPictureBox.MapLength) / 2;
             }
-            if (OperateMap.BaseMapPicture.Width < this.panel1.Width)
+            if (TH_UpdataPictureBox.MapWidth < this.panel1.Width)
             {
-                picBoxPos.X = (this.panel1.Width - OperateMap.BaseMapPicture.Width) / 2;
+                picBoxPos.X = (this.panel1.Width - TH_UpdataPictureBox.MapWidth) / 2;
             }
             this.pictureBox.Location = picBoxPos;
 
@@ -305,31 +293,27 @@ namespace AGVproject
 
         private void MouseEnterMap(object sender, EventArgs e)
         {
-            OperateMap.CurrsorInMap = true;
+            TH_UpdataPictureBox.CurrsorInMap = true;
         }
         private void MouseLeaveMap(object sender, EventArgs e)
         {
-            OperateMap.CurrsorInMap = false;
+            TH_UpdataPictureBox.CurrsorInMap = false;
             this.Cursor = Cursors.Default;
         }
         private void MapMouseMove(object sender, MouseEventArgs e)
         {
-            while (OperateMap.MousePosition.IsGetting) ;
-            OperateMap.MousePosition.IsSetting = true;
-            OperateMap.MousePosition = OperateMap.setMousePosition(e.X, e.Y);
-            OperateMap.MousePosition.IsSetting = false;
+            TH_UpdataPictureBox.setMousePosition(e.X, e.Y);
         }
         private void MapMouseClicked(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right) { return; }
-
-            OperateMap.MouseEvent = OperateMap.MOUSE_EVENT.LeftClicked;
+            TH_UpdataPictureBox.MouseLeftClicked();
         }
         private void MapMouseDoubleClicked(object sender, MouseEventArgs e)
         {
             if (!config.CheckMap && !config.CheckRoute) { return; }
 
-            OperateMap.MOUSE mousePos = OperateMap.getMousePosition();
+            TH_UpdataPictureBox.MOUSE mousePos = TH_UpdataPictureBox.getMousePosition();
             if (mousePos.No == 0) { return; }
             if (mousePos.Direction != TH_AutoSearchTrack.Direction.Tuning) { return; }
 
@@ -406,25 +390,62 @@ namespace AGVproject
                 HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = rstack;
             }
 
-            if (!mousePos.IsLeft)
-            {
-                for (int i = mousePos.No; i <= HouseMap.TotalStacksR; i++)
-                { OperateMap.Stacks[i] = OperateMap.RealStack2MapStack(i); }
-            }
-            if (mousePos.IsLeft)
-            {
-                for (int i = HouseMap.TotalStacksR + 1; i <= mousePos.No; i++)
-                { OperateMap.Stacks[i] = OperateMap.RealStack2MapStack(i); }
-            }
+            for (int i = 1; i <= HouseMap.TotalStacks; i++)
+            { TH_UpdataPictureBox.Stacks[i] = TH_UpdataPictureBox.RealStack2MapStack(i); }
         }
         private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             if (!config.CheckMap && !config.CheckRoute) { return; }
+            string item = e.ClickedItem.Text;
+            contextMenuStrip.Close();
 
-            if (e.ClickedItem.Text == "Finish") { OperateMap.Operate = OperateMap.OPERATE.Finish; }
-            if (e.ClickedItem.Text == "Save") { OperateMap.Operate = OperateMap.OPERATE.Save; }
-            if (e.ClickedItem.Text == "Clear") { OperateMap.Operate = OperateMap.OPERATE.Clear; }
-            if (e.ClickedItem.Text == "Undo") { OperateMap.Operate = OperateMap.OPERATE.Undo; }
+            if (item == "Finish") { TH_UpdataPictureBox.DrawOver = true; }
+            if (item == "Save Map")
+            {
+                TH_UpdataPictureBox.DrawOver = true;
+
+                string path = "", name = "";
+                Configuration.Save_Map(ref path, ref name);
+                if (path.Length != 0)
+                {
+                    CONFIG.FILE map = new CONFIG.FILE();
+                    map.Full = path + "\\" + name + ".map";
+                    map.Path = path;
+                    map.Name = name;
+                    map.Text = new string[0];
+                    config.Map.Add(map);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedMap;
+                    this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+                    setSelectedMap(NewMenu, e);
+                }
+            }
+            if (item == "Save Route")
+            {
+                TH_UpdataPictureBox.DrawOver = true;
+
+                string path = "", name = "";
+                Configuration.Save_Route(ref path, ref name);
+                if (path.Length != 0)
+                {
+                    CONFIG.FILE route = new CONFIG.FILE();
+                    route.Full = path + "\\" + name + ".route";
+                    route.Path = path;
+                    route.Name = name;
+                    route.Text = new string[0];
+                    config.Route.Add(route);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedMap;
+                    this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+                    setSelectedRoute(NewMenu, e);
+                }
+
+                return;
+            }
+            if (item == "Clear") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedClear(); }
+            if (item == "Undo") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedUndo(); }
         }
 
         private void Start(object sender, EventArgs e)

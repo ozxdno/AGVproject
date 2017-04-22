@@ -56,6 +56,7 @@
             this.label14 = new System.Windows.Forms.Label();
             this.StackNoLabel = new System.Windows.Forms.Label();
             this.Confirm = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -105,9 +106,9 @@
             "上",
             "下",
             "？"});
-            this.iDirection.Location = new System.Drawing.Point(82, 12);
+            this.iDirection.Location = new System.Drawing.Point(80, 13);
             this.iDirection.Name = "iDirection";
-            this.iDirection.Size = new System.Drawing.Size(85, 20);
+            this.iDirection.Size = new System.Drawing.Size(39, 20);
             this.iDirection.TabIndex = 7;
             // 
             // label5
@@ -266,7 +267,7 @@
             // 
             this.label13.AutoSize = true;
             this.label13.BackColor = System.Drawing.SystemColors.Control;
-            this.label13.Location = new System.Drawing.Point(182, 16);
+            this.label13.Location = new System.Drawing.Point(192, 16);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(89, 12);
             this.label13.TabIndex = 31;
@@ -303,19 +304,30 @@
             // 
             // Confirm
             // 
-            this.Confirm.Location = new System.Drawing.Point(437, 11);
+            this.Confirm.Location = new System.Drawing.Point(410, 11);
             this.Confirm.Name = "Confirm";
-            this.Confirm.Size = new System.Drawing.Size(75, 23);
+            this.Confirm.Size = new System.Drawing.Size(102, 23);
             this.Confirm.TabIndex = 35;
             this.Confirm.Text = "Confirm";
             this.Confirm.UseVisualStyleBackColor = true;
             this.Confirm.Click += new System.EventHandler(this.Confirm_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(125, 13);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.ReadOnly = true;
+            this.textBox1.Size = new System.Drawing.Size(54, 21);
+            this.textBox1.TabIndex = 36;
+            this.textBox1.Text = "待调整";
+            this.textBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // Form_Stack
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 244);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.Confirm);
             this.Controls.Add(this.StackNoLabel);
             this.Controls.Add(this.label14);
@@ -385,5 +397,6 @@
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label StackNoLabel;
         private System.Windows.Forms.Button Confirm;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }
