@@ -882,7 +882,7 @@ namespace AGVproject.Class
                 int X = !last.IsLeft ?
                     Stacks[Stacks.Count - 1].xBG + Stacks[Stacks.Count - 1].Length + Stacks[Stacks.Count - 1].SetKeepR :
                     Stacks[1].xBG - Stacks[1].SetKeepL;
-                int Y = last.MapPoint.Y;
+                int Y = next.MapPoint.Y;
 
                 MOUSE lastpos = getMousePosition(X, Y);
                 if (lastpos.No == -1) { return; }
@@ -892,10 +892,10 @@ namespace AGVproject.Class
                 last.Direction = lastpos.Direction;
                 last.Distance = lastpos.Distance;
                 last.MapPoint = new Point(X, Y);
-                
+
                 lastStack = Stacks[last.No];
-                
-                Route.Add(last); return;
+
+                Route.Add(last);
             }
 
             #endregion
