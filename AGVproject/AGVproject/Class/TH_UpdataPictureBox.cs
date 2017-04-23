@@ -362,7 +362,7 @@ namespace AGVproject.Class
             g.DrawString("S", StrFont, Brushes.Red, Route[0].MapPoint);
 
             // 终点
-            if (Route.Count <= 2) { return; }
+            if (Route.Count < 2) { return; }
             g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
             g.DrawString("E", StrFont, Brushes.Red, Route[Route.Count - 1].MapPoint);
         }
@@ -739,7 +739,9 @@ namespace AGVproject.Class
 
             if (jumpX)
             {
-                int X = Stacks[Stacks.Count - 1].xBG + Stacks[Stacks.Count - 1].Length + Stacks[Stacks.Count - 1].SetKeepR;
+                int X = !last.IsLeft ?
+                    Stacks[Stacks.Count - 1].xBG + Stacks[Stacks.Count - 1].Length + Stacks[Stacks.Count - 1].SetKeepR :
+                    Stacks[1].xBG - Stacks[1].SetKeepL;
                 int Y = last.MapPoint.Y;
 
                 MOUSE lastpos = getMousePosition(X, Y);
@@ -750,24 +752,9 @@ namespace AGVproject.Class
                 last.Direction = lastpos.Direction;
                 last.Distance = lastpos.Distance;
                 last.MapPoint = new Point(X, Y);
-
-                //last.No = HouseMap.TotalStacks + 1 - last.No;
+                
                 lastStack = Stacks[last.No];
-
-                //if (last.IsLeft)
-                //{
-                //    last.IsLeft = false;
-                //    last.Direction = TH_AutoSearchTrack.Direction.Left;
-                //    last.Distance = lastStack.yBG + lastStack.Width - last.MapPoint.Y;
-                //    last.MapPoint = getRouteMapPoint(last);
-                //}
-                //else
-                //{
-                //    last.IsLeft = true;
-                //    last.Direction = TH_AutoSearchTrack.Direction.Right;
-                //    last.Distance = last.MapPoint.Y - lastStack.yBG;
-                //    last.MapPoint = getRouteMapPoint(last);
-                //}
+                
                 Route.Add(last); return;
             }
 
