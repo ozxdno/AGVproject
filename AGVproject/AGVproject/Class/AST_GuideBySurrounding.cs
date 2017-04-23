@@ -459,12 +459,8 @@ namespace AGVproject.Class
 
             // 设定基准点
             double BaseX = Hardware_PlatForm.ForeSightBG;
-            double BaseY = TH_AutoSearchTrack.control.KeepDistance_UD;
-            if (HouseMap.getDirection() == TH_AutoSearchTrack.Direction.Left)
-            { BaseY = TH_AutoSearchTrack.control.KeepDistance_LR; }
-            if (HouseMap.getDirection() == TH_AutoSearchTrack.Direction.Right)
-            { BaseY = TH_AutoSearchTrack.control.KeepDistance_LR; }
-
+            double BaseY = HouseMap.getKeepDistance();
+            
             // 获取相对角度
             double minAngle = double.MaxValue, maxAngle = double.MinValue;
             for (int i = 0; i < points.Count; i++)

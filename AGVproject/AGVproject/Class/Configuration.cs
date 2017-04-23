@@ -372,19 +372,10 @@ namespace AGVproject.Class
             TH_AutoSearchTrack.control.MaxSpeed_X = getFieldValue1_INT("AST.MaxSpeed_X");
             TH_AutoSearchTrack.control.MaxSpeed_Y = getFieldValue1_INT("AST.MaxSpeed_Y");
             TH_AutoSearchTrack.control.MaxSpeed_A = getFieldValue1_INT("AST.MaxSpeed_A");
-
-            List<int> ActinList = getFieldValue2_INT("AST.ActionList");
-            TH_AutoSearchTrack.control.ActionList = new List<TH_AutoSearchTrack.Action>();
-            foreach (TH_AutoSearchTrack.Action action in ActinList) { TH_AutoSearchTrack.control.ActionList.Add(action); }
-
-            TH_AutoSearchTrack.control.NextAction = (TH_AutoSearchTrack.Action)getFieldValue1_INT("AST.NextAction");
-            TH_AutoSearchTrack.control.SubAction = getFieldValue1_INT("AST.SubAction");
+            
             TH_AutoSearchTrack.control.EMA = getFieldValue1_BOOL("AST.EMA");
             TH_AutoSearchTrack.control.NearStack = getFieldValue1_INT("AST.NearStack");
             TH_AutoSearchTrack.control.Event = getFieldValue1_STRING("AST.Event");
-
-            TH_AutoSearchTrack.control.KeepDistance_LR = getFieldValue1_DOUBLE("AST.KeepDistance_LR");
-            TH_AutoSearchTrack.control.KeepDistance_UD = getFieldValue1_DOUBLE("AST.KeepDistance_UD");
         }
         private static void Save_AST()
         {
@@ -396,23 +387,10 @@ namespace AGVproject.Class
             setFieldValue("AST.MaxSpeed_X", TH_AutoSearchTrack.control.MaxSpeed_X);
             setFieldValue("AST.MaxSpeed_Y", TH_AutoSearchTrack.control.MaxSpeed_Y);
             setFieldValue("AST.MaxSpeed_A", TH_AutoSearchTrack.control.MaxSpeed_A);
-
-            if (TH_AutoSearchTrack.control.ActionList.Count != 0 &&
-                TH_AutoSearchTrack.control.ActionList[0] != TH_AutoSearchTrack.Action.Stop)
-            { TH_AutoSearchTrack.control.ActionList.Insert(0, TH_AutoSearchTrack.Action.Stop); }
-
-            List<int> ActinList = new List<int>();
-            foreach (int action in TH_AutoSearchTrack.control.ActionList) { ActinList.Add(action); }
-            setFieldValue("AST.ActionList", ActinList);
-
-            setFieldValue("AST.NextAction", (int)TH_AutoSearchTrack.control.NextAction);
-            setFieldValue("AST.SubAction", TH_AutoSearchTrack.control.SubAction);
+            
             setFieldValue("AST.EMA", TH_AutoSearchTrack.control.EMA);
             setFieldValue("AST.NearStack", TH_AutoSearchTrack.control.NearStack);
             setFieldValue("AST.Event", TH_AutoSearchTrack.control.Event);
-
-            setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
-            setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
         }
         public static bool Save_Map(ref int index)
         {

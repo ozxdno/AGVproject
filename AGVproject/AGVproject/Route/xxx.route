@@ -1,0 +1,410 @@
+No = 0
+IsLeft = False
+Direction = 3
+Direction = 1000
+
+No = 0
+IsLeft = False
+Direction = 3
+Direction = -1300
+
+No = 1
+IsLeft = False
+Direction = 2
+Direction = -200
+
+No = 1
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 1
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 1
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 1
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 1
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 2
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 2
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 2
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 2
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 3
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 3
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 3
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 3
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 4
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 4
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 4
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 4
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 5
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 5
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 5
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 5
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 6
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 6
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 6
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 6
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 7
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 7
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 7
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 7
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 8
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 8
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 8
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 8
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 9
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 9
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 9
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 9
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 10
+IsLeft = False
+Direction = 2
+Direction = 10200
+
+No = 10
+IsLeft = False
+Direction = 0
+Direction = 2350
+
+No = 10
+IsLeft = False
+Direction = 0
+Direction = -350
+
+No = 10
+IsLeft = False
+Direction = 3
+Direction = -200
+
+No = 10
+IsLeft = False
+Direction = 3
+Direction = 10200
+
+No = 11
+IsLeft = True
+Direction = 3
+Direction = -200
+
+No = 11
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 11
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 11
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 11
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 11
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 12
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 12
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 12
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 12
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 13
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 13
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 13
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 13
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 14
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 14
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 14
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 14
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 15
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 15
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 15
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 15
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 16
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 16
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 16
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 16
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 17
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 17
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 17
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 17
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 18
+IsLeft = True
+Direction = 3
+Direction = 10200
+
+No = 18
+IsLeft = True
+Direction = 1
+Direction = 2350
+
+No = 18
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 18
+IsLeft = True
+Direction = 2
+Direction = -200
+
+No = 18
+IsLeft = True
+Direction = 1
+Direction = -350
+
+No = 0
+IsLeft = False
+Direction = 3
+Direction = 3300
+
+No = 0
+IsLeft = False
+Direction = 3
+Direction = 1000
+

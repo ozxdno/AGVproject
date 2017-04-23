@@ -359,12 +359,12 @@ namespace AGVproject.Class
             
             // 起点
             g.DrawEllipse(Pens.Red, Route[0].MapPoint.X - 2, Route[0].MapPoint.Y - 2, 4, 4);
-            g.DrawString("S", StrFont, Brushes.Red, Route[0].MapPoint);
+            //g.DrawString("S", StrFont, Brushes.Red, Route[0].MapPoint);
 
             // 终点
             if (Route.Count < 2) { return; }
-            g.DrawEllipse(Pens.Red, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
-            g.DrawString("E", StrFont, Brushes.Red, Route[Route.Count - 1].MapPoint);
+            g.DrawEllipse(Pens.Black, Route[Route.Count - 1].MapPoint.X - 2, Route[Route.Count - 1].MapPoint.Y - 2, 4, 4);
+            //g.DrawString("E", StrFont, Brushes.Red, Route[Route.Count - 1].MapPoint);
         }
         public static void getSelectRoute()
         {
@@ -501,7 +501,7 @@ namespace AGVproject.Class
                 Route.Add(UL);
             }
             
-            toCentre.IsLeft = false;
+            toCentre.IsLeft = true;
             toCentre.No = HouseMap.TotalStacks;
             toCentre.Direction = TH_AutoSearchTrack.Direction.Right;
             toCentre.Distance = -Stacks[toCentre.No].SetKeepU;
@@ -730,13 +730,13 @@ namespace AGVproject.Class
             stack.SetKeepL = (int)(HouseMap.Stacks[No].KeepDistanceL / Form_Start.config.PixLength);
             stack.SetKeepR = (int)(HouseMap.Stacks[No].KeepDistanceR / Form_Start.config.PixLength);
 
-            if (No != 0)
-            {
-                stack.SetKeepU -= 1;
-                stack.SetKeepD -= 1;
-                stack.SetKeepL -= 4;
-                stack.SetKeepR -= 4;
-            }
+            //if (No != 0)
+            //{
+            //    stack.SetKeepU -= 1;
+            //    stack.SetKeepD -= 1;
+            //    stack.SetKeepL -= 4;
+            //    stack.SetKeepR -= 4;
+            //}
             
 
             double xBG = 0, yBG = 0;

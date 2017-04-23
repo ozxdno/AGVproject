@@ -20,13 +20,22 @@ namespace AGVproject.Class
         /// </summary>
         public static double HouseWidth;
         
+        /// <summary>
+        /// 堆垛信息
+        /// </summary>
         public static List<STACK> Stacks = new List<STACK>();
 
         /// <summary>
-        /// 背对仓库门口，左手边堆垛数量
+        /// 站在仓库门口并背对仓库门口，左手边堆垛数量
         /// </summary>
         public static int TotalStacksL;
+        /// <summary>
+        /// 站在仓库门口并背对仓库门口，右手边堆垛数量
+        /// </summary>
         public static int TotalStacksR;
+        /// <summary>
+        /// 总的堆垛数量
+        /// </summary>
         public static int TotalStacks { get { return TotalStacksL + TotalStacksR; } }
 
         public static double DefaultCentreRoadWidth;
@@ -79,6 +88,10 @@ namespace AGVproject.Class
             /// </summary>
             public TH_AutoSearchTrack.Direction CarPosition;
             /// <summary>
+            /// 车头的方向
+            /// </summary>
+            public TH_AutoSearchTrack.Direction CarDirection;
+            /// <summary>
             /// 与参考点的相对距离 单位：mm
             /// </summary>
             public double Distance;
@@ -106,43 +119,6 @@ namespace AGVproject.Class
         }
 
         ///////////////////////////////////////////// Stacks //////////////////////////////////////////////////
-
-        public static bool CarSideL_NearStack()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return false; }
-
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Up && Stacks[No].IsLeft == true) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Down && Stacks[No].IsLeft == false) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Left && Stacks[No].IsLeft == false) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Right && Stacks[No].IsLeft == true) { return true; }
-            return false;
-        }
-        public static bool CarSideR_NearStack()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return false; }
-
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Up && Stacks[No].IsLeft == false) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Down && Stacks[No].IsLeft == true) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Left && Stacks[No].IsLeft == true) { return true; }
-            if (Stacks[No].CarPosition == TH_AutoSearchTrack.Direction.Right && Stacks[No].IsLeft == false) { return true; }
-            return false;
-        }
-        public static bool ScanningL()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return false; }
-
-            return Stacks[No].IsLeft;
-        }
-        public static bool ScanningR()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return false; }
-
-            return !Stacks[No].IsLeft;
-        }
         
         public static void getDefaultStacks()
         {
@@ -202,6 +178,24 @@ namespace AGVproject.Class
             }
         }
 
+        public static bool getAisleWidth(ref double AisleWidth)
+        {
+            // 取点
+            List<CoordinatePoint.POINT> pointsL = TH_MeasureSurrounding.getSurroundingA(150, 180);
+            List<CoordinatePoint.POINT> pointsR = TH_MeasureSurrounding.getSurroundingA(0, 30);
+
+            // 点的数量不够
+            int reqAmount = 30;
+            if (pointsL.Count < reqAmount) { return false; }
+            if (pointsR.Count < reqAmount) { return false; }
+
+            // 取最近距离
+            double minL = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsL));
+            double minR = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsR));
+
+            AisleWidth = minL + minR;
+            return true;
+        }
         public static double getAisleWidth()
         {
             int No = TH_AutoSearchTrack.control.NearStack;
@@ -240,6 +234,13 @@ namespace AGVproject.Class
             return -1;
         }
 
+        public static bool setAisleWidth()
+        {
+            double width = 0;
+            bool get = getAisleWidth(ref width); if (!get) { return get; }
+            setAisleWidth(width);
+            return get;
+        }
         public static void setAisleWidth(double width)
         {
             int No = TH_AutoSearchTrack.control.NearStack;
@@ -284,6 +285,42 @@ namespace AGVproject.Class
             Stacks[No] = iStack;
         }
 
+        public static double getKeepDistance(bool fromcar = false)
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+            if (No < 0 || No > TotalStacks) { return -1; }
+
+            TH_AutoSearchTrack.Direction pos = Stacks[No].CarPosition;
+            TH_AutoSearchTrack.Direction dir = Stacks[No].CarDirection;
+            bool IsLeft = Stacks[No].IsLeft;
+
+            if (pos == TH_AutoSearchTrack.Direction.Up)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceU; }
+                if (IsLeft) { return Stacks[No].KeepDistanceU - Hardware_PlatForm.AxisSideL; }
+                else { return Stacks[No].KeepDistanceU + Hardware_PlatForm.AxisSideR; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Down)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceD; }
+                if (IsLeft) { return Stacks[No].KeepDistanceD + Hardware_PlatForm.AxisSideR; }
+                else { return Stacks[No].KeepDistanceD - Hardware_PlatForm.AxisSideL; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Left)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceL; }
+                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
+                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Right)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceR; }
+                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
+                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
+            }
+            return -1;
+        }
+
         public static double getStackWidth()
         {
             return DefaultStackWidth;
@@ -325,20 +362,20 @@ namespace AGVproject.Class
             Stacks[No] = iStack;
         }
 
-        public static TH_AutoSearchTrack.Direction getDirection()
+        public static TH_AutoSearchTrack.Direction getCarPosition()
         {
             int No = TH_AutoSearchTrack.control.NearStack;
 
             if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
             return Stacks[No].CarPosition;
         }
-        public static TH_AutoSearchTrack.Direction getDirection(int No)
+        public static TH_AutoSearchTrack.Direction getCarPosition(int No)
         {
             if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
             return Stacks[No].CarPosition;
         }
 
-        public static void setDirection(TH_AutoSearchTrack.Direction direction)
+        public static void setCarPosition(TH_AutoSearchTrack.Direction direction)
         {
             int No = TH_AutoSearchTrack.control.NearStack;
 
@@ -346,13 +383,43 @@ namespace AGVproject.Class
             STACK iStack = Stacks[No];
             iStack.CarPosition = direction; Stacks[No] = iStack;
         }
-        public static void setDirection(TH_AutoSearchTrack.Direction direction, int No)
+        public static void setCarPosition(TH_AutoSearchTrack.Direction direction, int No)
         {
             if (No < 0 || No > TotalStacks) { return; }
             STACK iStack = Stacks[No];
             iStack.CarPosition = direction; Stacks[No] = iStack;
         }
 
+        public static TH_AutoSearchTrack.Direction getCarDirection()
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
+
+            return Stacks[No].CarDirection;
+        }
+        public static TH_AutoSearchTrack.Direction getCarDirection(int No)
+        {
+            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
+            return Stacks[No].CarDirection;
+        }
+
+        public static void setCarDirection(TH_AutoSearchTrack.Direction direction)
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+
+            if (No < 0 || No > TotalStacks) { return; }
+            STACK iStack = Stacks[No];
+            iStack.CarDirection = direction; Stacks[No] = iStack;
+        }
+
+        public static void setReferencePoint()
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+            if (No < 0 || No > TotalStacks) { return; }
+
+            STACK iStack = Stacks[No];
+            iStack.ReferencePoint = TH_MeasurePosition.getPosition(); Stacks[No] = iStack;
+        }
         public static void setReferencePoint(CoordinatePoint.POINT point)
         {
             int No = TH_AutoSearchTrack.control.NearStack;

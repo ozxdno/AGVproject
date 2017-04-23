@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class\AST_AlignAisle.cs" />
+    <Compile Include="Class\AST_Go.cs" />
     <Compile Include="Class\AST_GuideBySpeed.cs" />
     <Compile Include="Class\AST_GuideByPosition.cs" />
     <Compile Include="Class\AST_GuideBySurrounding.cs" />
@@ -68,6 +70,12 @@
     <Compile Include="Form_Input\Form_Input.Designer.cs">
       <DependentUpon>Form_Input.cs</DependentUpon>
     </Compile>
+    <Compile Include="Form_Route\Form_Route.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Route\Form_Route.Designer.cs">
+      <DependentUpon>Form_Route.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_Stack\Form_Stack.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +92,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
       <DependentUpon>Form_Input.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Route\Form_Route.resx">
+      <DependentUpon>Form_Route.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Stack\Form_Stack.resx">
       <DependentUpon>Form_Stack.cs</DependentUpon>

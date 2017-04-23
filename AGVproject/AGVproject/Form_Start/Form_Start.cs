@@ -394,36 +394,53 @@ namespace AGVproject
             HouseMap.Stacks[mousePos.No] = stack;
             if (stack.No == 0) { TH_UpdataPictureBox.Stacks[0] = TH_UpdataPictureBox.RealStack2MapStack(0); return; }
 
-            if (mousePos.No != 1 && mousePos.No != HouseMap.TotalStacks)
+            if (stack.IsLeft)
             {
-                int No = mousePos.No - 1;
-                if (mousePos.IsLeft) { No = mousePos.No + 1; }
+                int u = stack.No + 1, d = stack.No - 1;
 
-                HouseMap.STACK ustack = HouseMap.Stacks[No];
-                ustack.AisleWidth_D = stack.AisleWidth_U;
-                HouseMap.Stacks[No] = ustack;
+                if (HouseMap.TotalStacksR + 1 <= u && u <= HouseMap.TotalStacks)
+                {
+                    HouseMap.STACK ustack = HouseMap.Stacks[u];
+                    ustack.AisleWidth_D = stack.AisleWidth_U;
+                    HouseMap.Stacks[u] = ustack;
+                }
+                if (HouseMap.TotalStacksR + 1 <= d && d <= HouseMap.TotalStacks)
+                {
+                    HouseMap.STACK dstack = HouseMap.Stacks[d];
+                    dstack.AisleWidth_U = stack.AisleWidth_D;
+                    HouseMap.Stacks[d] = dstack;
+                }
             }
-            if (mousePos.No != HouseMap.TotalStacksL && mousePos.No != HouseMap.TotalStacksL + 1)
+            if (!stack.IsLeft)
             {
-                int No = mousePos.No + 1;
-                if (mousePos.IsLeft) { No = mousePos.No - 1; }
+                int u = stack.No - 1, d = stack.No + 1;
 
-                HouseMap.STACK dstack = HouseMap.Stacks[No];
-                dstack.AisleWidth_U = stack.AisleWidth_D;
-                HouseMap.Stacks[No] = dstack;
+                if (1 <= u && u <= HouseMap.TotalStacksR)
+                {
+                    HouseMap.STACK ustack = HouseMap.Stacks[u];
+                    ustack.AisleWidth_D = stack.AisleWidth_U;
+                    HouseMap.Stacks[u] = ustack;
+                }
+                if (1 <= d && d <= HouseMap.TotalStacksR)
+                {
+                    HouseMap.STACK dstack = HouseMap.Stacks[d];
+                    dstack.AisleWidth_U = stack.AisleWidth_D;
+                    HouseMap.Stacks[d] = dstack;
+                }
             }
-            if (!mousePos.IsLeft)
-            {
-                HouseMap.STACK lstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
-                lstack.AisleWidth_R = stack.AisleWidth_L;
-                HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = lstack;
-            }
-            if (mousePos.IsLeft)
-            {
-                HouseMap.STACK rstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
-                rstack.AisleWidth_L = stack.AisleWidth_R;
-                HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = rstack;
-            }
+
+            //if (!mousePos.IsLeft)
+            //{
+            //    HouseMap.STACK lstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
+            //    lstack.AisleWidth_R = stack.AisleWidth_L;
+            //    HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = lstack;
+            //}
+            //if (mousePos.IsLeft)
+            //{
+            //    HouseMap.STACK rstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
+            //    rstack.AisleWidth_L = stack.AisleWidth_R;
+            //    HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = rstack;
+            //}
 
             for (int i = 1; i <= HouseMap.TotalStacks; i++)
             { TH_UpdataPictureBox.Stacks[i] = TH_UpdataPictureBox.RealStack2MapStack(i); }
@@ -458,25 +475,15 @@ namespace AGVproject
 
             if (this.button.Text == "Stop")
             {
-                TH_AutoSearchTrack.control.ActionList.Insert(0, TH_AutoSearchTrack.Action.Stop);
-                TH_AutoSearchTrack.control.EMA = true;
                 this.button.Text = "Continue"; return;
             }
 
             if (this.button.Text == "Continue")
             {
-                if (TH_AutoSearchTrack.control.ActionList != null &&
-                    TH_AutoSearchTrack.control.ActionList.Count > 0 &&
-                    TH_AutoSearchTrack.control.ActionList[0] == TH_AutoSearchTrack.Action.Stop)
-                { TH_AutoSearchTrack.control.ActionList.RemoveAt(0); }
-
-                TH_AutoSearchTrack.control.EMA = false;
                 this.button.Text = "Stop"; return;
             }
 
             this.button.Text = "Stop";
-            TH_AutoSearchTrack.control.ActionList.Add(TH_AutoSearchTrack.Action.AlignF);
-            TH_AutoSearchTrack.Start();
         }
         private void Restart(object sender, EventArgs e)
         {
@@ -488,7 +495,7 @@ namespace AGVproject
             if (dr == DialogResult.Cancel) { return; }
 
             this.button.Text = "Stop";
-            TH_AutoSearchTrack.Restart();
+            //TH_AutoSearchTrack.Restart();
         }
         private void formKeyDown(object sender, KeyEventArgs e)
         {
@@ -574,7 +581,7 @@ namespace AGVproject
             if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
 
             int index = -1;
-            for (int i = 0; i < config.Map.Count - 1; i++)
+            for (int i = 0; i < config.Map.Count; i++)
             {
                 if (config.Map[i].Path != path || config.Map[i].Name != name) { continue; }
                 index = i;
@@ -679,7 +686,7 @@ namespace AGVproject
             if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
 
             int index = -1;
-            for (int i = 0; i < config.Route.Count - 1; i++)
+            for (int i = 0; i < config.Route.Count; i++)
             {
                 if (config.Route[i].Path != path || config.Route[i].Name != name) { continue; }
                 index = i;

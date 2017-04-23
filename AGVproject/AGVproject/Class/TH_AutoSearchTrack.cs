@@ -41,25 +41,19 @@ namespace AGVproject.Class
             /// X 方向最大允许速度
             /// </summary>
             public int MaxSpeed_X;
+            /// <summary>
+            /// Y 方向最大允许速度
+            /// </summary>
             public int MaxSpeed_Y;
+            /// <summary>
+            /// A 方向最大允许速度
+            /// </summary>
             public int MaxSpeed_A;
             
             /// <summary>
-            /// 动作列表，设置了小车的行动方案，此列表会自动填充
+            /// 正在执行的动作
             /// </summary>
-            public List<Action> ActionList;
-            /// <summary>
-            /// 下一个动作，取动作列表中的第一个动作
-            /// </summary>
-            public Action NextAction;
-            /// <summary>
-            /// 从某个动作的某个子动作开始
-            /// </summary>
-            public int SubAction;
-            /// <summary>
-            /// 正在执行的子动作编号
-            /// </summary>
-            public int NextSubAction;
+            public Action Action;
             /// <summary>
             /// 紧急动作发生标志
             /// </summary>
@@ -69,23 +63,18 @@ namespace AGVproject.Class
             /// </summary>
             public int NearStack;
             /// <summary>
-            /// 当前路径编号
+            /// 当前点
             /// </summary>
-            public int RouteNo;
+            public int Current;
+            /// <summary>
+            /// 目标点
+            /// </summary>
+            public int Target;
             /// <summary>
             /// 事件通知，在界面中提示当前小车的状态
             /// </summary>
             public string Event;
             
-            /// <summary>
-            /// 小车在堆垛上端或者下端时，小车与堆垛所保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistance_UD;
-            /// <summary>
-            /// 小车在堆垛的左边或者右边时，小车与堆垛所保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistance_LR;
-
             /// <summary>
             /// 主控线程命令：关闭主控线程
             /// </summary>
@@ -102,37 +91,68 @@ namespace AGVproject.Class
         public enum Action
         {
             /// <summary>
+            /// 一切正常
+            /// </summary>
+            Normal,
+            /// <summary>
             /// 一直等待，直到此命令被清除
             /// </summary>
             Wait,
             /// <summary>
-            /// 点对点行进
+            /// 退出通道
             /// </summary>
-            GotoPoint,
-            /// <summary>
-            /// 依靠环境信息前进
-            /// </summary>
-            Forward,
-            Backward,
-            Upward,
-            Downward,
-            RotateL,
-            RotateR,
-            Reverse,
-            AlignF,
-            AlignB,
             OutAisle,
+            /// <summary>
+            /// 返回起点
+            /// </summary>
             Return,
+            /// <summary>
+            /// 切换手动控制
+            /// </summary>
             ByHand,
+            /// <summary>
+            /// 暂停
+            /// </summary>
             Stop,
+            /// <summary>
+            /// 继续
+            /// </summary>
             Continue,
+            /// <summary>
+            /// 退出
+            /// </summary>
             Abort,
+            /// <summary>
+            /// 出错
+            /// </summary>
             Error
         }
         /// <summary>
         /// 方向或位置信息
         /// </summary>
-        public enum Direction { Left,Right,Up,Down,Tuning }
+        public enum Direction
+        {
+            /// <summary>
+            /// 在左边或者向左
+            /// </summary>
+            Left,
+            /// <summary>
+            /// 在右边或者向右
+            /// </summary>
+            Right,
+            /// <summary>
+            /// 在上边或者向上
+            /// </summary>
+            Up,
+            /// <summary>
+            /// 在下边或者向下
+            /// </summary>
+            Down,
+            /// <summary>
+            /// 方向未知或者正在调整
+            /// </summary>
+            Tuning
+        }
 
         ////////////////////////////////////////// private attribute ///////////////////////////////////////////////
         
@@ -155,43 +175,12 @@ namespace AGVproject.Class
             // 加载参数
             Configuration.Load();
             
-            // 清除动作列表
-            control.NearStack = 0;
-            control.ActionList.Clear();
-            control.ActionList.Add(Action.AlignF);
-
             // 开线程
             control.Abort = false;
             control.Thread = new System.Threading.Thread(AST);
             control.Thread.Start();
         }
 
-        public static bool getAisleWidth(ref double AisleWidth)
-        {
-            // 取点
-            List<CoordinatePoint.POINT> pointsL = TH_MeasureSurrounding.getSurroundingA(150, 180);
-            List<CoordinatePoint.POINT> pointsR = TH_MeasureSurrounding.getSurroundingA(0, 30);
-
-            // 点的数量不够
-            int reqAmount = 30;
-            if (pointsL.Count < reqAmount) { return false; }
-            if (pointsR.Count < reqAmount) { return false; }
-
-            // 取最近距离
-            double minL = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsL));
-            double minR = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsR));
-
-            AisleWidth = minL + minR + Hardware_UltraSonic.xSpan;
-            return true;
-        }
-        public static bool IsStopAction()
-        {
-            if (control.Abort) { control.SubAction = control.NextSubAction; return true; }
-            if (control.EMA) { control.SubAction = control.NextSubAction; return true; }
-            if (control.NextSubAction < control.SubAction) { return true; }
-            return false;
-        }
-        
         ////////////////////////////////////////// private method ///////////////////////////////////////////////
         
         private static void AST()
@@ -247,46 +236,19 @@ namespace AGVproject.Class
                     TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
                 }
 
-                // 取动作
-                if (control.ActionList.Count == 0) { continue; }
-                control.NextAction = control.ActionList[0];
+                // 取动作序列，并控制按动作序列行进
+                if (control.Action == Action.Normal) { control.EMA = false; }
+                if (control.Action == Action.Wait) { continue; }
+                if (control.Action == Action.OutAisle) {  }
+                if (control.Action == Action.Return) { }
+                if (control.Action == Action.ByHand) {  }
+                if (control.Action == Action.Stop) { continue; }
+                if (control.Action == Action.Continue) { control.EMA = false; control.Action = Action.Normal; }
+                if (control.Action == Action.Abort) { control.Thread.Abort(); control.Abort = false; return; }
+                if (control.Action == Action.Error) { continue; }
 
-                // 动作处理优先级
-                //if (control.NextAction == Action.Abort) { control.Thread.Abort(); control.ActionList.RemoveAt(0); return; }
-
-                //if (control.NextAction == Action.Continue) { continue; }
-                //if (control.NextAction == Action.Wait) { continue; }
-                //if (control.NextAction == Action.Stop) { continue; }
-                //if (control.NextAction == Action.OutAisle) { continue; }
-                //if (control.NextAction == Action.Return) { continue; }
-                //if (control.NextAction == Action.ByHand) { continue; }
-                
-                //if (control.NextAction == Action.Begin) { continue; }
-
-
-                
-
-                
-                //if (control.NextAction == Action.AlignF) { AST_AlignAisleForward.Start(); continue; }
-                //if (control.NextAction == Action.AlignB) { AST_AlignAisleBackward.Start(); continue; }
-                //if (control.NextAction == Action.Forward) { AST_Forward.Start(); continue; }
-                //if (control.NextAction == Action.Backward) { AST_Backward.Start(); continue; }
-                //if (control.NextAction == Action.Upward) { AST_Upward.Start(); continue; }
-                //if (control.NextAction == Action.Downward) { AST_Downward.Start(); continue; }
-                //if (control.NextAction == Action.RotateL) { AST_RotateL.Start(); continue; }
-                //if (control.NextAction == Action.RotateR) { AST_RotateR.Start(); continue; }
-                //if (control.NextAction == Action.Reverse) { AST_Reverse.Start(); continue; }
+                AST_Go.Start(); control.EMA = false;
             }
-        }
-        private static void Fill_NextActionList()
-        {
-            if (TH_UpdataPictureBox.Route.Count < control.RouteNo + 1) { return; }
-
-            TH_UpdataPictureBox.ROUTE last = TH_UpdataPictureBox.Route[control.RouteNo];
-            TH_UpdataPictureBox.ROUTE next = TH_UpdataPictureBox.Route[control.RouteNo + 1];
-            control.ActionList = new List<Action>();
-
-            if (last.No != next.No) { }
         }
     }
 }
