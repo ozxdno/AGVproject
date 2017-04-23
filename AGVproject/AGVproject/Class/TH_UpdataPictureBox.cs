@@ -379,6 +379,146 @@ namespace AGVproject.Class
             Point ptED = new Point(mousePos.x, mousePos.y);
             g.DrawLine(Pens.Blue, ptBG, ptED);
         }
+        public static void getAutoRoute()
+        {
+            Route = new List<ROUTE>();
+
+            ROUTE door = new ROUTE();
+            door.IsLeft = false;
+            door.No = 0;
+            door.Direction = TH_AutoSearchTrack.Direction.Down;
+            door.Distance = Stacks[0].xBG + Stacks[0].Length + Stacks[0].SetKeepR - MapWidth / 2;
+            door.MapPoint = getRouteMapPoint(door);
+            Route.Add(door);
+
+            ROUTE outdoor = new ROUTE();
+            outdoor.IsLeft = false;
+            outdoor.No = 0;
+            outdoor.Direction = TH_AutoSearchTrack.Direction.Down;
+            outdoor.Distance = Stacks[0].xBG + Stacks[0].Length + Stacks[0].SetKeepR - Stacks[1].xBG + Stacks[1].SetKeepL;
+            outdoor.MapPoint = getRouteMapPoint(outdoor);
+            Route.Add(outdoor);
+
+            ROUTE toRight = new ROUTE();
+            toRight.IsLeft = false;
+            toRight.No = 1;
+            toRight.Direction = TH_AutoSearchTrack.Direction.Up;
+            toRight.Distance = -Stacks[1].SetKeepL;
+            toRight.MapPoint = getRouteMapPoint(toRight);
+            Route.Add(toRight);
+
+            toRight.Distance = Stacks[1].Length + Stacks[1].SetKeepR;
+            toRight.MapPoint = getRouteMapPoint(toRight);
+            Route.Add(toRight);
+
+            for (int i = 1; i <= HouseMap.TotalStacksR; i++)
+            {
+                ROUTE UR = new ROUTE();
+                UR.IsLeft = false;
+                UR.No = i;
+                UR.Direction = TH_AutoSearchTrack.Direction.Up;
+                UR.Distance = Stacks[i].Length + Stacks[i].SetKeepR;
+                UR.MapPoint = getRouteMapPoint(UR);
+                Route.Add(UR);
+
+                ROUTE UL = new ROUTE();
+                UL.IsLeft = false;
+                UL.No = i;
+                UL.Direction = TH_AutoSearchTrack.Direction.Left;
+                UL.Distance = Stacks[i].Width + Stacks[i].SetKeepU;
+                UL.MapPoint = getRouteMapPoint(UL);
+                Route.Add(UL);
+
+                ROUTE DL = new ROUTE();
+                DL.IsLeft = false;
+                DL.No = i;
+                DL.Direction = TH_AutoSearchTrack.Direction.Left;
+                DL.Distance = -Stacks[i].SetKeepD;
+                DL.MapPoint = getRouteMapPoint(DL);
+                Route.Add(DL);
+
+                ROUTE DR = new ROUTE();
+                DR.IsLeft = false;
+                DR.No = i;
+                DR.Direction = TH_AutoSearchTrack.Direction.Down;
+                DR.Distance = -Stacks[i].SetKeepR;
+                DR.MapPoint = getRouteMapPoint(DR);
+                Route.Add(DR);
+            }
+            
+            ROUTE toCentre = new ROUTE();
+            toCentre.IsLeft = false;
+            toCentre.No = HouseMap.TotalStacksR;
+            toCentre.Direction = TH_AutoSearchTrack.Direction.Down;
+            toCentre.Distance = Stacks[toCentre.No].Length + Stacks[toCentre.No].SetKeepL;
+            toCentre.MapPoint = getRouteMapPoint(toCentre);
+            Route.Add(toCentre);
+
+            ROUTE toLeft = new ROUTE();
+            toLeft.IsLeft = true;
+            toLeft.No = HouseMap.TotalStacksR + 1;
+            toLeft.Direction = TH_AutoSearchTrack.Direction.Down;
+            toLeft.Distance = -Stacks[toLeft.No].SetKeepR;
+            toLeft.MapPoint = getRouteMapPoint(toLeft);
+            Route.Add(toLeft);
+
+            toLeft.Distance = Stacks[toLeft.No].Length + Stacks[toLeft.No].SetKeepL;
+            toLeft.MapPoint = getRouteMapPoint(toLeft);
+            Route.Add(toLeft);
+
+            for (int i = HouseMap.TotalStacksR + 1; i <= HouseMap.TotalStacks; i++)
+            {
+                ROUTE DL = new ROUTE();
+                DL.IsLeft = true;
+                DL.No = i;
+                DL.Direction = TH_AutoSearchTrack.Direction.Down;
+                DL.Distance = Stacks[i].Length + Stacks[i].SetKeepL;
+                DL.MapPoint = getRouteMapPoint(DL);
+                Route.Add(DL);
+
+                ROUTE DR = new ROUTE();
+                DR.IsLeft = true;
+                DR.No = i;
+                DR.Direction = TH_AutoSearchTrack.Direction.Right;
+                DR.Distance = Stacks[i].Width + Stacks[i].SetKeepD;
+                DR.MapPoint = getRouteMapPoint(DR);
+                Route.Add(DR);
+
+                ROUTE UR = new ROUTE();
+                UR.IsLeft = true;
+                UR.No = i;
+                UR.Direction = TH_AutoSearchTrack.Direction.Right;
+                UR.Distance = -Stacks[i].SetKeepU;
+                UR.MapPoint = getRouteMapPoint(UR);
+                Route.Add(UR);
+
+                ROUTE UL = new ROUTE();
+                UL.IsLeft = true;
+                UL.No = i;
+                UL.Direction = TH_AutoSearchTrack.Direction.Up;
+                UL.Distance = -Stacks[i].SetKeepL;
+                UL.MapPoint = getRouteMapPoint(UL);
+                Route.Add(UL);
+            }
+            
+            toCentre.IsLeft = false;
+            toCentre.No = HouseMap.TotalStacks;
+            toCentre.Direction = TH_AutoSearchTrack.Direction.Right;
+            toCentre.Distance = -Stacks[toCentre.No].SetKeepU;
+            toCentre.MapPoint = getRouteMapPoint(toCentre);
+            Route.Add(toCentre);
+
+            ROUTE indoor = new ROUTE();
+            indoor.IsLeft = false;
+            indoor.No = 0;
+            indoor.Direction = TH_AutoSearchTrack.Direction.Down;
+            indoor.Distance = Stacks[0].xBG + Stacks[0].Length + Stacks[0].SetKeepR - 
+                Stacks[Stacks.Count - 1].xBG - Stacks[Stacks.Count - 1].Length - Stacks[Stacks.Count - 1].SetKeepR;
+            indoor.MapPoint = getRouteMapPoint(indoor);
+            Route.Add(indoor);
+
+            Route.Add(door);
+        }
 
         public static void setMousePosition(int X, int Y)
         {

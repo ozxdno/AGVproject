@@ -45,7 +45,7 @@ namespace AGVproject.Class
             public int MaxSpeed_A;
             
             /// <summary>
-            /// 动作列表，设置了小车的行动方案，此列表为空会自动填充
+            /// 动作列表，设置了小车的行动方案，此列表会自动填充
             /// </summary>
             public List<Action> ActionList;
             /// <summary>
@@ -53,11 +53,11 @@ namespace AGVproject.Class
             /// </summary>
             public Action NextAction;
             /// <summary>
-            /// 下一个动作的子动作，决定了从某个动作的某个子动作开始
+            /// 从某个动作的某个子动作开始
             /// </summary>
             public int SubAction;
             /// <summary>
-            /// 下一个待执行的子动作，由所属动作函数自动填充
+            /// 正在执行的子动作编号
             /// </summary>
             public int NextSubAction;
             /// <summary>
@@ -68,6 +68,10 @@ namespace AGVproject.Class
             /// 当前小车靠近的堆垛编号
             /// </summary>
             public int NearStack;
+            /// <summary>
+            /// 当前路径编号
+            /// </summary>
+            public int RouteNo;
             /// <summary>
             /// 事件通知，在界面中提示当前小车的状态
             /// </summary>
@@ -95,7 +99,36 @@ namespace AGVproject.Class
         /// <summary>
         /// 所有的动作集合
         /// </summary>
-        public enum Action { Wait,Begin,Forward,Backward,Upward,Downward,RotateL,Reverse,RotateR,AlignF,AlignB,OutAisle,Return,ByHand,Stop,Continue,Abort,Error }
+        public enum Action
+        {
+            /// <summary>
+            /// 一直等待，直到此命令被清除
+            /// </summary>
+            Wait,
+            /// <summary>
+            /// 点对点行进
+            /// </summary>
+            GotoPoint,
+            /// <summary>
+            /// 依靠环境信息前进
+            /// </summary>
+            Forward,
+            Backward,
+            Upward,
+            Downward,
+            RotateL,
+            RotateR,
+            Reverse,
+            AlignF,
+            AlignB,
+            OutAisle,
+            Return,
+            ByHand,
+            Stop,
+            Continue,
+            Abort,
+            Error
+        }
         /// <summary>
         /// 方向或位置信息
         /// </summary>
@@ -121,7 +154,7 @@ namespace AGVproject.Class
 
             // 加载参数
             Configuration.Load();
-
+            
             // 清除动作列表
             control.NearStack = 0;
             control.ActionList.Clear();
@@ -219,16 +252,16 @@ namespace AGVproject.Class
                 control.NextAction = control.ActionList[0];
 
                 // 动作处理优先级
-                if (control.NextAction == Action.Abort) { control.Thread.Abort(); control.ActionList.RemoveAt(0); return; }
+                //if (control.NextAction == Action.Abort) { control.Thread.Abort(); control.ActionList.RemoveAt(0); return; }
 
-                if (control.NextAction == Action.Continue) { continue; }
-                if (control.NextAction == Action.Wait) { continue; }
-                if (control.NextAction == Action.Stop) { continue; }
-                if (control.NextAction == Action.OutAisle) { continue; }
-                if (control.NextAction == Action.Return) { continue; }
-                if (control.NextAction == Action.ByHand) { continue; }
+                //if (control.NextAction == Action.Continue) { continue; }
+                //if (control.NextAction == Action.Wait) { continue; }
+                //if (control.NextAction == Action.Stop) { continue; }
+                //if (control.NextAction == Action.OutAisle) { continue; }
+                //if (control.NextAction == Action.Return) { continue; }
+                //if (control.NextAction == Action.ByHand) { continue; }
                 
-                if (control.NextAction == Action.Begin) { continue; }
+                //if (control.NextAction == Action.Begin) { continue; }
 
 
                 
@@ -244,6 +277,16 @@ namespace AGVproject.Class
                 //if (control.NextAction == Action.RotateR) { AST_RotateR.Start(); continue; }
                 //if (control.NextAction == Action.Reverse) { AST_Reverse.Start(); continue; }
             }
+        }
+        private static void Fill_NextActionList()
+        {
+            if (TH_UpdataPictureBox.Route.Count < control.RouteNo + 1) { return; }
+
+            TH_UpdataPictureBox.ROUTE last = TH_UpdataPictureBox.Route[control.RouteNo];
+            TH_UpdataPictureBox.ROUTE next = TH_UpdataPictureBox.Route[control.RouteNo + 1];
+            control.ActionList = new List<Action>();
+
+            if (last.No != next.No) { }
         }
     }
 }

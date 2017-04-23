@@ -46,8 +46,8 @@
             this.routeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CheckRoute = new System.Windows.Forms.ToolStripMenuItem();
             this.autoRoute = new System.Windows.Forms.ToolStripMenuItem();
             this.controlPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -80,7 +80,6 @@
             this.deleteToolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.openLocatePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkLocPort = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnStart = new System.Windows.Forms.ToolStripMenuItem();
             this.btnRestart = new System.Windows.Forms.ToolStripMenuItem();
             this.outAisleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.returnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -89,6 +88,7 @@
             this.TimeLabel = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.pictureBox = new System.Windows.Forms.PictureBox();
+            this.button = new System.Windows.Forms.Button();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -145,7 +145,6 @@
             this.controlPortToolStripMenuItem,
             this.UrgPortToolStripMenuItem,
             this.LocatePortToolStripMenuItem,
-            this.btnStart,
             this.btnRestart,
             this.outAisleToolStripMenuItem,
             this.returnToolStripMenuItem,
@@ -171,21 +170,21 @@
             // inputToolStripMenuItem3
             // 
             this.inputToolStripMenuItem3.Name = "inputToolStripMenuItem3";
-            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(152, 22);
+            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(113, 22);
             this.inputToolStripMenuItem3.Text = "Input";
             this.inputToolStripMenuItem3.Click += new System.EventHandler(this.inputMap);
             // 
             // outputToolStripMenuItem
             // 
             this.outputToolStripMenuItem.Name = "outputToolStripMenuItem";
-            this.outputToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.outputToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
             this.outputToolStripMenuItem.Text = "Save";
             this.outputToolStripMenuItem.Click += new System.EventHandler(this.saveMap);
             // 
             // deleteToolStripMenuItem7
             // 
             this.deleteToolStripMenuItem7.Name = "deleteToolStripMenuItem7";
-            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(113, 22);
             this.deleteToolStripMenuItem7.Text = "Delete";
             this.deleteToolStripMenuItem7.Click += new System.EventHandler(this.delSelectedMap);
             // 
@@ -193,13 +192,13 @@
             // 
             this.CheckMap.CheckOnClick = true;
             this.CheckMap.Name = "CheckMap";
-            this.CheckMap.Size = new System.Drawing.Size(152, 22);
+            this.CheckMap.Size = new System.Drawing.Size(113, 22);
             this.CheckMap.Text = "Show";
             // 
             // autoMap
             // 
             this.autoMap.Name = "autoMap";
-            this.autoMap.Size = new System.Drawing.Size(152, 22);
+            this.autoMap.Size = new System.Drawing.Size(113, 22);
             this.autoMap.Text = "Auto";
             this.autoMap.Click += new System.EventHandler(this.setSelectedMap);
             // 
@@ -219,36 +218,36 @@
             // buildToolStripMenuItem
             // 
             this.buildToolStripMenuItem.Name = "buildToolStripMenuItem";
-            this.buildToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.buildToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
             this.buildToolStripMenuItem.Text = "Input";
             this.buildToolStripMenuItem.Click += new System.EventHandler(this.inputRoute);
             // 
             // clearToolStripMenuItem1
             // 
             this.clearToolStripMenuItem1.Name = "clearToolStripMenuItem1";
-            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(113, 22);
             this.clearToolStripMenuItem1.Text = "Save";
             this.clearToolStripMenuItem1.Click += new System.EventHandler(this.saveRoute);
-            // 
-            // saveToolStripMenuItem
-            // 
-            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.saveToolStripMenuItem.Text = "Edit";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.editRoute);
             // 
             // deleteToolStripMenuItem6
             // 
             this.deleteToolStripMenuItem6.Name = "deleteToolStripMenuItem6";
-            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(113, 22);
             this.deleteToolStripMenuItem6.Text = "Delete";
             this.deleteToolStripMenuItem6.Click += new System.EventHandler(this.delSelectedRoute);
+            // 
+            // saveToolStripMenuItem
+            // 
+            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.saveToolStripMenuItem.Text = "Edit";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.editRoute);
             // 
             // CheckRoute
             // 
             this.CheckRoute.CheckOnClick = true;
             this.CheckRoute.Name = "CheckRoute";
-            this.CheckRoute.Size = new System.Drawing.Size(152, 22);
+            this.CheckRoute.Size = new System.Drawing.Size(113, 22);
             this.CheckRoute.Text = "Show";
             // 
             // autoRoute
@@ -490,13 +489,6 @@
             this.checkLocPort.Size = new System.Drawing.Size(135, 22);
             this.checkLocPort.Text = "Check";
             // 
-            // btnStart
-            // 
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(47, 21);
-            this.btnStart.Text = "Start";
-            this.btnStart.Click += new System.EventHandler(this.Start);
-            // 
             // btnRestart
             // 
             this.btnRestart.Name = "btnRestart";
@@ -544,6 +536,7 @@
             // panel1
             // 
             this.panel1.AutoScroll = true;
+            this.panel1.Controls.Add(this.button);
             this.panel1.Controls.Add(this.pictureBox);
             this.panel1.Location = new System.Drawing.Point(2, 37);
             this.panel1.Name = "panel1";
@@ -564,6 +557,16 @@
             this.pictureBox.MouseEnter += new System.EventHandler(this.MouseEnterMap);
             this.pictureBox.MouseLeave += new System.EventHandler(this.MouseLeaveMap);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MapMouseMove);
+            // 
+            // button
+            // 
+            this.button.Location = new System.Drawing.Point(485, 339);
+            this.button.Name = "button";
+            this.button.Size = new System.Drawing.Size(180, 80);
+            this.button.TabIndex = 29;
+            this.button.Text = "Start";
+            this.button.UseVisualStyleBackColor = true;
+            this.button.Click += new System.EventHandler(this.Start);
             // 
             // Form_Start
             // 
@@ -640,7 +643,6 @@
         public System.Windows.Forms.ToolStripMenuItem checkConPort;
         public System.Windows.Forms.ToolStripMenuItem checkUrgPort;
         public System.Windows.Forms.ToolStripMenuItem checkLocPort;
-        private System.Windows.Forms.ToolStripMenuItem btnStart;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
@@ -651,6 +653,7 @@
         private System.Windows.Forms.ToolStripMenuItem showToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem btnRestart;
         private System.Windows.Forms.ToolStripMenuItem saveRouteToolStripMenuItem;
+        private System.Windows.Forms.Button button;
     }
 }
 

@@ -546,7 +546,7 @@ namespace AGVproject.Class
                 sw.WriteLine("No = " + route.No.ToString());
                 sw.WriteLine("IsLeft = " + route.IsLeft.ToString());
                 sw.WriteLine("Direction = " + ((int)route.Direction).ToString());
-                sw.WriteLine("Direction = " + route.Distance.ToString());
+                sw.WriteLine("Direction = " + (route.Distance * Form_Start.config.PixLength).ToString());
                 
                 sw.WriteLine("");
             }
@@ -572,7 +572,14 @@ namespace AGVproject.Class
         }
         public static bool Load_Route(int index)
         {
-            if (index == -1) { TH_UpdataPictureBox.Route.Clear(); return true; }
+            if (index == -1)
+            {
+                TH_UpdataPictureBox.IsSetting = true;
+                while (TH_UpdataPictureBox.IsGetting) ;
+                TH_UpdataPictureBox.getAutoRoute();
+                TH_UpdataPictureBox.IsSetting = false;
+                return true;
+            }
 
             string filepath = Form_Start.config.Route[index].Full;
             if (!File.Exists(filepath)) { return false; }
@@ -587,7 +594,7 @@ namespace AGVproject.Class
                 string line = sr.ReadLine(); route.No = Convert.ToInt32(line.Substring(5));
                 line = sr.ReadLine(); route.IsLeft = Convert.ToBoolean(line.Substring(9));
                 line = sr.ReadLine(); route.Direction = (TH_AutoSearchTrack.Direction)Convert.ToInt32(line.Substring(12));
-                line = sr.ReadLine(); route.Distance = Convert.ToInt32(line.Substring(11));
+                line = sr.ReadLine(); route.Distance = (int)(Convert.ToDouble(line.Substring(11)) / Form_Start.config.PixLength);
                 
                 line = sr.ReadLine();
 

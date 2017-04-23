@@ -102,6 +102,21 @@ namespace AGVproject
                 this.pictureBox.Width = TH_UpdataPictureBox.BaseMapPicture.Width;
                 this.pictureBox.Image = TH_UpdataPictureBox.BaseMapPicture;
                 if (TH_UpdataPictureBox.CurrsorInMap) { this.Cursor = TH_UpdataPictureBox.Cursor; }
+
+                // 刷新开始按钮位置
+                int xScroll = this.panel1.HorizontalScroll.Value / this.panel1.HorizontalScroll.Maximum;
+                int yScroll = this.panel1.VerticalScroll.Value / this.panel1.VerticalScroll.Maximum;
+
+                int posX = xScroll * this.panel1.Width + this.panel1.Width - 210;
+                int posY = yScroll * this.panel1.Height + this.panel1.Height - 100;
+                this.button.Location = new Point(posX, posY);
+
+                int mouX = MousePosition.X;
+                int mouY = MousePosition.Y;
+                int reqX = this.Location.X + this.Width - 230;
+                int reqY = this.Location.Y + this.Height - 130;
+                this.button.Visible = TH_UpdataPictureBox.DrawOver &&
+                    reqX < mouX && mouX < reqX + 180 && reqY < mouY && mouY < reqY + 80;
             });
         }
         private void Form_Start_FormClosed(object sender, FormClosedEventArgs e)
@@ -282,7 +297,10 @@ namespace AGVproject
         }
         private void Form_SizeChanged(object sender, EventArgs e)
         {
-            // 刷新位置
+            int posX = this.Width - 240;
+            int posY = this.Height - 200;
+            this.button.Location = new Point(posX, posY);
+
             this.panel1.HorizontalScroll.Value = 0;
             this.panel1.VerticalScroll.Value = 0;
 
@@ -438,14 +456,14 @@ namespace AGVproject
             TH_MeasureSurrounding.Open();
             TH_SendCommand.Open();
 
-            if (this.btnStart.Text == "Stop")
+            if (this.button.Text == "Stop")
             {
                 TH_AutoSearchTrack.control.ActionList.Insert(0, TH_AutoSearchTrack.Action.Stop);
                 TH_AutoSearchTrack.control.EMA = true;
-                this.btnStart.Text = "Continue"; return;
+                this.button.Text = "Continue"; return;
             }
 
-            if (this.btnStart.Text == "Continue")
+            if (this.button.Text == "Continue")
             {
                 if (TH_AutoSearchTrack.control.ActionList != null &&
                     TH_AutoSearchTrack.control.ActionList.Count > 0 &&
@@ -453,10 +471,10 @@ namespace AGVproject
                 { TH_AutoSearchTrack.control.ActionList.RemoveAt(0); }
 
                 TH_AutoSearchTrack.control.EMA = false;
-                this.btnStart.Text = "Stop"; return;
+                this.button.Text = "Stop"; return;
             }
 
-            this.btnStart.Text = "Stop";
+            this.button.Text = "Stop";
             TH_AutoSearchTrack.control.ActionList.Add(TH_AutoSearchTrack.Action.AlignF);
             TH_AutoSearchTrack.Start();
         }
@@ -469,7 +487,7 @@ namespace AGVproject
             DialogResult dr = MessageBox.Show("Do you want to Restart ?", "Attention", MessageBoxButtons.OKCancel);
             if (dr == DialogResult.Cancel) { return; }
 
-            this.btnStart.Text = "Stop";
+            this.button.Text = "Stop";
             TH_AutoSearchTrack.Restart();
         }
         private void formKeyDown(object sender, KeyEventArgs e)
