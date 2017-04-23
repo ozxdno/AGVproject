@@ -13,7 +13,7 @@ namespace AGVproject.Class
     {
         private static List<CFG_FILE> CFG;
         private struct CFG_FILE { public string Field; public string[] Value; }
-
+        
         public static void Load()
         {
             // 读取文件内容
@@ -35,8 +35,9 @@ namespace AGVproject.Class
                 part[1] = line.Substring(cut + 1);
 
                 CFG_FILE item = new CFG_FILE();
+                char[] split = new char[1] { '|' };
                 item.Field = part[0];
-                item.Value = part[1].Split('|');
+                item.Value = part[1].Split(split, StringSplitOptions.RemoveEmptyEntries);
                 CFG.Add(item);
             }
             sr.Close();
@@ -121,6 +122,8 @@ namespace AGVproject.Class
             Form_Start.config.SelectedUrgBaudRate = getFieldValue1_INT("FormStart.SelectedUrgBaudRate");
             Form_Start.config.SelectedLocateBaudRate = getFieldValue1_INT("FormStart.SelectedLocateBaudRate");
 
+            Form_Start.config.CheckMap = getFieldValue1_INT("FormStart.CheckMap") == 1;
+            Form_Start.config.CheckRoute = getFieldValue1_INT("FormStart.CheckRoute") == 1;
             Form_Start.config.CheckControlPort = getFieldValue1_INT("FormStart.CheckControlPort") == 1;
             Form_Start.config.CheckUrgPort = getFieldValue1_INT("FormStart.CheckUrgPort") == 1;
             Form_Start.config.CheckLocatePort = getFieldValue1_INT("FormStart.CheckLocatePort") == 1;
@@ -166,6 +169,8 @@ namespace AGVproject.Class
             setFieldValue("FormStart.SelectedLocatePortName", Form_Start.config.SelectedLocatePortName);
             setFieldValue("FormStart.SelectedLocateBaudRate", Form_Start.config.SelectedLocateBaudRate);
 
+            setFieldValue("FormStart.CheckMap", Form_Start.config.CheckMap);
+            setFieldValue("FormStart.CheckRoute", Form_Start.config.CheckRoute);
             setFieldValue("FormStart.CheckControlPort", Form_Start.config.CheckControlPort);
             setFieldValue("FormStart.CheckUrgPort", Form_Start.config.CheckUrgPort);
             setFieldValue("FormStart.CheckLocatePort", Form_Start.config.CheckLocatePort);
@@ -184,8 +189,6 @@ namespace AGVproject.Class
             HouseMap.DefaultAisleWidth = getFieldValue1_DOUBLE("HouseMap.DefaultAisleWidth");
             HouseMap.DefaultStackLength = getFieldValue1_DOUBLE("HouseMap.DefaultStackLength");
             HouseMap.DefaultStackWidth = getFieldValue1_DOUBLE("HouseMap.DefaultStackWidth");
-            
-            HouseMap.Initial();
         }
         private static void Save_HouseMap()
         {
@@ -411,29 +414,30 @@ namespace AGVproject.Class
             setFieldValue("AST.KeepDistance_UD", TH_AutoSearchTrack.control.KeepDistance_UD);
             setFieldValue("AST.KeepDistance_LR", TH_AutoSearchTrack.control.KeepDistance_LR);
         }
-        public static void Save_Map(ref int index)
+        public static bool Save_Map(ref int index)
         {
             string MapPath = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Path;
             string MapName = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Name;
             string path = "", name = "";
 
             SaveFileDialog sf = new SaveFileDialog();
-            sf.Filter = "MAP（*.map）|*.map";
+            sf.Filter = "Map File（*.map）|*.map";
             sf.RestoreDirectory = true;
             sf.FileName = MapName;
-            if (sf.ShowDialog() != DialogResult.OK) { return; }
+            if (sf.ShowDialog() != DialogResult.OK) { return false; }
             
             int cut = sf.FileName.LastIndexOf("\\");
             path = sf.FileName.Substring(0, cut);
             name = sf.FileName.Substring(cut + 1);
             name = name.Substring(0, name.Length - 4);
-            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
 
             StreamWriter sw = new StreamWriter(sf.FileName);
 
             foreach (HouseMap.STACK stack in HouseMap.Stacks)
             {
                 sw.WriteLine("No = " + stack.No.ToString());
+                sw.WriteLine("IsLeft = " + stack.IsLeft.ToString());
                 sw.WriteLine("Length = " + stack.Length.ToString());
                 sw.WriteLine("Width = " + stack.Width.ToString());
 
@@ -459,58 +463,144 @@ namespace AGVproject.Class
             {
                 index++;
                 if (map.Path != path || map.Name != name) { continue; }
-                return;
+                return false;
             }
+
             Form_Start.CONFIG.FILE newMap = new Form_Start.CONFIG.FILE();
             newMap.Full = path + "\\" + name + ".map";
             newMap.Path = path;
             newMap.Name = name;
             newMap.Text = new string[0];
             Form_Start.config.Map.Add(newMap);
+            index = Form_Start.config.Map.Count - 1;
+            Form_Start.config.SelectedMap = index;
+            return true;
         }
-        public static void Save_Route(ref int index)
+        public static bool Load_Map(int index)
         {
-            string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Path;
-            string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Route[Form_Start.config.SelectedRoute].Name;
+            if (index == -1) { HouseMap.getDefaultStacks(); return true; }
+
+            string filepath = Form_Start.config.Map[index].Full;
+            if (!File.Exists(filepath)) { HouseMap.getDefaultStacks(); return false; }
+
+            List<HouseMap.STACK> Stacks = new List<HouseMap.STACK>();
+            int TotalL = 0, TotalR = 0;
+
+            StreamReader sr = new StreamReader(filepath);
+            while (!sr.EndOfStream)
+            {
+                HouseMap.STACK stack = new HouseMap.STACK();
+
+                string line = sr.ReadLine(); stack.No = Convert.ToInt32(line.Substring(5));
+                line = sr.ReadLine(); stack.IsLeft = Convert.ToBoolean(line.Substring(9));
+                line = sr.ReadLine(); stack.Length = Convert.ToDouble(line.Substring(9));
+                line = sr.ReadLine(); stack.Width = Convert.ToDouble(line.Substring(8));
+
+                line = sr.ReadLine(); stack.AisleWidth_U = Convert.ToDouble(line.Substring(15));
+                line = sr.ReadLine(); stack.AisleWidth_D = Convert.ToDouble(line.Substring(15));
+                line = sr.ReadLine(); stack.AisleWidth_L = Convert.ToDouble(line.Substring(15));
+                line = sr.ReadLine(); stack.AisleWidth_R = Convert.ToDouble(line.Substring(15));
+
+                line = sr.ReadLine(); stack.KeepDistanceU = Convert.ToDouble(line.Substring(16));
+                line = sr.ReadLine(); stack.KeepDistanceD = Convert.ToDouble(line.Substring(16));
+                line = sr.ReadLine(); stack.KeepDistanceL = Convert.ToDouble(line.Substring(16));
+                line = sr.ReadLine(); stack.KeepDistanceR = Convert.ToDouble(line.Substring(16));
+
+                line = sr.ReadLine(); stack.CarPosition = (TH_AutoSearchTrack.Direction)Convert.ToInt32(line.Substring(14));
+                line = sr.ReadLine(); stack.Distance = Convert.ToDouble(line.Substring(11));
+                line = sr.ReadLine();
+
+                Stacks.Add(stack);
+                if (stack.No == 0) { continue; }
+                if (stack.IsLeft) { TotalL++; } else { TotalR++; }
+            }
+
+            sr.Close();
+            HouseMap.Stacks = Stacks;
+            HouseMap.TotalStacksL = TotalL;
+            HouseMap.TotalStacksR = TotalR;
+            return true;
+        }
+        public static bool Save_Route(ref int index)
+        {
+            string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Path;
+            string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Name;
             string path = "", name = "";
 
             SaveFileDialog sf = new SaveFileDialog();
-            sf.Filter = "ROUTE（*.route）|*.route";
+            sf.Filter = "Route File（*.route）|*.route";
             sf.RestoreDirectory = true;
             sf.FileName = RouteName;
-            if (sf.ShowDialog() != DialogResult.OK) { return; }
+            if (sf.ShowDialog() != DialogResult.OK) { return false; }
 
             int cut = sf.FileName.LastIndexOf("\\");
             path = sf.FileName.Substring(0, cut);
             name = sf.FileName.Substring(cut + 1);
             name = name.Substring(0, name.Length - 6);
-            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
 
             StreamWriter sw = new StreamWriter(sf.FileName);
 
             foreach (TH_UpdataPictureBox.ROUTE route in TH_UpdataPictureBox.Route)
             {
                 sw.WriteLine("No = " + route.No.ToString());
+                sw.WriteLine("IsLeft = " + route.IsLeft.ToString());
                 sw.WriteLine("Direction = " + ((int)route.Direction).ToString());
-                sw.WriteLine("Distance = " + (route.Distance * Form_Start.config.PixLength).ToString());
-
+                sw.WriteLine("Direction = " + route.Distance.ToString());
+                
                 sw.WriteLine("");
             }
 
             sw.Close();
-            
+
             foreach (Form_Start.CONFIG.FILE route in Form_Start.config.Route)
             {
                 index++;
                 if (route.Path != path || route.Name != name) { continue; }
-                return;
+                return false;
             }
+
             Form_Start.CONFIG.FILE newRoute = new Form_Start.CONFIG.FILE();
             newRoute.Full = path + "\\" + name + ".route";
             newRoute.Path = path;
             newRoute.Name = name;
             newRoute.Text = new string[0];
             Form_Start.config.Route.Add(newRoute);
+            index = Form_Start.config.Route.Count - 1;
+            Form_Start.config.SelectedRoute = index;
+            return true;
+        }
+        public static bool Load_Route(int index)
+        {
+            if (index == -1) { TH_UpdataPictureBox.Route.Clear(); return true; }
+
+            string filepath = Form_Start.config.Route[index].Full;
+            if (!File.Exists(filepath)) { return false; }
+
+            List<TH_UpdataPictureBox.ROUTE> Route = new List<TH_UpdataPictureBox.ROUTE>();
+
+            StreamReader sr = new StreamReader(filepath);
+            while (!sr.EndOfStream)
+            {
+                TH_UpdataPictureBox.ROUTE route = new TH_UpdataPictureBox.ROUTE();
+
+                string line = sr.ReadLine(); route.No = Convert.ToInt32(line.Substring(5));
+                line = sr.ReadLine(); route.IsLeft = Convert.ToBoolean(line.Substring(9));
+                line = sr.ReadLine(); route.Direction = (TH_AutoSearchTrack.Direction)Convert.ToInt32(line.Substring(12));
+                line = sr.ReadLine(); route.Distance = Convert.ToInt32(line.Substring(11));
+                
+                line = sr.ReadLine();
+
+                route.MapPoint = TH_UpdataPictureBox.getRouteMapPoint(route);
+                Route.Add(route);
+            }
+
+            sr.Close();
+            TH_UpdataPictureBox.IsSetting = true;
+            while (TH_UpdataPictureBox.IsGetting) ;
+            TH_UpdataPictureBox.Route = Route;
+            TH_UpdataPictureBox.IsSetting = false;
+            return true;
         }
 
         private static string getFieldValue1_STRING(string Field)

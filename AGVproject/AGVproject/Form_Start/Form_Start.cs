@@ -124,6 +124,12 @@ namespace AGVproject
             Configuration.Load();
 
             // Map
+            for (int i = config.Map.Count-1; i >= 0; i--)
+            {
+                if (!File.Exists(config.Map[i].Full)) { config.Map.RemoveAt(i); }
+            }
+            if (config.SelectedMap > config.Map.Count - 1) { config.SelectedMap = -1; }
+            
             foreach (CONFIG.FILE file in config.Map)
             {
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(file.Name);
@@ -135,10 +141,17 @@ namespace AGVproject
             ToolStripMenuItem SelectedMap = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems
                 [config.SelectedMap + 5];
             setSelectedMap(SelectedMap, e);
+            this.CheckMap.Checked = config.CheckMap;
 
             TH_UpdataPictureBox.Initial();
 
             // Route
+            for (int i = config.Route.Count - 1; i >= 0; i--)
+            {
+                if (!File.Exists(config.Route[i].Full)) { config.Route.RemoveAt(i); }
+            }
+            if (config.SelectedRoute > config.Route.Count - 1) { config.SelectedRoute = -1; }
+
             foreach (CONFIG.FILE file in config.Route)
             {
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(file.Name);
@@ -150,6 +163,7 @@ namespace AGVproject
             ToolStripMenuItem SelectedRoute = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems
                 [config.SelectedRoute + 6];
             setSelectedRoute(SelectedRoute, e);
+            this.CheckRoute.Checked = config.CheckRoute;
 
             // ControlPort
             foreach (string COM in config.ConPortName)
@@ -318,7 +332,6 @@ namespace AGVproject
             TH_UpdataPictureBox.MOUSE mousePos = TH_UpdataPictureBox.getMousePosition();
             if (mousePos.No == -1) { return; }
             if (mousePos.Direction != TH_AutoSearchTrack.Direction.Tuning) { return; }
-            if (mousePos.No == 0) { TH_UpdataPictureBox.Route.RemoveAt(TH_UpdataPictureBox.Route.Count - 1); }
 
             HouseMap.STACK stack = HouseMap.Stacks[mousePos.No];
 
@@ -409,29 +422,11 @@ namespace AGVproject
             }
             if (item == "Save Map" && config.CheckMap)
             {
-                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
-
-                int index = -1;
-                Configuration.Save_Map(ref index);
-                if (index == -1) { return; }
-
-                ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Map[config.Map.Count - 1].Name);
-                NewMenu.Click += setSelectedMap;
-                this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
-                setSelectedMap(NewMenu, e);
+                saveMap(sender, e);
             }
             if (item == "Save Route" && config.CheckRoute)
             {
-                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
-
-                int index = -1;
-                Configuration.Save_Route(ref index);
-                if (index == -1) { return; }
-
-                ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[config.Route.Count - 1].Name);
-                NewMenu.Click += setSelectedMap;
-                this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
-                setSelectedRoute(NewMenu, e);
+                saveRoute(sender, e);
             }
             if (item == "Clear") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedClear(); }
             if (item == "Undo") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedUndo(); }
@@ -510,9 +505,101 @@ namespace AGVproject
                 if (config.Map[i].Name == menu.Text) { config.SelectedMap = i; break; }
             }
 
+            bool existFile = Configuration.Load_Map(config.SelectedMap);
+            if (existFile)
+            {
+                List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
+                for (int i = 0; i <= HouseMap.TotalStacks; i++)
+                { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
+
+                TH_UpdataPictureBox.IsSetting = true;
+                while (TH_UpdataPictureBox.IsGetting) ;
+                TH_UpdataPictureBox.Stacks = Stacks;
+                TH_UpdataPictureBox.IsSetting = false;
+            }
+            else
+            {
+                DialogResult dr = MessageBox.Show("Not Exist Map: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
+                if ( dr == DialogResult.Yes) { delSelectedMap(sender, e); }
+            }
+
             menu.Checked = true;
             showMapRoute();
         }
+        private void delSelectedMap(object sender, EventArgs e)
+        {
+            if (config.SelectedMap == -1) { return; }
+
+            ToolStripMenuItem delMenu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + 5];
+            delMenu.Dispose();
+
+            //this.mapToolStripMenuItem.DropDownItems.RemoveAt(config.SelectedMap);
+            config.Map.RemoveAt(config.SelectedMap);
+
+            config.SelectedMap = -1;
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[4];
+            menu.Checked = true;
+            showMapRoute();
+        }
+        private void inputMap(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = false;
+            fileDialog.Title = "Select Map";
+            fileDialog.Filter = "Map File(*.map)|*.map";
+            if (fileDialog.ShowDialog() != DialogResult.OK) { return; }
+
+            int cut = fileDialog.FileName.LastIndexOf("\\");
+            string path = fileDialog.FileName.Substring(0, cut);
+            string name = fileDialog.FileName.Substring(cut + 1);
+            name = name.Substring(0, name.Length - 4);
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
+
+            int index = -1;
+            for (int i = 0; i < config.Map.Count - 1; i++)
+            {
+                if (config.Map[i].Path != path || config.Map[i].Name != name) { continue; }
+                index = i;
+                DialogResult dr = MessageBox.Show("Exist Map: " + name + ". Do you want to Cover it ?", "Tip", MessageBoxButtons.YesNo);
+                if (dr == DialogResult.No) { return; }
+            }
+
+            if (index == -1)
+            {
+                index = config.Map.Count;
+
+                CONFIG.FILE map = new CONFIG.FILE();
+                map.Full = path + "\\" + name + ".map";
+                map.Path = path;
+                map.Name = name;
+                map.Text = new string[0];
+                config.Map.Add(map);
+
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                NewMenu.Click += setSelectedMap;
+                this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+            }
+
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[index + 5];
+            setSelectedMap(menu, e);
+        }
+        private void saveMap(object sender, EventArgs e)
+        {
+            int index = -1;
+            bool needAdd = Configuration.Save_Map(ref index);
+            if (index == -1) { return; }
+            if (!needAdd)
+            {
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[index + 5];
+                setSelectedMap(menu, e); return;
+            }
+
+            ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Map[index].Name);
+            NewMenu.Click += setSelectedMap;
+            this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+            setSelectedMap(NewMenu, e);
+        }
+
         private void setSelectedRoute(object sender, EventArgs e)
         {
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
@@ -530,9 +617,100 @@ namespace AGVproject
                 if (config.Route[i].Name == menu.Text) { config.SelectedRoute = i; break; }
             }
 
+            bool existFile = Configuration.Load_Route(config.SelectedRoute);
+            if (existFile)
+            {
+                TH_UpdataPictureBox.DrawOver = TH_UpdataPictureBox.Route.Count != 0;
+            }
+            else
+            {
+                DialogResult dr = MessageBox.Show("Not Exist Route: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
+                if (dr == DialogResult.Yes) { delSelectedRoute(sender, e); }
+            }
+
             menu.Checked = true;
             showMapRoute();
         }
+        private void delSelectedRoute(object sender, EventArgs e)
+        {
+            if (config.SelectedRoute == -1) { return; }
+
+            ToolStripMenuItem delMenu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + 6];
+            delMenu.Dispose();
+
+            //this.routeToolStripMenuItem.DropDownItems.RemoveAt(config.SelectedRoute);
+            config.Route.RemoveAt(config.SelectedRoute);
+
+            config.SelectedRoute = -1;
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[5];
+            setSelectedRoute(menu, e);
+            showMapRoute();
+        }
+        private void inputRoute(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = false;
+            fileDialog.Title = "Select Route";
+            fileDialog.Filter = "Route File(*.map)|*.route";
+            if (fileDialog.ShowDialog() != DialogResult.OK) { return; }
+
+            int cut = fileDialog.FileName.LastIndexOf("\\");
+            string path = fileDialog.FileName.Substring(0, cut);
+            string name = fileDialog.FileName.Substring(cut + 1);
+            name = name.Substring(0, name.Length - 6);
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
+
+            int index = -1;
+            for (int i = 0; i < config.Route.Count - 1; i++)
+            {
+                if (config.Route[i].Path != path || config.Route[i].Name != name) { continue; }
+                index = i;
+                DialogResult dr = MessageBox.Show("Exist Route: " + name + ". Do you want to Cover it ?", "Tip", MessageBoxButtons.YesNo);
+                if (dr == DialogResult.No) { return; }
+            }
+
+            if (index == -1)
+            {
+                index = config.Route.Count;
+
+                CONFIG.FILE route = new CONFIG.FILE();
+                route.Full = path + "\\" + name + ".route";
+                route.Path = path;
+                route.Name = name;
+                route.Text = new string[0];
+                config.Route.Add(route);
+
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                NewMenu.Click += setSelectedRoute;
+                this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+            }
+
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[index + 6];
+            setSelectedRoute(menu, e);
+        }
+        private void editRoute(object sender, EventArgs e)
+        {
+            TH_UpdataPictureBox.DrawOver = false;
+        }
+        private void saveRoute(object sender, EventArgs e)
+        {
+            if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
+
+            int index = -1;
+            bool needAdd = Configuration.Save_Route(ref index);
+            if (index == -1) { return; }
+            if (!needAdd)
+            {
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[index + 6];
+                setSelectedRoute(menu, e); return;
+            }
+
+            ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[index].Name);
+            NewMenu.Click += setSelectedRoute;
+            this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+            setSelectedRoute(NewMenu, e);
+        }
+
         private void showMapRoute()
         {
             string Map = "Auto", Route = "Auto";
@@ -542,7 +720,6 @@ namespace AGVproject
 
             this.Text = "Map: " + Map + " / Route: " + Route;
         }
-
         private void openConfig(object sender, EventArgs e)
         {
             // 读取文件内容

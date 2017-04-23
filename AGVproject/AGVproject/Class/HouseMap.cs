@@ -107,64 +107,6 @@ namespace AGVproject.Class
 
         ///////////////////////////////////////////// Stacks //////////////////////////////////////////////////
 
-        public static void Initial()
-        {
-            Stacks = new List<STACK>();
-
-            STACK stack0 = new STACK();
-            stack0.IsLeft = false;
-            stack0.No = 0;
-            stack0.AisleWidth_L = (HouseWidth - 2000) / 2;
-            stack0.AisleWidth_R = (HouseWidth - 2000) / 2;
-            stack0.AisleWidth_U = 0;
-            stack0.AisleWidth_D = 0;
-            stack0.CarPosition = TH_AutoSearchTrack.Direction.Tuning;
-            stack0.Length = 2000;
-            stack0.Width = 100;
-            Stacks.Add(stack0);
-
-            for (int i = 1; i <= TotalStacksL; i++)
-            {
-                STACK NewStack = new STACK();
-
-                NewStack.IsLeft = false;
-                NewStack.No = i;
-                NewStack.Length = DefaultStackLength;
-                NewStack.Width = DefaultStackWidth;
-                NewStack.AisleWidth_R = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
-                NewStack.AisleWidth_L = DefaultCentreRoadWidth;
-                NewStack.AisleWidth_U = DefaultAisleWidth;
-                NewStack.AisleWidth_D = DefaultAisleWidth;
-
-                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
-                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
-                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
-                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
-
-                Stacks.Add(NewStack);
-            }
-            for (int i = TotalStacksL + 1; i <= TotalStacks; i++)
-            {
-                STACK NewStack = new STACK();
-
-                NewStack.IsLeft = true;
-                NewStack.No = i;
-                NewStack.Length = DefaultStackLength;
-                NewStack.Width = DefaultStackWidth;
-                NewStack.AisleWidth_L = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
-                NewStack.AisleWidth_R = DefaultCentreRoadWidth;
-                NewStack.AisleWidth_U = DefaultAisleWidth;
-                NewStack.AisleWidth_D = DefaultAisleWidth;
-
-                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
-                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
-                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
-                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
-
-                Stacks.Add(NewStack);
-            }
-        }
-
         public static bool CarSideL_NearStack()
         {
             int No = TH_AutoSearchTrack.control.NearStack;
@@ -200,6 +142,64 @@ namespace AGVproject.Class
             if (No < 0 || No > TotalStacks) { return false; }
 
             return !Stacks[No].IsLeft;
+        }
+        
+        public static void getDefaultStacks()
+        {
+            Stacks = new List<STACK>();
+
+            STACK stack0 = new STACK();
+            stack0.IsLeft = false;
+            stack0.No = 0;
+            stack0.AisleWidth_L = (HouseWidth - 2000) / 2;
+            stack0.AisleWidth_R = (HouseWidth - 2000) / 2;
+            stack0.AisleWidth_U = 0;
+            stack0.AisleWidth_D = 0;
+            stack0.CarPosition = TH_AutoSearchTrack.Direction.Tuning;
+            stack0.Length = 2000;
+            stack0.Width = 100;
+            Stacks.Add(stack0);
+
+            for (int i = 1; i <= TotalStacksR; i++)
+            {
+                STACK NewStack = new STACK();
+
+                NewStack.IsLeft = false;
+                NewStack.No = i;
+                NewStack.Length = DefaultStackLength;
+                NewStack.Width = DefaultStackWidth;
+                NewStack.AisleWidth_R = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
+                NewStack.AisleWidth_L = DefaultCentreRoadWidth;
+                NewStack.AisleWidth_U = DefaultAisleWidth;
+                NewStack.AisleWidth_D = DefaultAisleWidth;
+
+                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
+                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
+                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
+                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
+
+                Stacks.Add(NewStack);
+            }
+            for (int i = TotalStacksR + 1; i <= TotalStacks; i++)
+            {
+                STACK NewStack = new STACK();
+
+                NewStack.IsLeft = true;
+                NewStack.No = i;
+                NewStack.Length = DefaultStackLength;
+                NewStack.Width = DefaultStackWidth;
+                NewStack.AisleWidth_L = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
+                NewStack.AisleWidth_R = DefaultCentreRoadWidth;
+                NewStack.AisleWidth_U = DefaultAisleWidth;
+                NewStack.AisleWidth_D = DefaultAisleWidth;
+
+                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
+                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
+                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
+                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
+
+                Stacks.Add(NewStack);
+            }
         }
 
         public static double getAisleWidth()

@@ -10,7 +10,7 @@ using System.Windows.Forms;
 namespace AGVproject.Class
 {
     /// <summary>
-    /// 备用线程，界面刷新
+    /// 界面刷新
     /// </summary>
     class TH_UpdataPictureBox
     {
@@ -36,6 +36,8 @@ namespace AGVproject.Class
         public static List<STACK> Stacks;
         public static List<ROUTE> Route;
 
+        public static bool IsSetting;
+        public static bool IsGetting;
         public static bool IsSettingMousePosition;
         public static bool IsGettingMousePosition;
         
@@ -135,6 +137,8 @@ namespace AGVproject.Class
 
         public static void Initial()
         {
+            IsSetting = false;
+            IsGetting = false;
             NoOperate = false;
 
             Stacks = new List<STACK>();
@@ -145,6 +149,9 @@ namespace AGVproject.Class
         }
         public static void Updata()
         {
+            while (IsSetting) ;
+            IsGetting = true;
+
             getCursorShape();
             getFont();
             getBaseMapPicture();
@@ -154,6 +161,8 @@ namespace AGVproject.Class
             getUrgData();
             getUltraSonicData();
             getLocateData();
+
+            IsGetting = false;
         }
         
         public static void getBaseMapPicture()
@@ -474,6 +483,87 @@ namespace AGVproject.Class
             IsGettingMousePosition = false;
             return currPos;
         }
+        public static MOUSE getMousePosition(int X, int Y)
+        {
+            int xBG, yBG, xED, yED;
+            MOUSE p = new MOUSE();
+            p.No = -1;
+
+            foreach (STACK stack in Stacks)
+            {
+                // 左
+                xBG = stack.xBG - stack.SetKeepL;
+                yBG = stack.yBG - stack.SetKeepU;
+                xED = stack.xBG;
+                yED = stack.yBG + stack.Width;
+
+                if (xBG <= X && X < xED && yBG <= Y && Y <= yED)
+                {
+                    p.IsLeft = stack.IsLeft;
+                    p.No = stack.No;
+                    p.Direction = TH_AutoSearchTrack.Direction.Left;
+                    p.Distance = yED - Y; break;
+                }
+
+                // 上
+                xBG = stack.xBG;
+                yBG = stack.yBG - stack.SetKeepU;
+                xED = stack.xBG + stack.Length + stack.SetKeepR;
+                yED = stack.yBG;
+
+                if (xBG <= X && X <= xED && yBG <= Y && Y < yED)
+                {
+                    p.IsLeft = stack.IsLeft;
+                    p.No = stack.No;
+                    p.Direction = TH_AutoSearchTrack.Direction.Up;
+                    p.Distance = X - xBG; break;
+                }
+
+                // 右
+                xBG = stack.xBG + stack.Length;
+                yBG = stack.yBG;
+                xED = xBG + stack.SetKeepR;
+                yED = yBG + stack.Width + stack.SetKeepD;
+
+                if (xBG < X && X <= xED && yBG <= Y && Y <= yED)
+                {
+                    p.IsLeft = stack.IsLeft;
+                    p.No = stack.No;
+                    p.Direction = TH_AutoSearchTrack.Direction.Right;
+                    p.Distance = Y - yBG; break;
+                }
+
+                // 下
+                xBG = stack.xBG - stack.SetKeepL;
+                yBG = stack.yBG + stack.Width;
+                xED = stack.xBG + stack.Length;
+                yED = yBG + stack.SetKeepD;
+
+                if (xBG <= X && X <= xED && yBG < Y && Y <= yED)
+                {
+                    p.IsLeft = stack.IsLeft;
+                    p.No = stack.No;
+                    p.Direction = TH_AutoSearchTrack.Direction.Down;
+                    p.Distance = xED - X; break;
+                }
+
+                // 中
+                xBG = stack.xBG;
+                yBG = stack.yBG;
+                xED = xBG + stack.Length;
+                yED = yBG + stack.Width;
+
+                if (xBG <= X && X <= xED && yBG <= Y && Y <= yED)
+                {
+                    p.IsLeft = stack.IsLeft;
+                    p.No = stack.No;
+                    p.Direction = TH_AutoSearchTrack.Direction.Tuning;
+                    p.Distance = xED - X; break;
+                }
+            }
+
+            p.x = X; p.y = Y; return p;
+        }
 
         public static HouseMap.STACK MapStack2ReadStack(int No)
         {
@@ -649,23 +739,35 @@ namespace AGVproject.Class
 
             if (jumpX)
             {
-                last.No = HouseMap.TotalStacks + 1 - last.No;
+                int X = Stacks[Stacks.Count - 1].xBG + Stacks[Stacks.Count - 1].Length + Stacks[Stacks.Count - 1].SetKeepR;
+                int Y = last.MapPoint.Y;
+
+                MOUSE lastpos = getMousePosition(X, Y);
+                if (lastpos.No == -1) { return; }
+
+                last.No = lastpos.No;
+                last.IsLeft = lastpos.IsLeft;
+                last.Direction = lastpos.Direction;
+                last.Distance = lastpos.Distance;
+                last.MapPoint = new Point(X, Y);
+
+                //last.No = HouseMap.TotalStacks + 1 - last.No;
                 lastStack = Stacks[last.No];
 
-                if (last.IsLeft)
-                {
-                    last.IsLeft = false;
-                    last.Direction = TH_AutoSearchTrack.Direction.Left;
-                    last.Distance = lastStack.yBG + lastStack.Width - last.MapPoint.Y;
-                    last.MapPoint = getRouteMapPoint(last);
-                }
-                else
-                {
-                    last.IsLeft = true;
-                    last.Direction = TH_AutoSearchTrack.Direction.Right;
-                    last.Distance = last.MapPoint.Y - lastStack.yBG;
-                    last.MapPoint = getRouteMapPoint(last);
-                }
+                //if (last.IsLeft)
+                //{
+                //    last.IsLeft = false;
+                //    last.Direction = TH_AutoSearchTrack.Direction.Left;
+                //    last.Distance = lastStack.yBG + lastStack.Width - last.MapPoint.Y;
+                //    last.MapPoint = getRouteMapPoint(last);
+                //}
+                //else
+                //{
+                //    last.IsLeft = true;
+                //    last.Direction = TH_AutoSearchTrack.Direction.Right;
+                //    last.Distance = last.MapPoint.Y - lastStack.yBG;
+                //    last.MapPoint = getRouteMapPoint(last);
+                //}
                 Route.Add(last); return;
             }
 
