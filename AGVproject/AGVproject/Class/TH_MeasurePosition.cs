@@ -7,10 +7,16 @@ using System.IO.Ports;
 
 namespace AGVproject.Class
 {
+    /// <summary>
+    /// 获取小车仓库坐标系下的坐标
+    /// </summary>
     class TH_MeasurePosition
     {
         ////////////////////////////////////////// public attribute ////////////////////////////////////////////////
 
+        /// <summary>
+        /// 编码器串口是否打开
+        /// </summary>
         public static bool IsOpen { get { return config.Port != null && config.Port.IsOpen && !config.IsClosing; } }
         
         ////////////////////////////////////////// private attribute ////////////////////////////////////////////////
@@ -35,6 +41,10 @@ namespace AGVproject.Class
 
         ////////////////////////////////////////// public method ////////////////////////////////////////////////
 
+        /// <summary>
+        /// 打开编码器串口
+        /// </summary>
+        /// <returns>编码器串口是否成功打开</returns>
         public static bool Open()
         {
             // 串口已经打开
@@ -65,6 +75,10 @@ namespace AGVproject.Class
             }
             catch { return false; }
         }
+        /// <summary>
+        /// 关闭编码器串口
+        /// </summary>
+        /// <returns></returns>
         public static bool Close()
         {
             // 已经关闭或正在关闭
@@ -81,6 +95,10 @@ namespace AGVproject.Class
             catch { config.IsClosing = false; return false; }
         }
 
+        /// <summary>
+        /// 获取小车当前位置仓库坐标系下坐标
+        /// </summary>
+        /// <returns></returns>
         public static CoordinatePoint.POINT getPosition()
         {
             CoordinatePoint.POINT point = new CoordinatePoint.POINT();
@@ -93,6 +111,49 @@ namespace AGVproject.Class
             point.rCar = config.Current.rCar;
 
             config.IsGetting = false; return point;
+        }
+        /// <summary>
+        /// 设置小车当前位置仓库坐标系下坐标
+        /// </summary>
+        /// <param name="point">设定坐标</param>
+        public static void setPosition(CoordinatePoint.POINT point)
+        {
+            while (config.IsSetting) ;
+            while (config.IsGetting) ;
+            config.IsSetting = true;
+            config.IsGetting = true;
+
+            config.Current.x = point.x / 1000;
+            config.Current.y = point.y / 1000;
+            config.Current.aCar = point.aCar;
+            config.Current.rCar = point.rCar;
+
+            if (point.aCar == 0) { config.Current.aCar = point.rCar * 180 / Math.PI; }
+            if (point.rCar == 0) { config.Current.rCar = point.aCar * Math.PI / 180; }
+
+            config.IsSetting = false;
+            config.IsGetting = false;
+        }
+        /// <summary>
+        /// 设置小车当前位置仓库坐标系下坐标
+        /// </summary>
+        /// <param name="x">X 轴坐标 单位：mm</param>
+        /// <param name="y">Y 轴坐标 单位：mm</param>
+        /// <param name="a">当前方向 单位：度</param>
+        public static void setPosition(double x, double y, double a)
+        {
+            while (config.IsSetting) ;
+            while (config.IsGetting) ;
+            config.IsSetting = true;
+            config.IsGetting = true;
+
+            config.Current.x = x / 1000;
+            config.Current.y = y / 1000;
+            config.Current.aCar = a;
+            config.Current.rCar = a * Math.PI / 180;
+            
+            config.IsSetting = false;
+            config.IsGetting = false;
         }
         
         ////////////////////////////////////////// private method ////////////////////////////////////////////////

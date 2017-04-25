@@ -178,6 +178,13 @@ namespace AGVproject.Class
             }
         }
 
+        public static bool getIsLeft()
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+            if (No < 0 || No > TotalStacks) { return false; }
+            return Stacks[No].IsLeft;
+        }
+
         public static bool getAisleWidth(ref double AisleWidth)
         {
             // 取点
@@ -291,6 +298,40 @@ namespace AGVproject.Class
             if (No < 0 || No > TotalStacks) { return -1; }
 
             TH_AutoSearchTrack.Direction pos = Stacks[No].CarPosition;
+            TH_AutoSearchTrack.Direction dir = Stacks[No].CarDirection;
+            bool IsLeft = Stacks[No].IsLeft;
+
+            if (pos == TH_AutoSearchTrack.Direction.Up)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceU; }
+                if (IsLeft) { return Stacks[No].KeepDistanceU - Hardware_PlatForm.AxisSideL; }
+                else { return Stacks[No].KeepDistanceU + Hardware_PlatForm.AxisSideR; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Down)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceD; }
+                if (IsLeft) { return Stacks[No].KeepDistanceD + Hardware_PlatForm.AxisSideR; }
+                else { return Stacks[No].KeepDistanceD - Hardware_PlatForm.AxisSideL; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Left)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceL; }
+                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
+                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
+            }
+            if (pos == TH_AutoSearchTrack.Direction.Right)
+            {
+                if (fromcar) { return Stacks[No].KeepDistanceR; }
+                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
+                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
+            }
+            return -1;
+        }
+        public static double getKeepDistance(TH_AutoSearchTrack.Direction pos, bool fromcar = false)
+        {
+            int No = TH_AutoSearchTrack.control.NearStack;
+            if (No < 0 || No > TotalStacks) { return -1; }
+            
             TH_AutoSearchTrack.Direction dir = Stacks[No].CarDirection;
             bool IsLeft = Stacks[No].IsLeft;
 

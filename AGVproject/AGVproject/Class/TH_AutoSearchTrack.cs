@@ -74,6 +74,10 @@ namespace AGVproject.Class
             /// 事件通知，在界面中提示当前小车的状态
             /// </summary>
             public string Event;
+            /// <summary>
+            /// 通知事件时，所用字体颜色
+            /// </summary>
+            public System.Drawing.Color EventColor;
             
             /// <summary>
             /// 主控线程命令：关闭主控线程
@@ -98,6 +102,10 @@ namespace AGVproject.Class
             /// 一直等待，直到此命令被清除
             /// </summary>
             Wait,
+            /// <summary>
+            /// 扫描并建立地图
+            /// </summary>
+            Scan,
             /// <summary>
             /// 退出通道
             /// </summary>
@@ -191,40 +199,35 @@ namespace AGVproject.Class
                 if (control.Abort) { control.Thread.Abort();  control.Abort = false; return; }
                 
                 // 检测串口状态
-                if (!TH_SendCommand.IsOpen) { control.Event = "Control Port Closed !"; continue; }
-                if (!TH_MeasureSurrounding.IsOpen) { control.Event = "URG Port Closed !"; continue; }
-                if (!TH_MeasurePosition.IsOpen) { control.Event = "Locate Port Closed !"; continue; }
-
+                if (!TH_SendCommand.IsOpen)
+                {
+                    control.Event = "Error: Control Port Closed !";
+                    control.EventColor = System.Drawing.Color.Red;
+                    //control.Thread.Abort();
+                    //control.Abort = false; return;
+                    control.Action = Action.Error;
+                    continue;
+                }
+                if (!TH_MeasureSurrounding.IsOpen)
+                {
+                    control.Event = "Error: URG Port Closed !";
+                    control.EventColor = System.Drawing.Color.Red;
+                    //control.Thread.Abort();
+                    //control.Abort = false; return;
+                    control.Action = Action.Error;
+                    continue;
+                }
+                if (!TH_MeasurePosition.IsOpen)
+                {
+                    control.Event = "Error: Locate Port Closed !";
+                    control.EventColor = System.Drawing.Color.Red;
+                    //control.Thread.Abort();
+                    //control.Abort = false; return;
+                    control.Action = Action.Error;
+                    continue;
+                }
+                
                 // 测试
-
-                while (false)
-                {
-                    int xSpeed = AST_GuideBySpeed.getSpeedX(0);
-                    int ySpeed = AST_GuideBySpeed.getSpeedY(0);
-                    int aSpeed = AST_GuideBySpeed.getSpeedA(0);
-
-                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 100);
-                }
-
-                AST_GuideByPosition.ApproachX = false;
-                AST_GuideByPosition.ApproachY = false;
-                AST_GuideByPosition.ApproachA = false;
-
-                AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
-
-                AST_GuideByPosition.TargetPosition.x = AST_GuideByPosition.StartPosition.x - 1000;
-                AST_GuideByPosition.TargetPosition.y = AST_GuideByPosition.StartPosition.y - 1000;
-                AST_GuideByPosition.TargetPosition.aCar = AST_GuideByPosition.StartPosition.aCar - 90;
-
-                while (false)
-                {
-                    //int xSpeed = AST_GuideByPosition.getSpeedX();
-                    //int ySpeed = AST_GuideByPosition.getSpeedY();
-                    //int aSpeed = AST_GuideByPosition.getSpeedA();
-
-                    //TH_SendCommand.AGV_MoveControl_0x70(xSpeed, 0, 0);
-                }
-
                 AST_GuideBySurrounding.ApproachX = false;
                 AST_GuideBySurrounding.ApproachY = false;
                 AST_GuideBySurrounding.ApproachA = false;
@@ -247,7 +250,7 @@ namespace AGVproject.Class
                 if (control.Action == Action.Abort) { control.Thread.Abort(); control.Abort = false; return; }
                 if (control.Action == Action.Error) { continue; }
 
-                AST_Go.Start(); control.EMA = false;
+                
             }
         }
     }

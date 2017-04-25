@@ -80,6 +80,7 @@
             this.deleteToolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.openLocatePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkLocPort = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnRestart = new System.Windows.Forms.ToolStripMenuItem();
             this.outAisleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.returnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -87,8 +88,9 @@
             this.EventLabel = new System.Windows.Forms.Label();
             this.TimeLabel = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.pictureBox = new System.Windows.Forms.PictureBox();
             this.button = new System.Windows.Forms.Button();
+            this.pictureBox = new System.Windows.Forms.PictureBox();
+            this.scanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -146,6 +148,7 @@
             this.UrgPortToolStripMenuItem,
             this.LocatePortToolStripMenuItem,
             this.btnRestart,
+            this.scanToolStripMenuItem,
             this.outAisleToolStripMenuItem,
             this.returnToolStripMenuItem,
             this.configToolStripMenuItem});
@@ -426,7 +429,8 @@
             this.LOC_PortNameToolStripMenuItem,
             this.LOC_BaudRateToolStripMenuItem,
             this.openLocatePortToolStripMenuItem,
-            this.checkLocPort});
+            this.checkLocPort,
+            this.resetToolStripMenuItem});
             this.LocatePortToolStripMenuItem.Name = "LocatePortToolStripMenuItem";
             this.LocatePortToolStripMenuItem.Size = new System.Drawing.Size(86, 21);
             this.LocatePortToolStripMenuItem.Text = "Locate Port";
@@ -489,6 +493,13 @@
             this.checkLocPort.Size = new System.Drawing.Size(135, 22);
             this.checkLocPort.Text = "Check";
             // 
+            // resetToolStripMenuItem
+            // 
+            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.resetToolStripMenuItem.Text = "Reset";
+            this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetCurrPos);
+            // 
             // btnRestart
             // 
             this.btnRestart.Name = "btnRestart";
@@ -543,6 +554,16 @@
             this.panel1.Size = new System.Drawing.Size(685, 439);
             this.panel1.TabIndex = 52;
             // 
+            // button
+            // 
+            this.button.Location = new System.Drawing.Point(485, 339);
+            this.button.Name = "button";
+            this.button.Size = new System.Drawing.Size(180, 80);
+            this.button.TabIndex = 29;
+            this.button.Text = "Start";
+            this.button.UseVisualStyleBackColor = true;
+            this.button.Click += new System.EventHandler(this.Start);
+            // 
             // pictureBox
             // 
             this.pictureBox.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pictureBox.BackgroundImage")));
@@ -558,15 +579,11 @@
             this.pictureBox.MouseLeave += new System.EventHandler(this.MouseLeaveMap);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MapMouseMove);
             // 
-            // button
+            // scanToolStripMenuItem
             // 
-            this.button.Location = new System.Drawing.Point(485, 339);
-            this.button.Name = "button";
-            this.button.Size = new System.Drawing.Size(180, 80);
-            this.button.TabIndex = 29;
-            this.button.Text = "Start";
-            this.button.UseVisualStyleBackColor = true;
-            this.button.Click += new System.EventHandler(this.Start);
+            this.scanToolStripMenuItem.Name = "scanToolStripMenuItem";
+            this.scanToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
+            this.scanToolStripMenuItem.Text = "Scan";
             // 
             // Form_Start
             // 
@@ -654,6 +671,8 @@
         private System.Windows.Forms.ToolStripMenuItem btnRestart;
         private System.Windows.Forms.ToolStripMenuItem saveRouteToolStripMenuItem;
         private System.Windows.Forms.Button button;
+        private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem scanToolStripMenuItem;
     }
 }
 

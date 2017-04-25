@@ -375,7 +375,6 @@ namespace AGVproject.Class
             
             TH_AutoSearchTrack.control.EMA = getFieldValue1_BOOL("AST.EMA");
             TH_AutoSearchTrack.control.NearStack = getFieldValue1_INT("AST.NearStack");
-            TH_AutoSearchTrack.control.Event = getFieldValue1_STRING("AST.Event");
         }
         private static void Save_AST()
         {
@@ -390,7 +389,6 @@ namespace AGVproject.Class
             
             setFieldValue("AST.EMA", TH_AutoSearchTrack.control.EMA);
             setFieldValue("AST.NearStack", TH_AutoSearchTrack.control.NearStack);
-            setFieldValue("AST.Event", TH_AutoSearchTrack.control.Event);
         }
         public static bool Save_Map(ref int index)
         {
@@ -552,10 +550,10 @@ namespace AGVproject.Class
         {
             if (index == -1)
             {
-                TH_UpdataPictureBox.IsSetting = true;
-                while (TH_UpdataPictureBox.IsGetting) ;
+                while (TH_UpdataPictureBox.IsGettingRoute) ;
+                TH_UpdataPictureBox.IsSettingRoute = true;
                 TH_UpdataPictureBox.getAutoRoute();
-                TH_UpdataPictureBox.IsSetting = false;
+                TH_UpdataPictureBox.IsSettingRoute = false;
                 return true;
             }
 
@@ -581,10 +579,11 @@ namespace AGVproject.Class
             }
 
             sr.Close();
-            TH_UpdataPictureBox.IsSetting = true;
-            while (TH_UpdataPictureBox.IsGetting) ;
+            
+            while (TH_UpdataPictureBox.IsGettingRoute) ;
+            TH_UpdataPictureBox.IsSettingRoute = true;
             TH_UpdataPictureBox.Route = Route;
-            TH_UpdataPictureBox.IsSetting = false;
+            TH_UpdataPictureBox.IsSettingRoute = false;
             return true;
         }
 

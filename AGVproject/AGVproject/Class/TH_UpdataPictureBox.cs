@@ -35,12 +35,14 @@ namespace AGVproject.Class
 
         public static List<STACK> Stacks;
         public static List<ROUTE> Route;
-
-        public static bool IsSetting;
-        public static bool IsGetting;
+        
         public static bool IsSettingMousePosition;
         public static bool IsGettingMousePosition;
-        
+        public static bool IsSettingStack;
+        public static bool IsGettingStack;
+        public static bool IsSettingRoute;
+        public static bool IsGettingRoute;
+
         public struct STACK
         {
             /// <summary>
@@ -137,8 +139,13 @@ namespace AGVproject.Class
 
         public static void Initial()
         {
-            IsSetting = false;
-            IsGetting = false;
+            IsSettingMousePosition = false;
+            IsGettingMousePosition = false;
+            IsSettingRoute = false;
+            IsGettingRoute = false;
+            IsSettingStack = false;
+            IsGettingStack = false;
+
             NoOperate = false;
 
             Stacks = new List<STACK>();
@@ -149,9 +156,6 @@ namespace AGVproject.Class
         }
         public static void Updata()
         {
-            while (IsSetting) ;
-            IsGetting = true;
-
             getCursorShape();
             getFont();
             getBaseMapPicture();
@@ -161,8 +165,6 @@ namespace AGVproject.Class
             getUrgData();
             getUltraSonicData();
             getLocateData();
-
-            IsGetting = false;
         }
         
         public static void getBaseMapPicture()
@@ -294,13 +296,17 @@ namespace AGVproject.Class
             if (!Form_Start.config.CheckLocatePort) { return; }
 
             CoordinatePoint.POINT point = TH_MeasurePosition.getPosition();
-            SizeF size = g.MeasureString("X", StrFont);
-            int centre = MapLength / 2;
+            //SizeF size = g.MeasureString("X", StrFont);
+            //int centre = MapLength / 2;
 
-            g.DrawString("X: " + point.x.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 3);
-            g.DrawString("Y: " + point.y.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 1);
-            g.DrawString("A: " + point.aCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 1);
-            g.DrawString("R: " + point.rCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 3);
+            //g.DrawString("X: " + point.x.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 3);
+            //g.DrawString("Y: " + point.y.ToString(), StrFont, Brushes.Black, 30, centre - size.Width * 1);
+            //g.DrawString("A: " + point.aCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 1);
+            //g.DrawString("R: " + point.rCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 3);
+
+            int X = (int)((HouseMap.HouseWidth - point.x) / Form_Start.config.PixLength);
+            int Y = (int)(point.y / Form_Start.config.PixLength);
+            g.FillEllipse(Brushes.Red, X - 4, Y - 4, 8, 8);
         }
         public static void getPermitRoute()
         {
@@ -704,6 +710,51 @@ namespace AGVproject.Class
 
             p.x = X; p.y = Y; return p;
         }
+        
+        public static void setStack(List<STACK> stacks)
+        {
+            while (IsGettingStack) ;
+            IsSettingStack = true;
+
+            Stacks = stacks;
+
+            IsSettingStack = false;
+        }
+        public static List<STACK> getStack()
+        {
+            List<STACK> stacks = new List<STACK>();
+
+            IsGettingStack = true;
+            while (IsSettingStack) ;
+
+            foreach (STACK stack in Stacks) { stacks.Add(stack); }
+
+            IsGettingStack = false;
+            return stacks;
+        }
+
+        public static void setRoute(List<ROUTE> route)
+        {
+            while (IsGettingRoute) ;
+            IsSettingRoute = true;
+
+            Route = route;
+
+            IsSettingRoute = false;
+        }
+        public static List<ROUTE> getRoute()
+        {
+            List<ROUTE> route = new List<ROUTE>();
+
+            IsGettingRoute = true;
+            while (IsSettingRoute) ;
+
+            foreach (ROUTE r in Route) { route.Add(r); }
+
+            IsGettingRoute = false;
+            return route;
+        }
+
 
         public static HouseMap.STACK MapStack2ReadStack(int No)
         {
@@ -1264,15 +1315,16 @@ namespace AGVproject.Class
             if (!Form_Start.config.CheckRoute) { return; }
             if (NoOperate) { return; }
 
-            Route.Clear();
+            setRoute(new List<ROUTE>());
         }
         public static void ClieckedUndo()
         {
             if (!Form_Start.config.CheckRoute) { return; }
             if (NoOperate) { return; }
 
-            if (Route.Count == 0) { return; }
-            Route.RemoveAt(Route.Count - 1);
+            List<ROUTE> route = getRoute();
+            if (route.Count != 0) { route.RemoveAt(route.Count - 1); }
+            setRoute(route);
         }
     }
 }

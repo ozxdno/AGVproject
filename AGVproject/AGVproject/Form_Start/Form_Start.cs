@@ -90,8 +90,16 @@ namespace AGVproject
                 this.TimeLabel.Text = TimeString;
 
                 // 刷新事件
-                if (TH_AutoSearchTrack.control.Event == null) { this.EventLabel.Text = "Waitting"; }
-                if (TH_AutoSearchTrack.control.Event != null) { this.EventLabel.Text = TH_AutoSearchTrack.control.Event; }
+                CoordinatePoint.POINT currPos = TH_MeasurePosition.getPosition();
+                string Event = "Current: ";
+                Event += ((int)currPos.x).ToString() + ",";
+                Event += ((int)currPos.y).ToString() + ",";
+                Event += ((int)currPos.aCar).ToString() + "  ";
+                if (TH_AutoSearchTrack.control.Event == null) { TH_AutoSearchTrack.control.Event = "Normal: Waitting  "; }
+                Event += TH_AutoSearchTrack.control.Event;
+                this.EventLabel.Text = Event;
+                if (TH_AutoSearchTrack.control.EventColor.IsEmpty == true) { TH_AutoSearchTrack.control.EventColor = Color.Black; }
+                this.EventLabel.ForeColor = TH_AutoSearchTrack.control.EventColor;
 
                 // 刷新图片
                 TH_UpdataPictureBox.BoxLength = this.pictureBox.Height;
@@ -469,33 +477,53 @@ namespace AGVproject
 
         private void Start(object sender, EventArgs e)
         {
-            TH_MeasurePosition.Open();
-            TH_MeasureSurrounding.Open();
-            TH_SendCommand.Open();
+            openLocPort(this.openLocatePortToolStripMenuItem, e);
+            openUrgPort(this.OpenUrgPortToolStripMenuItem, e);
+            openControlPort(this.OpenControlPortToolStripMenuItem, e);
 
             if (this.button.Text == "Stop")
             {
+                TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Stop;
+                TH_AutoSearchTrack.control.EMA = true;
                 this.button.Text = "Continue"; return;
             }
 
             if (this.button.Text == "Continue")
             {
+                TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Continue;
+                TH_AutoSearchTrack.control.EMA = false;
+
+                if (!TH_MeasurePosition.IsOpen) { return; }
+                if (!TH_MeasureSurrounding.IsOpen) { return; }
+                if (!TH_SendCommand.IsOpen) { return; }
+
                 this.button.Text = "Stop"; return;
             }
 
+            TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Normal;
+            TH_AutoSearchTrack.Start();
+
+            if (!TH_MeasurePosition.IsOpen) { return; }
+            if (!TH_MeasureSurrounding.IsOpen) { return; }
+            if (!TH_SendCommand.IsOpen) { return; }
             this.button.Text = "Stop";
         }
         private void Restart(object sender, EventArgs e)
         {
-            TH_MeasurePosition.Open();
-            TH_MeasureSurrounding.Open();
-            TH_SendCommand.Open();
-
             DialogResult dr = MessageBox.Show("Do you want to Restart ?", "Attention", MessageBoxButtons.OKCancel);
             if (dr == DialogResult.Cancel) { return; }
 
+            openLocPort(this.openLocatePortToolStripMenuItem, e);
+            openUrgPort(this.OpenUrgPortToolStripMenuItem, e);
+            openControlPort(this.OpenControlPortToolStripMenuItem, e);
+            TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Normal;
+            TH_AutoSearchTrack.Restart();
+
+            if (!TH_MeasurePosition.IsOpen) { return; }
+            if (!TH_MeasureSurrounding.IsOpen) { return; }
+            if (!TH_SendCommand.IsOpen) { return; }
+
             this.button.Text = "Stop";
-            //TH_AutoSearchTrack.Restart();
         }
         private void formKeyDown(object sender, KeyEventArgs e)
         {
@@ -537,10 +565,7 @@ namespace AGVproject
                 for (int i = 0; i <= HouseMap.TotalStacks; i++)
                 { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
 
-                TH_UpdataPictureBox.IsSetting = true;
-                while (TH_UpdataPictureBox.IsGetting) ;
-                TH_UpdataPictureBox.Stacks = Stacks;
-                TH_UpdataPictureBox.IsSetting = false;
+                TH_UpdataPictureBox.setStack(Stacks);
             }
             else
             {
@@ -1065,6 +1090,10 @@ namespace AGVproject
             if (showNext == -1) { return; }
 
             getLOC_PortName(this.LOC_PortNameToolStripMenuItem.DropDownItems[showNext], e);
+        }
+        private void resetCurrPos(object sender, EventArgs e)
+        {
+            TH_MeasurePosition.setPosition(0, 0, 0);
         }
     }
 }

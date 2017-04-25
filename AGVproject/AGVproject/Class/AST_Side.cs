@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace AGVproject.Class
 {
-    class AST_Backward
+    class AST_Side
     {
         public static void Scan()
         {
+            // 旋转
 
+            // 行进
+
+            // 再旋转
         }
     }
 }

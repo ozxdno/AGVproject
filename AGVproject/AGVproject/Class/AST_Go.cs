@@ -8,10 +8,10 @@ namespace AGVproject.Class
 {
     class AST_Go
     {
-        private static TH_UpdataPictureBox.ROUTE Last;
-        private static TH_UpdataPictureBox.ROUTE Next;
+        public static TH_UpdataPictureBox.ROUTE Last;
+        public static TH_UpdataPictureBox.ROUTE Next;
 
-        public static void Start()
+        public static void Track()
         {
             for (int i = 1; i <= HouseMap.TotalStacks; i++) { ResetRouteInfo(i); }
 
@@ -34,6 +34,28 @@ namespace AGVproject.Class
                 if (scan && !forward) { ScanBackward(); continue; }
                 GoAroundStack(); continue;
             }
+        }
+        public static void Scan()
+        {
+            // 寻找 1 通道入口
+            AST_AlignAisle.Start(Hardware_PlatForm.Width, HouseMap.DefaultAisleWidth / 2, false);
+
+            // 前进
+            AST_Forward.Scan();
+
+            while (true)
+            {
+                AST_Backward.Scan();
+                if (true) { break; }
+                AST_Side.Scan();
+                AST_Forward.Scan();
+            }
+
+            // 后退
+            AST_Backward.Scan();
+
+            // 沿堆垛边行进
+            AST_Side.Scan();
         }
         
         private static void ResetRouteInfo(int No)
@@ -112,7 +134,7 @@ namespace AGVproject.Class
             // 设定参考点坐标
             HouseMap.setReferencePoint();
 
-            // 对准通道入口
+            // 寻找并对准通道入口
 
 
             // 获取距离
