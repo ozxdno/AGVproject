@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class\AST_AlignAisle.cs" />
+    <Compile Include="Class\AST_CorrectPosition.cs" />
     <Compile Include="Class\AST_GuideBySpeed.cs" />
     <Compile Include="Class\AST_GuideByPosition.cs" />
     <Compile Include="Class\AST_GuideBySurrounding.cs" />

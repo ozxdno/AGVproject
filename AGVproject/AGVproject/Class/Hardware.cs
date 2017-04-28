@@ -21,6 +21,19 @@ namespace AGVproject.Class
         public static double Width;
 
         /// <summary>
+        /// 移动平台车轮半径 单位：mm
+        /// </summary>
+        public static double WheelRadius;
+        /// <summary>
+        /// 移动平台左右车轮中心之间的跨度 单位：mm
+        /// </summary>
+        public static double WheelSpanX;
+        /// <summary>
+        /// 移动平台前后车轮中心之间的跨度 单位：mm
+        /// </summary>
+        public static double WheelSpanY;
+
+        /// <summary>
         /// 对激光雷达位置建系后小车左边边界的 X 轴坐标
         /// </summary>
         public static double AxisSideL;
@@ -45,11 +58,6 @@ namespace AGVproject.Class
         /// 小车前瞻（最远的有效距离） 单位：mm
         /// </summary>
         public static double ForeSightED;
-
-        public static double Angle_CornerUL { get { return 180; } }
-        public static double Angle_CornerUR { get { return 0; } }
-        public static double Angle_CornerDL { get { return 180 - Math.Atan(AxisSideD / AxisSideR) * 180 / Math.PI; } }
-        public static double Angle_CornerDR { get { return Math.Atan(AxisSideD / AxisSideR) * 180 / Math.PI; } }
     }
 
     /// <summary>

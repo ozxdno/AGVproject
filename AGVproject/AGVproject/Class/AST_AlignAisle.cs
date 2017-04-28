@@ -6,10 +6,22 @@ using System.Threading.Tasks;
 
 namespace AGVproject.Class
 {
+    /// <summary>
+    /// 通道入口处校准
+    /// </summary>
     class AST_AlignAisle
     {
+        /// <summary>
+        /// 已达 X 方向校准极限
+        /// </summary>
         public static bool ApproachX;
+        /// <summary>
+        /// 已达 Y 方向校准极限
+        /// </summary>
         public static bool ApproachY;
+        /// <summary>
+        /// 已达 A 方向校准极限
+        /// </summary>
         public static bool ApproachA;
 
         /// <summary>

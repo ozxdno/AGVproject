@@ -39,6 +39,19 @@ namespace AGVproject.Class
             /// 后右轮转速 单位：转/100ms
             /// </summary>
             public int TailR;
+
+            /// <summary>
+            /// X 方向的移动距离 单位：mm
+            /// </summary>
+            public double xMove;
+            /// <summary>
+            /// Y 方向的移动距离 单位：mm
+            /// </summary>
+            public double yMove;
+            /// <summary>
+            /// A 方向的旋转角度 单位：度
+            /// </summary>
+            public double aMove;
         }
         
         ////////////////////////////////////////// private attribute ////////////////////////////////////////////////
@@ -184,16 +197,35 @@ namespace AGVproject.Class
         /// <returns></returns>
         public static SPEED getSpeed()
         {
+            SPEED speed = new SPEED();
+
             while (config.IsSettingSpeed) ;
             config.IsGettingSpeed = true;
-
-            SPEED speed = new SPEED();
+            
             speed.HeadL = config.Speed.HeadL;
             speed.HeadR = config.Speed.HeadR;
             speed.TailL = config.Speed.TailL;
             speed.TailR = config.Speed.TailR;
 
             config.IsGettingSpeed = false;
+
+
+
+            int currSpeed_HL = -speed.HeadL;
+            int currSpeed_HR = speed.HeadR;
+            int currSpeed_TL = -speed.TailL;
+            int currSpeed_TR = speed.TailR;
+
+            const double R = 0.1015, PI = 3.1416, Lx = 0.1825, Ly = 0.2950;
+
+            double X = (double)(currSpeed_TL + currSpeed_HR - currSpeed_HL - currSpeed_TR) * 2 * PI * R / 1000 / 4;
+            double Y = (double)(currSpeed_TL + currSpeed_TR + currSpeed_HL + currSpeed_HR) * 2 * PI * R / 1000 / 4;
+            double A = (double)(currSpeed_TR + currSpeed_HR - currSpeed_TL - currSpeed_HL) * 2 * PI * R / 1000 / (4 * (Lx + Ly));
+
+            speed.xMove = X / 4.077 * 1000;
+            speed.yMove = Y / 4.077 * 1000;
+            speed.aMove = A / 4.077 * 180 / PI;
+            
             return speed;
         }
         

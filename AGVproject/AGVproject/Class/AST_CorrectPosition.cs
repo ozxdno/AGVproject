@@ -8,6 +8,18 @@ namespace AGVproject.Class
 {
     class AST_CorrectPosition
     {
+        public struct CORRECT
+        {
+            public bool Invaild;
+
+            public double K;
+            public double A;
+            public double B;
+
+            public double AngleBG;
+            public double AngleED;
+        }
+
         private static List<List<CoordinatePoint.POINT>> ptGroups;
 
         public static void Start()
