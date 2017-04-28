@@ -89,6 +89,7 @@
       <DependentUpon>Form_Start.cs</DependentUpon>
     </Compile>
     <Compile Include="Solution_FollowTrack\BuildRoute.cs" />
+    <Compile Include="Solution_FollowTrack\FollowTrack.cs" />
     <Compile Include="StartProject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
@@ -127,8 +128,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Solution_AutoScan\" />
-    <Folder Include="Solution_SetRoute\" />
+    <Folder Include="Solution_FollowStack\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

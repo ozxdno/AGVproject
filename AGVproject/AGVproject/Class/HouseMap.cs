@@ -38,9 +38,21 @@ namespace AGVproject.Class
         /// </summary>
         public static int TotalStacks { get { return TotalStacksL + TotalStacksR; } }
 
+        /// <summary>
+        /// 设定中间通路宽度 单位：mm
+        /// </summary>
         public static double DefaultCentreRoadWidth;
+        /// <summary>
+        /// 设定通道宽度 单位：mm
+        /// </summary>
         public static double DefaultAisleWidth;
+        /// <summary>
+        /// 设定堆垛长度
+        /// </summary>
         public static double DefaultStackLength;
+        /// <summary>
+        /// 设定堆垛宽度
+        /// </summary>
         public static double DefaultStackWidth;
         
         /// <summary>

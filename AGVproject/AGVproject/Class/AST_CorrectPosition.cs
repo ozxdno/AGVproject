@@ -8,9 +8,39 @@ namespace AGVproject.Class
 {
     class AST_CorrectPosition
     {
+
+        ////////////////////////////////////////////////// public attribute /////////////////////////////////////////
+
+        /// <summary>
+        /// 进行校准时必要的信息
+        /// </summary>
         public struct CORRECT
         {
-            public bool Invaild;
+            /// <summary>
+            /// X 方向校准信息是否有效
+            /// </summary>
+            public bool Invaild_X;
+            /// <summary>
+            /// Y 方向校准信息是否有效
+            /// </summary>
+            public bool Invaild_Y;
+            /// <summary>
+            /// A 方向校准信息是否有效
+            /// </summary>
+            public bool Invaild_A;
+
+            /// <summary>
+            /// 头部距离 单位：mm
+            /// </summary>
+            public double DistanceH;
+            /// <summary>
+            /// 左侧距离 单位：mm
+            /// </summary>
+            public double DistanceL;
+            /// <summary>
+            /// 右侧距离 单位：mm
+            /// </summary>
+            public double DistanceR;
 
             public double K;
             public double A;
@@ -19,6 +49,16 @@ namespace AGVproject.Class
             public double AngleBG;
             public double AngleED;
         }
+
+        ////////////////////////////////////////////////// private attribute /////////////////////////////////////////
+
+        private static CONFIG config;
+        private struct CONFIG
+        {
+            public List<List<CoordinatePoint.POINT>> ptGroups;
+            public double SelectError;
+        }
+
 
         private static List<List<CoordinatePoint.POINT>> ptGroups;
 
@@ -109,24 +149,7 @@ namespace AGVproject.Class
             // 挑选直线
             for (int i = 0; i < ptGroups.Count; i++)
             {
-                double bgX = ptGroups[i][0].x;
-                double edX = ptGroups[i][ptGroups[i].Count - 1].x;
-
-                if (bgX > 0 && edX < 0) { return ptGroups[i]; }
-                if (bgX < 0 && edX > 0) { return ptGroups[i]; }
-
-                if (bgX == 0)
-                {
-                    if (i == 0) { return ptGroups[i]; }
-                    if (ptGroups[i].Count >= ptGroups[i - 1].Count) { return ptGroups[i]; }
-                    return ptGroups[i - 1];
-                }
-                if (edX == 0)
-                {
-                    if (i == ptGroups.Count) { return ptGroups[i]; }
-                    if (ptGroups[i].Count >= ptGroups[i + 1].Count) { return ptGroups[i]; }
-                    return ptGroups[i + 1];
-                }
+                
             }
             if (ptGroups.Count != 0) { return ptGroups[0]; }
             return new List<CoordinatePoint.POINT>();
