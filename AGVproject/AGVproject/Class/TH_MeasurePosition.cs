@@ -18,6 +18,28 @@ namespace AGVproject.Class
         /// 编码器串口是否打开
         /// </summary>
         public static bool IsOpen { get { return config.Port != null && config.Port.IsOpen && !config.IsClosing; } }
+        /// <summary>
+        /// 描述小车轮子速度
+        /// </summary>
+        public struct SPEED
+        {
+            /// <summary>
+            /// 前左轮转速 单位：转/100ms
+            /// </summary>
+            public int HeadL;
+            /// <summary>
+            /// 前右轮转速 单位：转/100ms
+            /// </summary>
+            public int HeadR;
+            /// <summary>
+            /// 后左轮转速 单位：转/100ms
+            /// </summary>
+            public int TailL;
+            /// <summary>
+            /// 后右轮转速 单位：转/100ms
+            /// </summary>
+            public int TailR;
+        }
         
         ////////////////////////////////////////// private attribute ////////////////////////////////////////////////
         
@@ -31,12 +53,13 @@ namespace AGVproject.Class
             public bool IsGetting;
             public bool IsSetting;
 
+            public bool IsSettingSpeed;
+            public bool IsGettingSpeed;
+
             public List<byte> receData;
             public byte[] Frame;
             public SPEED Speed;
             public CoordinatePoint.POINT Current;
-
-            public struct SPEED { public int HeadL, HeadR, TailL, TailR; }
         }
 
         ////////////////////////////////////////// public method ////////////////////////////////////////////////
@@ -155,6 +178,24 @@ namespace AGVproject.Class
             config.IsSetting = false;
             config.IsGetting = false;
         }
+        /// <summary>
+        /// 获取当前小车轮子转速
+        /// </summary>
+        /// <returns></returns>
+        public static SPEED getSpeed()
+        {
+            while (config.IsSettingSpeed) ;
+            config.IsGettingSpeed = true;
+
+            SPEED speed = new SPEED();
+            speed.HeadL = config.Speed.HeadL;
+            speed.HeadR = config.Speed.HeadR;
+            speed.TailL = config.Speed.TailL;
+            speed.TailR = config.Speed.TailR;
+
+            config.IsGettingSpeed = false;
+            return speed;
+        }
         
         ////////////////////////////////////////// private method ////////////////////////////////////////////////
 
@@ -168,7 +209,10 @@ namespace AGVproject.Class
             config.receData = new List<byte>();
             config.Frame = new byte[14];
 
-            config.Speed = new CONFIG.SPEED();
+            config.IsGettingSpeed = false;
+            config.IsSettingSpeed = false;
+
+            config.Speed = new SPEED();
             config.Current = new CoordinatePoint.POINT();
         }
 
@@ -218,6 +262,11 @@ namespace AGVproject.Class
 
         private static void getCurrentSpeed()
         {
+            // 申明正在设置数据
+            config.IsSettingSpeed = true;
+            while (config.IsGettingSpeed) ;
+
+            // 接收数据
             int H, L;
 
             H = config.Frame[2];
@@ -246,12 +295,10 @@ namespace AGVproject.Class
             if (config.Speed.HeadR == 0) { StopAmount++; }
             if (config.Speed.TailL == 0) { StopAmount++; }
             if (config.Speed.TailR == 0) { StopAmount++; }
-            if (StopAmount < 2) { return; }
+            if (StopAmount >= 2) { config.Speed.HeadL = 0; config.Speed.HeadR = 0; config.Speed.TailL = 0; config.Speed.TailR = 0; }
 
-            config.Speed.HeadL = 0;
-            config.Speed.HeadR = 0;
-            config.Speed.TailL = 0;
-            config.Speed.TailR = 0;
+            // 设置完毕
+            config.IsSettingSpeed = false;
         }
         private static void getCurrentPosition()
         {
