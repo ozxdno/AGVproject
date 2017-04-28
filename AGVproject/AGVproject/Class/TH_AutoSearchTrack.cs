@@ -249,8 +249,6 @@ namespace AGVproject.Class
                 if (control.Action == Action.Continue) { control.EMA = false; control.Action = Action.Normal; }
                 if (control.Action == Action.Abort) { control.Thread.Abort(); control.Abort = false; return; }
                 if (control.Action == Action.Error) { continue; }
-
-                
             }
         }
     }

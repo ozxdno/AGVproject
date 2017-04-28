@@ -16,5 +16,6 @@ namespace AGVproject.Form_Route
         {
             InitializeComponent();
         }
+       
     }
 }

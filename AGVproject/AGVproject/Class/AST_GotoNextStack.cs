@@ -72,5 +72,9 @@ namespace AGVproject.Class
                 TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, 0);
             }
         }
+        public static void Scan_Jump()
+        {
+
+        }
     }
 }

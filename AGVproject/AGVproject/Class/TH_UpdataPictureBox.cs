@@ -10,7 +10,7 @@ using System.Windows.Forms;
 namespace AGVproject.Class
 {
     /// <summary>
-    /// 界面刷新
+    /// 刷新 FormStart.pictureBox
     /// </summary>
     class TH_UpdataPictureBox
     {
@@ -710,6 +710,11 @@ namespace AGVproject.Class
 
             p.x = X; p.y = Y; return p;
         }
+
+        public static int getMouseRouteNo(int X, int Y)
+        {
+            return 0;
+        }
         
         public static void setStack(List<STACK> stacks)
         {
@@ -754,8 +759,7 @@ namespace AGVproject.Class
             IsGettingRoute = false;
             return route;
         }
-
-
+        
         public static HouseMap.STACK MapStack2ReadStack(int No)
         {
             return new HouseMap.STACK();
@@ -1269,6 +1273,8 @@ namespace AGVproject.Class
             {
                 if (last.Distance != -lastStack.SetKeepU)
                 {
+                    last.No = next.No;
+                    last.IsLeft = next.IsLeft;
                     last.Direction = TH_AutoSearchTrack.Direction.Right;
                     last.Distance = -lastStack.SetKeepU;
                     last.MapPoint = getRouteMapPoint(last);
@@ -1279,6 +1285,8 @@ namespace AGVproject.Class
             {
                 if (last.Distance != lastStack.Width + lastStack.SetKeepD)
                 {
+                    last.No = next.No;
+                    last.IsLeft = next.IsLeft;
                     last.Direction = TH_AutoSearchTrack.Direction.Right;
                     last.Distance = lastStack.Width + lastStack.SetKeepD;
                     last.MapPoint = getRouteMapPoint(last);
@@ -1289,6 +1297,8 @@ namespace AGVproject.Class
             {
                 if (last.Distance != lastStack.Width + lastStack.SetKeepU)
                 {
+                    last.No = next.No;
+                    last.IsLeft = next.IsLeft;
                     last.Direction = TH_AutoSearchTrack.Direction.Left;
                     last.Distance = lastStack.Width + lastStack.SetKeepU;
                     last.MapPoint = getRouteMapPoint(last);
@@ -1299,6 +1309,8 @@ namespace AGVproject.Class
             {
                 if (last.Distance != -lastStack.SetKeepD)
                 {
+                    last.No = next.No;
+                    last.IsLeft = next.IsLeft;
                     last.Direction = TH_AutoSearchTrack.Direction.Left;
                     last.Distance = -lastStack.SetKeepD;
                     last.MapPoint = getRouteMapPoint(last);
@@ -1309,6 +1321,14 @@ namespace AGVproject.Class
             Route.Add(next);
 
             #endregion
+        }
+        public static void MouseDoubleClicked_Route()
+        {
+
+        }
+        public static void MouseDoubleClicked_Map()
+        {
+
         }
         public static void ClieckedClear()
         {
