@@ -557,10 +557,10 @@ namespace AGVproject.Class
             config.IsGettingTargetSpeed = false;
 
             // 限跳变
-            if (xSpeed - config.CurrentSpeed.xSpeed > 50) { xSpeed = config.CurrentSpeed.xSpeed + 50; }
-            if (config.CurrentSpeed.xSpeed - xSpeed > 50) { xSpeed = config.CurrentSpeed.xSpeed - 50; }
-            if (ySpeed - config.CurrentSpeed.ySpeed > 50) { ySpeed = config.CurrentSpeed.ySpeed + 50; }
-            if (config.CurrentSpeed.ySpeed - ySpeed > 50) { ySpeed = config.CurrentSpeed.ySpeed - 50; }
+            if (xSpeed - config.CurrentSpeed.xSpeed > 20) { xSpeed = config.CurrentSpeed.xSpeed + 20; }
+            if (config.CurrentSpeed.xSpeed - xSpeed > 20) { xSpeed = config.CurrentSpeed.xSpeed - 20; }
+            if (ySpeed - config.CurrentSpeed.ySpeed > 20) { ySpeed = config.CurrentSpeed.ySpeed + 20; }
+            if (config.CurrentSpeed.ySpeed - ySpeed > 20) { ySpeed = config.CurrentSpeed.ySpeed - 20; }
             if (aSpeed - config.CurrentSpeed.aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed + 100; }
             if (config.CurrentSpeed.aSpeed - aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed - 100; }
 

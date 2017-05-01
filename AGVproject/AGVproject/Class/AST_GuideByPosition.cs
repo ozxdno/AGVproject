@@ -61,7 +61,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = TH_MeasurePosition.getPosition().y - StartPosition.y;
             double target = yMove;
-            double Kp = 1;
+            double Kp = 0.7;
 
             double adjust = -Kp * (current - target);
 
@@ -81,7 +81,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = TH_MeasurePosition.getPosition().aCar - StartPosition.aCar;
             double target = aMove;
-            double Kp = 50;
+            double Kp = 80;
 
             double adjust = -Kp * (current - target);
 
@@ -120,7 +120,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = TH_MeasurePosition.getPosition().y;
             double target = TargetPosition.y;
-            double Kp = 1;
+            double Kp = 0.7;
 
             double adjust = -Kp * (current - target);
 
@@ -139,7 +139,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = TH_MeasurePosition.getPosition().aCar;
             double target = TargetPosition.aCar;
-            double Kp = 50;
+            double Kp = 80;
 
             double adjust = -Kp * (current - target);
 

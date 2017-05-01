@@ -206,7 +206,7 @@ namespace AGVproject.Class
                     //control.Thread.Abort();
                     //control.Abort = false; return;
                     control.Action = Action.Error;
-                    continue;
+                    //continue;
                 }
                 if (!TH_MeasureSurrounding.IsOpen)
                 {
@@ -224,19 +224,71 @@ namespace AGVproject.Class
                     //control.Thread.Abort();
                     //control.Abort = false; return;
                     control.Action = Action.Error;
-                    continue;
+                    //continue;
                 }
                 
                 // 测试
-                AST_GuideBySurrounding.ApproachX = false;
-                AST_GuideBySurrounding.ApproachY = false;
-                AST_GuideBySurrounding.ApproachA = false;
 
+                AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
+                AST_GuideByPosition.ApproachY = false;
+
+                TH_AutoSearchTrack.control.MaxSpeed_X = 50;
+                TH_AutoSearchTrack.control.MaxSpeed_Y = 100;
+                TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
+
+                TH_MeasureSurrounding.clearSurrounding();
+
+                while (!AST_GuideByPosition.ApproachY)
+                {
+                    if (!TH_MeasureSurrounding.IsOpen) { return; }
+
+                    int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Backward(200);
+                    int ySpeed = AST_GuideByPosition.getSpeedY(-7000);
+                    int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Backward();
+
+                    TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                }
+                
                 while (true)
                 {
-                    int aSpeed = AST_GuideBySurrounding.getSpeedY_KeepD(400);
+                    AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
+                    AST_GuideByPosition.ApproachY = false;
 
-                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
+                    TH_AutoSearchTrack.control.MaxSpeed_X = 100;
+                    TH_AutoSearchTrack.control.MaxSpeed_Y = 400;
+                    TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
+
+                    while (!AST_GuideByPosition.ApproachY)
+                    {
+                        if (!TH_MeasureSurrounding.IsOpen) { return; }
+
+                        int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Forward(200);
+                        int ySpeed = AST_GuideByPosition.getSpeedY(7000);
+                        int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Forward();
+
+                        TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                    }
+
+                    AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
+                    AST_GuideByPosition.ApproachY = false;
+
+                    TH_AutoSearchTrack.control.MaxSpeed_X = 100;
+                    TH_AutoSearchTrack.control.MaxSpeed_Y = 200;
+                    TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
+
+                    TH_MeasureSurrounding.clearSurrounding();
+
+                    while (!AST_GuideByPosition.ApproachY)
+                    {
+                        if (!TH_MeasureSurrounding.IsOpen) { return; }
+
+                        int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Backward(200);
+                        int ySpeed = AST_GuideByPosition.getSpeedY(-7000);
+                        int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Backward();
+
+                        TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                    }
+
                 }
 
                 // 取动作序列，并控制按动作序列行进

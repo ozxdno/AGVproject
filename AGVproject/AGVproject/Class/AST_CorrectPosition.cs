@@ -16,38 +16,19 @@ namespace AGVproject.Class
         /// </summary>
         public struct CORRECT
         {
-            /// <summary>
-            /// X 方向校准信息是否有效
-            /// </summary>
-            public bool Invaild_X;
-            /// <summary>
-            /// Y 方向校准信息是否有效
-            /// </summary>
-            public bool Invaild_Y;
-            /// <summary>
-            /// A 方向校准信息是否有效
-            /// </summary>
-            public bool Invaild_A;
+            public bool Invalid;
 
-            /// <summary>
-            /// 头部距离 单位：mm
-            /// </summary>
-            public double DistanceH;
-            /// <summary>
-            /// 左侧距离 单位：mm
-            /// </summary>
-            public double DistanceL;
-            /// <summary>
-            /// 右侧距离 单位：mm
-            /// </summary>
-            public double DistanceR;
+            public double xK;
+            public double xA;
+            public double xB;
+            public double xL;
+            public double xR;
 
-            public double K;
-            public double A;
-            public double B;
-
-            public double AngleBG;
-            public double AngleED;
+            public double yK;
+            public double yA;
+            public double yB;
+            public double yL;
+            public double yR;
         }
 
         ////////////////////////////////////////////////// private attribute /////////////////////////////////////////
@@ -55,62 +36,88 @@ namespace AGVproject.Class
         private static CONFIG config;
         private struct CONFIG
         {
-            public List<List<CoordinatePoint.POINT>> ptGroups;
-            public double SelectError;
+            public List<List<CoordinatePoint.POINT>> Lines;
+            public double LineError;
+            public double NegeError;
+            public int PtReqNum;
+
+            public int xLine;
+            public int yLine;
         }
 
-
-        private static List<List<CoordinatePoint.POINT>> ptGroups;
-
+        ////////////////////////////////////////////////// public method ///////////////////////////////////////////
+        
         public static void Start()
         {
-            while (true)
-            {
-                // 紧急动作
-                if (TH_AutoSearchTrack.control.EMA) { return; }
-
-                // 得到测量数据
-                double K = 0, A = 0, B = 0;
-                while (!getKAB(ref K, ref A, ref B)) ;
-
-                // 获取控制
-                if (Math.Abs(A) < 0.5) { return; }
-                double Kp = 50;
-                int aSpeed = (int)(Kp * A);
-
-                // 允许旋转
-                List<CoordinatePoint.POINT> pointsLR = TH_MeasureSurrounding.getSurroundingY
-                (Hardware_PlatForm.AxisSideD, Hardware_PlatForm.AxisSideU);
-                double minLR = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsLR));
-
-                if (minLR < TH_AutoSearchTrack.control.MinDistance_L) { continue; }
-                if (minLR < TH_AutoSearchTrack.control.MinDistance_R) { continue; }
-
-                // 控制
-                TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
-            }
+            
         }
-        public static bool getKAB(ref double K, ref double A, ref double B)
+        public static CORRECT getCorrect()
         {
-            // 拟合墙壁信息
-            List<CoordinatePoint.POINT> pointsH = TH_MeasureSurrounding.getSurroundingA(75, 105);
-            ptGroups = new List<List<CoordinatePoint.POINT>>();
-            cutPointsToGroup(pointsH);
-            pointsH = selectPoints();
-            double[] KAB = CoordinatePoint.Fit(pointsH);
+            CORRECT correct = new CORRECT();
+            config.Lines = new List<List<CoordinatePoint.POINT>>();
+            config.LineError = 50; 
+            config.PtReqNum = 20;
+            config.NegeError = 100; // 线段至少10cm长
 
-            K = KAB[0];
-            A = KAB[1];
-            B = KAB[2];
+            // 切割成直线，获取对应直线
+            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            cutPointsToGroup(points);
+            SortLines();
 
-            return pointsH.Count > 10;
+            // 
+            if (config.xLine == -1 || config.yLine == -1)
+            {
+                correct.Invalid = true; return correct;
+            }
+            
+            // 获取下次校准的参数
+
+            double[] xKAB = CoordinatePoint.Fit(config.Lines[config.xLine]);
+            correct.xK = xKAB[0];
+            correct.xA = xKAB[1];
+            correct.xB = xKAB[2];
+            correct.xL = 0;
+            correct.xR = 0;
+
+            if (0 < config.xLine)
+            {
+                double[] xL = CoordinatePoint.Fit(config.Lines[config.xLine - 1]);
+                correct.xL = xL[1];
+            }
+            if (config.xLine < config.Lines.Count - 1)
+            {
+                double[] xR = CoordinatePoint.Fit(config.Lines[config.xLine + 1]);
+                correct.xR = xR[1];
+            }
+
+            double[] yKAB = CoordinatePoint.Fit(config.Lines[config.yLine]);
+            correct.yK = yKAB[0];
+            correct.yA = yKAB[1];
+            correct.yB = yKAB[2];
+            correct.yL = 0;
+            correct.yR = 0;
+
+            if (0 < config.yLine)
+            {
+                double[] yL = CoordinatePoint.Fit(config.Lines[config.yLine - 1]);
+                correct.yL = yL[1];
+            }
+            if (config.yLine < config.Lines.Count - 1)
+            {
+                double[] yR = CoordinatePoint.Fit(config.Lines[config.yLine + 1]);
+                correct.yR = yR[1];
+            }
+
+            return correct;
         }
+
+        ////////////////////////////////////////////////// private method /////////////////////////////////////////
 
         private static void cutPointsToGroup(List<CoordinatePoint.POINT> points)
         {
             // 点的数量不够
             if (points.Count == 0) { return; }
-            if (points.Count == 1 || points.Count == 2) { ptGroups.Add(points); return; }
+            if (points.Count == 1 || points.Count == 2) { config.Lines.Add(points); return; }
 
             // 基本参数
             double MaxDis = 0.0;
@@ -132,7 +139,7 @@ namespace AGVproject.Class
             }
 
             // 分割直线
-            if (MaxDis <= 30) { ptGroups.Add(points); return; }
+            if (MaxDis <= config.LineError) { config.Lines.Add(points); return; }
 
             List<CoordinatePoint.POINT> newLine = new List<CoordinatePoint.POINT>();
             for (int i = 0; i <= indexofmax; i++) { newLine.Add(points[i]); }
@@ -142,17 +149,45 @@ namespace AGVproject.Class
             for (int i = indexofmax; i < points.Count; i++) { newLine.Add(points[i]); }
             cutPointsToGroup(newLine);
         }
-        private static List<CoordinatePoint.POINT> selectPoints()
+        private static void SortLines()
         {
-            if (ptGroups.Count == 0) { return new List<CoordinatePoint.POINT>(); }
-
-            // 挑选直线
-            for (int i = 0; i < ptGroups.Count; i++)
+            //
+            for (int i = config.Lines.Count - 1; i >= 0; i--)
             {
-                
+                if (config.Lines[i].Count < config.PtReqNum) { config.Lines.RemoveAt(i); }
             }
-            if (ptGroups.Count != 0) { return ptGroups[0]; }
-            return new List<CoordinatePoint.POINT>();
+
+
+                // 若不存在任何直线
+                if (config.Lines.Count == 0) { config.xLine = -1; config.yLine = -1; return; }
+
+            // 分成两个方向
+            double xFactor = 0, yFactor = 0;
+            int xIndex = -1, yIndex = -1;
+
+            for (int i = 0; i < config.Lines.Count; i++)
+            {
+                // 点数量要求
+                int N = config.Lines[i].Count;
+                if (N < config.PtReqNum) { continue; }
+
+                // 跨度要求
+                double xDis = Math.Abs(config.Lines[i][1].x - config.Lines[i][N - 1].x);
+                double yDis = Math.Abs(config.Lines[i][1].y - config.Lines[i][N - 1].y);
+                double dis = Math.Sqrt(xDis * xDis + yDis * yDis);
+                if (dis <= config.NegeError) { continue; }
+
+                // 计算因素
+                double xF = xDis * 2  + N;
+                double yF = yDis * 2  + N;
+
+                // 比较大小
+                if (xF > xFactor) { xFactor = xF; xIndex = i; }
+                if (yF > yFactor) { yFactor = yF; yIndex = i; }
+            }
+
+            // 返回直线
+            config.xLine = xIndex; config.yLine = yIndex;
         }
     }
 }

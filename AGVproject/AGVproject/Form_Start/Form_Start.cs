@@ -484,9 +484,9 @@ namespace AGVproject
 
         private void Start(object sender, EventArgs e)
         {
-            openLocPort(this.openLocatePortToolStripMenuItem, e);
-            openUrgPort(this.OpenUrgPortToolStripMenuItem, e);
-            openControlPort(this.OpenControlPortToolStripMenuItem, e);
+            if (!TH_MeasurePosition.IsOpen) { openLocPort(this.openLocatePortToolStripMenuItem, e); }
+            if (!TH_MeasureSurrounding.IsOpen) { openUrgPort(this.OpenUrgPortToolStripMenuItem, e); }
+            if (!TH_SendCommand.IsOpen) { openControlPort(this.OpenControlPortToolStripMenuItem, e); }
             
             if (this.button.Text == "Stop")
             {
@@ -511,9 +511,9 @@ namespace AGVproject
             TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Normal;
             TH_AutoSearchTrack.Start();
             
-            if (!TH_MeasurePosition.IsOpen) { return; }
-            if (!TH_MeasureSurrounding.IsOpen) { return; }
-            if (!TH_SendCommand.IsOpen) { return; }
+            //if (!TH_MeasurePosition.IsOpen) { return; }
+            //if (!TH_MeasureSurrounding.IsOpen) { return; }
+            //if (!TH_SendCommand.IsOpen) { return; }
 
             this.button.Text = "Stop";
 
@@ -1018,6 +1018,10 @@ namespace AGVproject
 
             this.urgRangeToolStripMenuItem.Text = input.Input;
             config.urgRange = urgRange;
+        }
+        private void clearUrg(object sender, EventArgs e)
+        {
+            TH_MeasureSurrounding.clearSurrounding();
         }
 
         private void getLOC_PortName(object sender, EventArgs e)

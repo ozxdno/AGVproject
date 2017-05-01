@@ -116,6 +116,19 @@ namespace AGVproject.Class
             config.IsGetting = false;
             return Surrounding;
         }
+        public static void clearSurrounding()
+        {
+            while (config.IsSetting) ;
+            while (config.IsGetting) ;
+            config.IsSetting = true;
+            config.IsGetting = true;
+
+            config.CurrentSurrounding = new List<CoordinatePoint.POINT>();
+            config.NextSurrounding = new List<CoordinatePoint.POINT>();
+
+            config.IsSetting = false;
+            config.IsGetting = false;
+        }
         public static bool IsLimitPosition(CoordinatePoint.POINT point)
         {
             bool inX = Hardware_PlatForm.AxisSideL < point.x && point.x < Hardware_PlatForm.AxisSideR;
@@ -290,9 +303,10 @@ namespace AGVproject.Class
         {
             // 滤除过近的点
             for (int i = 0; i < distance.Count; i++) { if (distance[i] < 100) { distance[i] = 0; } }
+            //return distance;
 
             // 滤除跳变
-            int N_nege = 5, N = distance.Count;
+            int N_nege = 20, N = distance.Count;
             double floatError = 100;
 
             List<long> diff = new List<long>();

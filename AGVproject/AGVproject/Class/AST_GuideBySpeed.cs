@@ -46,7 +46,7 @@ namespace AGVproject.Class
         public static int getSpeedY(double keepSpeed)
         {
             if (keepSpeed > 0) { return getSpeedY_Forward(keepSpeed); }
-            if (keepSpeed < 0) { return -getSpeedY_Forward(-keepSpeed); }
+            if (keepSpeed < 0) { return -getSpeedY_Backward(-keepSpeed); }
 
             int SpeedF = getSpeedY_Forward(0);
             int SpeedB = -getSpeedY_Backward(0);
@@ -138,7 +138,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = minH;
             double target = TH_AutoSearchTrack.control.MinDistance_H;
-            double Kp = 1;
+            double Kp = 0.6;
             double adjust = Kp * (current - target);
 
             // 限幅
@@ -166,7 +166,7 @@ namespace AGVproject.Class
             // 获取控制
             double current = minT;
             double target = TH_AutoSearchTrack.control.MinDistance_T;
-            double Kp = 1;
+            double Kp = 0.6;
             double adjust = Kp * (current - target);
 
             // 限幅
@@ -193,7 +193,8 @@ namespace AGVproject.Class
             if (Tail_R_X == 0) { Tail_R_X = (int)Hardware_UltraSonic.Tail_R_X.max; }
             if (Tail_R_Y == 0) { Tail_R_Y = (int)Hardware_UltraSonic.Tail_R_Y.max; }
 
-            double minR = Math.Min(Head_L_X, Math.Min(Head_L_Y, Math.Min(Tail_R_X, Tail_R_Y)));
+            //double minR = Math.Min(Head_L_X, Math.Min(Head_L_Y, Math.Min(Tail_R_X, Tail_R_Y)));
+            double minR = Math.Min(Head_L_X, Tail_R_X);
             
             // 获取控制
             double current = minR;
@@ -216,16 +217,17 @@ namespace AGVproject.Class
         {
             // 获取数据
             int Head_R_X = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Head_R_X);
-            int Head_R_Y = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Head_R_Y);
+            //int Head_R_Y = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Head_R_Y);
             int Tail_L_X = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Tail_L_X);
-            int Tail_L_Y = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Tail_L_Y);
+            //int Tail_L_Y = TH_SendCommand.getUltraSonicData(TH_SendCommand.Sonic.Tail_L_Y);
 
             if (Head_R_X == 0) { Head_R_X = (int)Hardware_UltraSonic.Head_R_X.max; }
-            if (Head_R_Y == 0) { Head_R_Y = (int)Hardware_UltraSonic.Head_R_Y.max; }
+            //if (Head_R_Y == 0) { Head_R_Y = (int)Hardware_UltraSonic.Head_R_Y.max; }
             if (Tail_L_X == 0) { Tail_L_X = (int)Hardware_UltraSonic.Tail_L_X.max; }
-            if (Tail_L_Y == 0) { Tail_L_Y = (int)Hardware_UltraSonic.Tail_L_Y.max; }
+            //if (Tail_L_Y == 0) { Tail_L_Y = (int)Hardware_UltraSonic.Tail_L_Y.max; }
 
-            double minR = Math.Min(Head_R_X, Math.Min(Head_R_Y, Math.Min(Tail_L_X, Tail_L_Y)));
+            //double minR = Math.Min(Head_R_X, Math.Min(Head_R_Y, Math.Min(Tail_L_X, Tail_L_Y)));
+            double minR = Math.Min(Head_R_X, Tail_L_X);
             
             // 获取控制
             double current = minR;
