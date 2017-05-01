@@ -16,17 +16,25 @@ namespace AGVproject.Class
         /// </summary>
         public struct CORRECT
         {
+            /// <summary>
+            /// 此次校准信息是否有效
+            /// </summary>
             public bool Invalid;
 
+            /// <summary>
+            /// X 方向直线的斜率
+            /// </summary>
             public double xK;
             public double xA;
             public double xB;
+            public double xD;
             public double xL;
             public double xR;
 
             public double yK;
             public double yA;
             public double yB;
+            public double yD;
             public double yL;
             public double yR;
         }
@@ -47,10 +55,36 @@ namespace AGVproject.Class
 
         ////////////////////////////////////////////////// public method ///////////////////////////////////////////
         
-        public static void Start()
+        /// <summary>
+        /// 开始校准
+        /// </summary>
+        /// <param name="correct">校准信息，若无效则不校准</param>
+        public static void Start(ref CORRECT correct)
         {
-            
+            SearchMatchLine(ref correct); if (correct.Invalid) { return; }
+
+            double xAverage = CoordinatePoint.AverageA(config.Lines[config.xLine]);
+            double yAverage = CoordinatePoint.AverageA(config.Lines[config.yLine]);
+            double[] xKAB, yKAB;
+
+            while (true)
+            {
+                xKAB = getKAB_X(ref xAverage); yKAB = getKAB_Y(ref yAverage);
+
+                double xAdjust = 0.8 * (yKAB[2] - correct.yD);
+                double yAdjust = 0.6 * (xKAB[2] - correct.xD);
+                double aAdjust = 40 * (xKAB[1] - correct.xA);
+
+                int xSpeed = AST_GuideBySpeed.getSpeedX(xAdjust);
+                int ySpeed = AST_GuideBySpeed.getSpeedX(yAdjust);
+                int aSpeed = AST_GuideBySpeed.getSpeedX(aAdjust);
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+            }
         }
+        /// <summary>
+        /// 获取当前校准信息
+        /// </summary>
+        /// <returns></returns>
         public static CORRECT getCorrect()
         {
             CORRECT correct = new CORRECT();
@@ -76,6 +110,7 @@ namespace AGVproject.Class
             correct.xK = xKAB[0];
             correct.xA = xKAB[1];
             correct.xB = xKAB[2];
+            correct.xD = xKAB[2];
             correct.xL = 0;
             correct.xR = 0;
 
@@ -91,9 +126,11 @@ namespace AGVproject.Class
             }
 
             double[] yKAB = CoordinatePoint.Fit(config.Lines[config.yLine]);
+            double[] yKABr = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[config.yLine]));
             correct.yK = yKAB[0];
             correct.yA = yKAB[1];
             correct.yB = yKAB[2];
+            correct.yD = yKABr[2];
             correct.yL = 0;
             correct.yR = 0;
 
@@ -110,7 +147,7 @@ namespace AGVproject.Class
 
             return correct;
         }
-
+        
         ////////////////////////////////////////////////// private method /////////////////////////////////////////
 
         private static void cutPointsToGroup(List<CoordinatePoint.POINT> points)
@@ -158,8 +195,8 @@ namespace AGVproject.Class
             }
 
 
-                // 若不存在任何直线
-                if (config.Lines.Count == 0) { config.xLine = -1; config.yLine = -1; return; }
+            // 若不存在任何直线
+            if (config.Lines.Count == 0) { config.xLine = -1; config.yLine = -1; return; }
 
             // 分成两个方向
             double xFactor = 0, yFactor = 0;
@@ -188,6 +225,136 @@ namespace AGVproject.Class
 
             // 返回直线
             config.xLine = xIndex; config.yLine = yIndex;
+        }
+        private static void getMatchLine(ref CORRECT correct)
+        {
+            // 初始化
+            config.xLine = -1; config.yLine = -1;
+
+            // 切割成直线
+            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            cutPointsToGroup(points);
+
+            // 删除短线
+            for (int i = config.Lines.Count - 1; i >= 0; i--)
+            {
+                if (config.Lines[i].Count < config.PtReqNum) { config.Lines.RemoveAt(i); }
+            }
+
+            // 直线不够
+            if (config.Lines.Count == 0) { correct.Invalid = false; return; }
+            if (config.Lines.Count == 1) { config.xLine = 0; config.yLine = 0; return; }
+            
+            // 按点数量从多到少进行排序
+            List<int> indexofLine = new List<int>();
+            for (int i = 0; i < config.Lines.Count; i++) { indexofLine.Add(i); }
+
+            bool xFound = false, yFound = false;
+            while (indexofLine.Count != 0 || (xFound && yFound))
+            {
+                int indexofMost = -1, Most = -1, Remove = -1;
+                for (int i = 0; i < indexofLine.Count; i++)
+                {
+                    int N = config.Lines[indexofLine[i]].Count; if (N > Most) { Remove = i; Most = N; }
+                }
+                indexofMost = indexofLine[Remove];
+                indexofLine.RemoveAt(Remove);
+
+                double[] KAB = CoordinatePoint.Fit(config.Lines[indexofMost]);
+                double A = KAB[1], L = 0, R = 0;
+                if (indexofMost > 0) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost - 1]); L = KAB[1]; }
+                if (indexofMost < config.Lines.Count - 1) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost + 1]); R = KAB[1]; }
+
+                if (!xFound)
+                {
+                    if (correct.xL == 0 && correct.xR == 0) { xFound = true; config.xLine = indexofMost; }
+
+                    double ErrorL = Math.Abs(Math.Abs(L - A) - Math.Abs(correct.xA - correct.xL));
+                    double ErrorR = Math.Abs(Math.Abs(R - A) - Math.Abs(correct.xA - correct.xR));
+
+                    if (!xFound && L != 0 && correct.xL != 0 && ErrorL < 3) { xFound = true; config.xLine = indexofMost; }
+                    if (!xFound && R != 0 && correct.xR != 0 && ErrorR < 3) { xFound = true; config.xLine = indexofMost; }
+                }
+                if (!yFound)
+                {
+                    if (correct.yL == 0 && correct.yR == 0) { yFound = true; config.yLine = indexofMost; }
+
+                    double ErrorL = Math.Abs(Math.Abs(L - A) - Math.Abs(correct.yA - correct.yL));
+                    double ErrorR = Math.Abs(Math.Abs(R - A) - Math.Abs(correct.yA - correct.yR));
+
+                    if (!yFound && L != 0 && correct.yL != 0 && ErrorL < 3) { yFound = true; config.yLine = indexofMost; }
+                    if (!yFound && R != 0 && correct.yR != 0 && ErrorR < 3) { yFound = true; config.yLine = indexofMost; }
+                }
+            }
+        }
+        private static void SearchMatchLine(ref CORRECT correct)
+        {
+            getMatchLine(ref correct);
+            if (correct.Invalid) { return; }
+            if (config.xLine == -1 && config.yLine == -1) { correct.Invalid = true; return; }
+
+            if (config.xLine != -1 && config.yLine != -1) { return; }
+
+            int indexofMatch = config.xLine != -1 ? config.xLine : config.yLine;
+            double[] KAB = CoordinatePoint.Fit(config.Lines[indexofMatch]);
+            double aLast = config.xLine != -1 ? correct.xA : correct.yA;
+            double aNext = KAB[1];
+
+            AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
+            AST_GuideByPosition.ApproachA = false;
+            while (!AST_GuideByPosition.ApproachA)
+            {
+                int xSpeed = AST_GuideBySpeed.getSpeedX(0);
+                int ySpeed = AST_GuideBySpeed.getSpeedY(0);
+                int aSpeed = AST_GuideByPosition.getSpeedA(aLast - aNext);
+
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+            }
+
+            getMatchLine(ref correct);
+        }
+        private static double[] getKAB_X(ref double centreAngle)
+        {
+            // 切割成直线
+            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            cutPointsToGroup(points);
+
+            // 获取直线
+            int indexofMatch = getMatchLine(centreAngle);
+            if (indexofMatch == -1) { return new double[3] { 0, 0, 0 }; }
+
+            // 更新中心点
+            centreAngle = CoordinatePoint.AverageA(config.Lines[indexofMatch]);
+
+            // 拟合直线
+            return CoordinatePoint.Fit(config.Lines[indexofMatch]);
+        }
+        private static double[] getKAB_Y(ref double centreAngle)
+        {
+            // 切割成直线
+            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            cutPointsToGroup(points);
+
+            // 获取直线
+            int indexofMatch = getMatchLine(centreAngle);
+            if (indexofMatch == -1) { return new double[3] { 0, 0, 0 }; }
+
+            // 更新中心点
+            centreAngle = CoordinatePoint.AverageA(config.Lines[indexofMatch]);
+
+            // 拟合直线
+            return CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[indexofMatch]));
+        }
+        private static int getMatchLine(double centreAngle)
+        {
+            for (int i = 0; i < config.Lines.Count; i++)
+            {
+                double angleBG = config.Lines[i][0].a;
+                double angleED = config.Lines[i][config.Lines[i].Count - 1].a;
+
+                if (angleBG <= centreAngle && centreAngle <= angleED) { return i; }
+            }
+            return -1;
         }
     }
 }

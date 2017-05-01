@@ -527,6 +527,39 @@ namespace AGVproject.Class
             return true;
         }
 
+        public static double AverageX(List<POINT> points)
+        {
+            if (points == null || points.Count == 0) { return 0; }
+
+            double sum = 0;
+            for (int i = 0; i < points.Count; i++) { sum += points[i].x; }
+            return sum / points.Count;
+        }
+        public static double AverageY(List<POINT> points)
+        {
+            if (points == null || points.Count == 0) { return 0; }
+
+            double sum = 0;
+            for (int i = 0; i < points.Count; i++) { sum += points[i].y; }
+            return sum / points.Count;
+        }
+        public static double AverageD(List<POINT> points)
+        {
+            if (points == null || points.Count == 0) { return 0; }
+
+            double sum = 0;
+            for (int i = 0; i < points.Count; i++) { sum += points[i].d; }
+            return sum / points.Count;
+        }
+        public static double AverageA(List<POINT> points)
+        {
+            if (points == null || points.Count == 0) { return 0; }
+
+            double sum = 0;
+            for (int i = 0; i < points.Count; i++) { sum += points[i].a; }
+            return sum / points.Count;
+        }
+
         /// <summary>
         /// 变换坐标系
         /// </summary>
