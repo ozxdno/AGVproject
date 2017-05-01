@@ -78,16 +78,21 @@ namespace AGVproject.Class
         }
 
         ////////////////////////////////////////////////// public method ///////////////////////////////////////////
-        
+
         /// <summary>
         /// 开始校准
         /// </summary>
-        /// <param name="correct">校准信息，若无效则不校准</param>
-        public static void Start(ref CORRECT correct)
+        /// <param name="correctTarget">校准信息，若无效则不校准</param>
+        public static void Start(ref CORRECT correctTarget)
         {
             // 获取匹配直线
-            if (correct.xInvalid && correct.yInvalid) { return; }
-            getMatch(correct);
+            if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
+            getMatch(correctTarget);
+
+            if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
+            if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
+            if (config.xLine != -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in Y"; }
+            if (config.xLine != -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Successed"; }
 
             // 获取中心角度
             double xAverage = 0, yAverage = 0;
@@ -110,9 +115,9 @@ namespace AGVproject.Class
                 if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
 
                 // 获取控制
-                int xSpeed = getSpeedX();
-                int ySpeed = getSpeedY();
-                int aSpeed = getSpeedA();
+                int xSpeed = getSpeedX(correctTarget);
+                int ySpeed = getSpeedY(correctTarget);
+                int aSpeed = getSpeedA(correctTarget);
                 TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
             }
         }
@@ -136,6 +141,11 @@ namespace AGVproject.Class
             // 判断数据是否有效
             correct.xInvalid = config.xLine == -1;
             correct.yInvalid = config.yLine == -1;
+
+            if (correct.xInvalid && correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid X and Y Lines"; }
+            if (correct.xInvalid && !correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid X Line"; }
+            if (!correct.xInvalid && correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid Y Line"; }
+            if (!correct.xInvalid && !correct.yInvalid) { TH_AutoSearchTrack.control.Event = "LandMark Done"; }
 
             // 获取 X 方向下次校准的参数
             if (!correct.xInvalid)
@@ -383,31 +393,6 @@ namespace AGVproject.Class
             // 更新中心角度，返回结果
             centreAngle = CoordinatePoint.AverageA(config.Lines[selectIndex]);
             return selectIndex;
-        }
-
-        private static double[] getKAB_X(ref double centreAngle)
-        {
-            // 获取直线
-            int indexofMatch = getMatch(centreAngle);
-            if (indexofMatch == -1) { return new double[3] { 0, 0, 0 }; }
-
-            // 更新中心点
-            centreAngle = CoordinatePoint.AverageA(config.Lines[indexofMatch]);
-
-            // 拟合直线
-            return CoordinatePoint.Fit(config.Lines[indexofMatch]);
-        }
-        private static double[] getKAB_Y(ref double centreAngle)
-        {
-            // 获取直线
-            int indexofMatch = getMatch(centreAngle);
-            if (indexofMatch == -1) { return new double[3] { 0, 0, 0 }; }
-
-            // 更新中心点
-            centreAngle = CoordinatePoint.AverageA(config.Lines[indexofMatch]);
-
-            // 拟合直线
-            return CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[indexofMatch]));
         }
 
         private static int getSpeedX(CORRECT correctTarget)
