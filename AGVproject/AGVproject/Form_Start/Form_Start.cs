@@ -20,6 +20,9 @@ namespace AGVproject
         {
             InitializeComponent();
         }
+        
+        public static bool corrpos;
+        public static bool record;
 
         public static CONFIG config;
         public struct CONFIG
@@ -540,6 +543,15 @@ namespace AGVproject
             // 1-49 a-65
             //if (49 <= e.KeyValue && e.KeyValue <= 58)
             //{ config.KeyValue.Clear(); config.KeyValue.Add(e.KeyValue); return; }
+
+            if (e.KeyValue == 82) { record = true; }
+
+            if (e.KeyValue == 83)
+            {
+                corrpos = !corrpos;
+                if (corrpos) { TH_AutoSearchTrack.control.Event = "Correct: Running"; }
+                else { TH_AutoSearchTrack.control.Event = "Correct: Stopped"; }
+            }
             
         }
 

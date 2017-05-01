@@ -561,8 +561,8 @@ namespace AGVproject.Class
             if (config.CurrentSpeed.xSpeed - xSpeed > 20) { xSpeed = config.CurrentSpeed.xSpeed - 20; }
             if (ySpeed - config.CurrentSpeed.ySpeed > 20) { ySpeed = config.CurrentSpeed.ySpeed + 20; }
             if (config.CurrentSpeed.ySpeed - ySpeed > 20) { ySpeed = config.CurrentSpeed.ySpeed - 20; }
-            if (aSpeed - config.CurrentSpeed.aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed + 100; }
-            if (config.CurrentSpeed.aSpeed - aSpeed > 100) { aSpeed = config.CurrentSpeed.aSpeed - 100; }
+            if (aSpeed - config.CurrentSpeed.aSpeed > 200) { aSpeed = config.CurrentSpeed.aSpeed + 200; }
+            if (config.CurrentSpeed.aSpeed - aSpeed > 200) { aSpeed = config.CurrentSpeed.aSpeed - 200; }
 
             // 记录给出速度
             config.IsSettingCurrentSpeed = true;

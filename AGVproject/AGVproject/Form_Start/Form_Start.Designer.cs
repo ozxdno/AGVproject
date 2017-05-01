@@ -74,6 +74,7 @@
             this.rangeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.urgRangeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.LocatePortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.LOC_PortNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem31 = new System.Windows.Forms.ToolStripMenuItem();
@@ -94,7 +95,6 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.button = new System.Windows.Forms.Button();
             this.pictureBox = new System.Windows.Forms.PictureBox();
-            this.clearToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -377,7 +377,7 @@
             this.toolStripMenuItem14,
             this.deleteToolStripMenuItem2});
             this.URG_PortNameToolStripMenuItem.Name = "URG_PortNameToolStripMenuItem";
-            this.URG_PortNameToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.URG_PortNameToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.URG_PortNameToolStripMenuItem.Text = "PortName";
             // 
             // toolStripMenuItem14
@@ -400,7 +400,7 @@
             this.inputToolStripMenuItem1,
             this.deleteToolStripMenuItem3});
             this.URG_BaudRateToolStripMenuItem.Name = "URG_BaudRateToolStripMenuItem";
-            this.URG_BaudRateToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.URG_BaudRateToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.URG_BaudRateToolStripMenuItem.Text = "BaudRate";
             // 
             // inputToolStripMenuItem1
@@ -418,7 +418,7 @@
             // OpenUrgPortToolStripMenuItem
             // 
             this.OpenUrgPortToolStripMenuItem.Name = "OpenUrgPortToolStripMenuItem";
-            this.OpenUrgPortToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.OpenUrgPortToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.OpenUrgPortToolStripMenuItem.Text = "Open";
             this.OpenUrgPortToolStripMenuItem.Click += new System.EventHandler(this.openUrgPort);
             // 
@@ -426,7 +426,7 @@
             // 
             this.checkUrgPort.CheckOnClick = true;
             this.checkUrgPort.Name = "checkUrgPort";
-            this.checkUrgPort.Size = new System.Drawing.Size(152, 22);
+            this.checkUrgPort.Size = new System.Drawing.Size(135, 22);
             this.checkUrgPort.Text = "Check";
             // 
             // rangeToolStripMenuItem
@@ -435,7 +435,7 @@
             this.urgRangeToolStripMenuItem,
             this.changeToolStripMenuItem});
             this.rangeToolStripMenuItem.Name = "rangeToolStripMenuItem";
-            this.rangeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.rangeToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.rangeToolStripMenuItem.Text = "Range";
             // 
             // urgRangeToolStripMenuItem
@@ -450,6 +450,13 @@
             this.changeToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
             this.changeToolStripMenuItem.Text = "Change";
             this.changeToolStripMenuItem.Click += new System.EventHandler(this.setUrgRange);
+            // 
+            // clearToolStripMenuItem2
+            // 
+            this.clearToolStripMenuItem2.Name = "clearToolStripMenuItem2";
+            this.clearToolStripMenuItem2.Size = new System.Drawing.Size(135, 22);
+            this.clearToolStripMenuItem2.Text = "Clear";
+            this.clearToolStripMenuItem2.Click += new System.EventHandler(this.clearUrg);
             // 
             // LocatePortToolStripMenuItem
             // 
@@ -613,13 +620,6 @@
             this.pictureBox.MouseLeave += new System.EventHandler(this.MouseLeaveMap);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MapMouseMove);
             // 
-            // clearToolStripMenuItem2
-            // 
-            this.clearToolStripMenuItem2.Name = "clearToolStripMenuItem2";
-            this.clearToolStripMenuItem2.Size = new System.Drawing.Size(152, 22);
-            this.clearToolStripMenuItem2.Text = "Clear";
-            this.clearToolStripMenuItem2.Click += new System.EventHandler(this.clearUrg);
-            // 
             // Form_Start
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -629,6 +629,7 @@
             this.Controls.Add(this.TimeLabel);
             this.Controls.Add(this.EventLabel);
             this.Controls.Add(this.menuStrip1);
+            this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form_Start";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

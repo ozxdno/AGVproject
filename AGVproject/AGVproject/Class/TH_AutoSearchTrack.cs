@@ -215,7 +215,7 @@ namespace AGVproject.Class
                     //control.Thread.Abort();
                     //control.Abort = false; return;
                     control.Action = Action.Error;
-                    continue;
+                    //continue;
                 }
                 if (!TH_MeasurePosition.IsOpen)
                 {
@@ -226,8 +226,17 @@ namespace AGVproject.Class
                     control.Action = Action.Error;
                     //continue;
                 }
-                
+
                 // 测试
+
+                AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
+                while (true)
+                {
+                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+                    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
+                    if (Form_Start.corrpos) { AST_CorrectPosition.Start(ref correct); }
+                }
+                
 
                 AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
                 AST_GuideByPosition.ApproachY = false;
