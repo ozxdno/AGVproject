@@ -75,6 +75,10 @@ namespace AGVproject.Class
 
             public int xLine;
             public int yLine;
+
+            public bool ApproachX;
+            public bool ApproachY;
+            public bool ApproachA;
         }
 
         ////////////////////////////////////////////////// public method ///////////////////////////////////////////
@@ -83,11 +87,16 @@ namespace AGVproject.Class
         /// 开始校准
         /// </summary>
         /// <param name="correctTarget">校准信息，若无效则不校准</param>
-        public static void Start(ref CORRECT correctTarget)
+        public static void Start(CORRECT correctTarget)
         {
             // 获取匹配直线
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
             getMatch(correctTarget);
+
+            correctTarget.xInvalid |= config.xLine == -1;
+            correctTarget.yInvalid |= config.yLine == -1;
+            if (correctTarget.xInvalid) { config.xLine = -1; }
+            if (correctTarget.yInvalid) { config.yLine = -1; }
 
             if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
             if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
@@ -98,8 +107,15 @@ namespace AGVproject.Class
             double xAverage = 0, yAverage = 0;
             if (config.xLine != -1) { xAverage = CoordinatePoint.AverageA(config.Lines[config.xLine]); }
             if (config.yLine != -1) { yAverage = CoordinatePoint.AverageA(config.Lines[config.yLine]); }
+            CoordinatePoint.POINT refPos = TH_MeasurePosition.getPosition();
+
+            // 控制初始化
+            config.ApproachX = false;
+            config.ApproachY = false;
+            config.ApproachA = false;
             
-            while (true)
+            // 调整角度
+            while (!config.ApproachA)
             {
                 // 切割成直线
                 List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
@@ -108,18 +124,80 @@ namespace AGVproject.Class
                 sortLines();
 
                 // 获取匹配直线索引号
-                config.xLine = getMatch(ref xAverage);
-                config.yLine = getMatch(ref yAverage);
+                //double aMove = TH_MeasurePosition.getPosition().aCar - refPos.aCar;
+                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
+                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
+
+                getMatch(correctTarget);
+
+                // 退出条件
+                if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+
+                // 获取控制
+                //int xSpeed = getSpeedX(correctTarget);
+                //int ySpeed = getSpeedY(correctTarget);
+                int aSpeed = getSpeedA(correctTarget);
+
+                TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
+            }
+
+            // 调整 Y
+            while (!config.ApproachY)
+            {
+                // 切割成直线
+                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                cutPointsToGroup(points);
+                sortLines();
+
+                // 获取匹配直线索引号
+                //double aMove = 0;// TH_MeasurePosition.getPosition().aCar - refPos.aCar;
+                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
+                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
+
+                getMatch(correctTarget);
+
+                // 退出条件
+                if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+
+                // 获取控制
+                //int xSpeed = getSpeedX(correctTarget);
+                int ySpeed = getSpeedY(correctTarget);
+                //int aSpeed = getSpeedA(correctTarget);
+
+                TH_SendCommand.AGV_MoveControl_0x70(0, ySpeed, 0);
+            }
+
+            // 调整 X
+            while (!config.ApproachX)
+            {
+                // 切割成直线
+                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                cutPointsToGroup(points);
+                sortLines();
+
+                // 获取匹配直线索引号
+                //double aMove = 0;// TH_MeasurePosition.getPosition().aCar - refPos.aCar;
+                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
+                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
+
+                getMatch(correctTarget);
 
                 // 退出条件
                 if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
 
                 // 获取控制
                 int xSpeed = getSpeedX(correctTarget);
-                int ySpeed = getSpeedY(correctTarget);
-                int aSpeed = getSpeedA(correctTarget);
-                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                //int ySpeed = getSpeedY(correctTarget);
+                //int aSpeed = getSpeedA(correctTarget);
+
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, 0, 0);
             }
+
+            // 调整完毕
+            Form_Start.corrpos = false;
+            TH_AutoSearchTrack.control.Event = "Correct: Stop";
         }
         /// <summary>
         /// 获取当前校准信息
@@ -347,9 +425,11 @@ namespace AGVproject.Class
 
                     double ErrorL = Math.Abs(iAngleL - sAngleL);
                     double ErrorR = Math.Abs(iAngleR - sAngleR);
+                    double ErrorC = Math.Abs(CoordinatePoint.AverageA(config.Lines[indexofMost]) - correct.xC);
 
                     bool SuitL = L == 0 || correct.xL == 0 || (L != 0 && correct.xL != 0 && ErrorL < 10);
                     bool SuitR = R == 0 || correct.xR == 0 || (R != 0 && correct.xR != 0 && ErrorR < 10);
+                    bool SuitC = ErrorC < 20;
                     if (!xFound && SuitL && SuitR) { xFound = true; config.xLine = indexofMost; continue; }
                 }
 
@@ -365,14 +445,17 @@ namespace AGVproject.Class
 
                     double ErrorL = Math.Abs(iAngleL - sAngleL);
                     double ErrorR = Math.Abs(iAngleR - sAngleR);
+                    double ErrorC = Math.Abs(CoordinatePoint.AverageA(config.Lines[indexofMost]) - correct.yC);
 
                     bool SuitL = L == 0 || correct.yL == 0 || (L != 0 && correct.yL != 0 && ErrorL < 10);
                     bool SuitR = R == 0 || correct.yR == 0 || (R != 0 && correct.yR != 0 && ErrorR < 10);
+                    bool SuitC = ErrorC < 20;
+
                     if (!yFound && SuitL && SuitR) { yFound = true; config.yLine = indexofMost; }
                 }
             }
         }
-        private static int getMatch(ref double centreAngle)
+        private static int getMatch(double centreAngle)
         {
             // 调整过程中寻找匹配直线
             double minError = double.MaxValue;
@@ -391,7 +474,7 @@ namespace AGVproject.Class
             if (selectIndex == -1) { return selectIndex; }
 
             // 更新中心角度，返回结果
-            centreAngle = CoordinatePoint.AverageA(config.Lines[selectIndex]);
+            //centreAngle = CoordinatePoint.AverageA(config.Lines[selectIndex]);
             return selectIndex;
         }
 
@@ -409,6 +492,9 @@ namespace AGVproject.Class
             double Kp = 0.6;
 
             double adjust = Kp * (current - target);
+
+            // 调整终点
+            config.ApproachX = Math.Abs(current - target) < 10;
 
             // 避撞
             return AST_GuideBySpeed.getSpeedX(adjust);
@@ -428,6 +514,9 @@ namespace AGVproject.Class
 
             double adjust = Kp * (current - target);
 
+            // 调整终点
+            config.ApproachY = Math.Abs(current - target) < 10;
+
             // 避撞
             return AST_GuideBySpeed.getSpeedY(adjust);
         }
@@ -446,6 +535,9 @@ namespace AGVproject.Class
             double Kp = 30;
 
             double adjust = Kp * (current - target);
+
+            // 调整终点
+            config.ApproachA = Math.Abs(current - target) < 1;
 
             // 避撞
             return AST_GuideBySpeed.getSpeedA(adjust);

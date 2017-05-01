@@ -229,35 +229,15 @@ namespace AGVproject.Class
 
                 // 测试
 
-                AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
-                while (true)
-                {
-                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
-                    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
-                    if (Form_Start.corrpos) { AST_CorrectPosition.Start(ref correct); }
-                }
+                //AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
+                //while (true)
+                //{
+                //    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+                //    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
+                //    if (Form_Start.corrpos) { AST_CorrectPosition.Start(correct); }
+                //}
                 
 
-                AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
-                AST_GuideByPosition.ApproachY = false;
-
-                TH_AutoSearchTrack.control.MaxSpeed_X = 50;
-                TH_AutoSearchTrack.control.MaxSpeed_Y = 100;
-                TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
-
-                TH_MeasureSurrounding.clearSurrounding();
-
-                while (!AST_GuideByPosition.ApproachY)
-                {
-                    if (!TH_MeasureSurrounding.IsOpen) { return; }
-
-                    int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Backward(200);
-                    int ySpeed = AST_GuideByPosition.getSpeedY(-7000);
-                    int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Backward();
-
-                    TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
-                }
-                
                 while (true)
                 {
                     AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
@@ -272,7 +252,7 @@ namespace AGVproject.Class
                         if (!TH_MeasureSurrounding.IsOpen) { return; }
 
                         int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Forward(200);
-                        int ySpeed = AST_GuideByPosition.getSpeedY(7000);
+                        int ySpeed = AST_GuideBySurrounding.getSpeedY_KeepU(300);
                         int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Forward();
 
                         TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
