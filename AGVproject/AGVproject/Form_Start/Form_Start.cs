@@ -495,6 +495,7 @@ namespace AGVproject
             {
                 TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Stop;
                 TH_AutoSearchTrack.control.EMA = true;
+                Solution_FollowTrack.BuildRoute.Stop();
                 this.button.Text = "Continue"; return;
             }
 

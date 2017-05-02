@@ -227,8 +227,7 @@ namespace AGVproject.Class
                     //continue;
                 }
 
-                // 测试
-
+                // 测试自动校准
                 //AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
                 //while (true)
                 //{
@@ -236,49 +235,10 @@ namespace AGVproject.Class
                 //    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
                 //    if (Form_Start.corrpos) { AST_CorrectPosition.Start(correct); }
                 //}
-                
 
-                while (true)
-                {
-                    AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
-                    AST_GuideByPosition.ApproachY = false;
-
-                    TH_AutoSearchTrack.control.MaxSpeed_X = 100;
-                    TH_AutoSearchTrack.control.MaxSpeed_Y = 400;
-                    TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
-
-                    while (!AST_GuideByPosition.ApproachY)
-                    {
-                        if (!TH_MeasureSurrounding.IsOpen) { return; }
-
-                        int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Forward(200);
-                        int ySpeed = AST_GuideBySurrounding.getSpeedY_KeepU(300);
-                        int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Forward();
-
-                        TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
-                    }
-
-                    AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
-                    AST_GuideByPosition.ApproachY = false;
-
-                    TH_AutoSearchTrack.control.MaxSpeed_X = 100;
-                    TH_AutoSearchTrack.control.MaxSpeed_Y = 200;
-                    TH_AutoSearchTrack.control.MaxSpeed_A = 1000;
-
-                    TH_MeasureSurrounding.clearSurrounding();
-
-                    while (!AST_GuideByPosition.ApproachY)
-                    {
-                        if (!TH_MeasureSurrounding.IsOpen) { return; }
-
-                        int xSpeed = AST_GuideBySurrounding.getSpeedX_KeepR_Backward(200);
-                        int ySpeed = AST_GuideByPosition.getSpeedY(-7000);
-                        int aSpeed = AST_GuideBySurrounding.getSpeedA_KeepR_Backward();
-
-                        TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
-                    }
-
-                }
+                // 测试自动记录路径并按路径行进
+                Solution_FollowTrack.BuildRoute.Start();
+                Solution_FollowTrack.FollowTrack.Start();
 
                 // 取动作序列，并控制按动作序列行进
                 if (control.Action == Action.Normal) { control.EMA = false; }
