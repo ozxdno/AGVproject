@@ -97,7 +97,7 @@ namespace AGVproject.Class
             correctTarget.yInvalid |= config.yLine == -1;
             if (correctTarget.xInvalid) { config.xLine = -1; }
             if (correctTarget.yInvalid) { config.yLine = -1; }
-
+            
             if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
             if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
             if (config.xLine != -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in Y"; }
@@ -196,6 +196,7 @@ namespace AGVproject.Class
             }
 
             // 调整完毕
+            TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
             Form_Start.corrpos = false;
             TH_AutoSearchTrack.control.Event = "Correct: Stop";
         }
@@ -481,6 +482,7 @@ namespace AGVproject.Class
         private static int getSpeedX(CORRECT correctTarget)
         {
             // 直线无效
+            if (correctTarget.yInvalid) { config.ApproachX = true; }
             if (config.yLine == -1) { return AST_GuideBySpeed.getSpeedX(0); }
 
             // 获取数据
@@ -502,6 +504,7 @@ namespace AGVproject.Class
         private static int getSpeedY(CORRECT correctTarget)
         {
             // 直线无效
+            if (correctTarget.xInvalid) { config.ApproachY = true; }
             if (config.xLine == -1) { return AST_GuideBySpeed.getSpeedY(0); }
 
             // 获取数据
@@ -523,6 +526,7 @@ namespace AGVproject.Class
         private static int getSpeedA(CORRECT correctTarget)
         {
             // 直线无效
+            if (correctTarget.xInvalid && correctTarget.yInvalid) { config.ApproachA = true; }
             if (config.xLine == -1 && config.yLine == -1) { return AST_GuideBySpeed.getSpeedA(0); }
 
             // 获取数据

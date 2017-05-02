@@ -109,6 +109,17 @@ namespace AGVproject.Class
             if (double.IsNaN(point.rCar)) { return true; }
             return false;
         }
+        public static bool Equal(POINT point1, POINT point2)
+        {
+            if (point1.x != point2.x) { return false; }
+            if (point1.y != point2.y) { return false; }
+            if (point1.a != point2.a) { return false; }
+            if (point1.r != point2.r) { return false; }
+            if (point1.d != point2.d) { return false; }
+            if (point1.aCar != point2.aCar) { return false; }
+            if (point1.rCar != point2.rCar) { return false; }
+            return true;
+        }
 
         public static List<POINT> SelectX(double BG, double ED, List<POINT> points)
         {
@@ -527,6 +538,11 @@ namespace AGVproject.Class
             return true;
         }
 
+        /// <summary>
+        /// 对所有给出点的 x 值取平均
+        /// </summary>
+        /// <param name="points">给出点</param>
+        /// <returns></returns>
         public static double AverageX(List<POINT> points)
         {
             if (points == null || points.Count == 0) { return 0; }
@@ -599,6 +615,11 @@ namespace AGVproject.Class
             return points;
         }
 
+        /// <summary>
+        /// 二维平面直线拟合，返回 KAB 值（斜率、夹角、截距）
+        /// </summary>
+        /// <param name="points">待拟合的点</param>
+        /// <returns></returns>
         public static double[] Fit(List<POINT> points)
         {
             if (points == null || points.Count < 2) { return new double[3] { 0, 0, 0 }; }
