@@ -16,10 +16,6 @@ namespace AGVproject.Solution_FollowTrack
         /// 路径信息
         /// </summary>
         public static List<ROUTE> Route = new List<ROUTE>();
-        /// <summary>
-        /// 正在扫描的当前路径
-        /// </summary>
-        public static ROUTE CurrentRoute;
         
         /// <summary>
         /// 路径信息
@@ -72,7 +68,7 @@ namespace AGVproject.Solution_FollowTrack
             while (!config.Over)
             {
                 config.LastPosition = TH_MeasurePosition.getPosition();
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(200);
                 config.NextPosition = TH_MeasurePosition.getPosition();
 
                 getMove();
@@ -85,10 +81,10 @@ namespace AGVproject.Solution_FollowTrack
                     Route.Add(config.CurrentRoute);
 
                     config.CurrentRoute = new ROUTE();
-                    config.CurrentRoute.StartPosition = config.CurrentRoute.TargetPosition;
+                    config.CurrentRoute.StartPosition = Route[Route.Count - 1].TargetPosition;
 
                     // 等待再次启动
-                    while (config.IsStop)
+                    while (config.IsStop && !config.Over)
                     { System.Threading.Thread.Sleep(200); config.NextPosition = TH_MeasurePosition.getPosition(); getMove(); }
                     continue;
                 }
@@ -96,12 +92,11 @@ namespace AGVproject.Solution_FollowTrack
                 if (config.NextDirection != config.LastDirection)
                 {
                     config.CurrentRoute.TargetPosition = TH_MeasurePosition.getPosition();
-                    config.CurrentRoute.TargetCorrect.xInvalid = true;
-                    config.CurrentRoute.TargetCorrect.yInvalid = true;
+                    config.CurrentRoute.TargetCorrect = AST_CorrectPosition.getCorrect();
                     Route.Add(config.CurrentRoute);
 
                     config.CurrentRoute = new ROUTE();
-                    config.CurrentRoute.StartPosition = config.CurrentRoute.TargetPosition;
+                    config.CurrentRoute.StartPosition = Route[Route.Count - 1].TargetPosition;
                 }
             }
         }

@@ -197,8 +197,6 @@ namespace AGVproject.Class
 
             // 调整完毕
             TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
-            Form_Start.corrpos = false;
-            TH_AutoSearchTrack.control.Event = "Correct: Stop";
         }
         /// <summary>
         /// 获取当前校准信息
@@ -208,9 +206,9 @@ namespace AGVproject.Class
         {
             CORRECT correct = new CORRECT();
             config.Lines = new List<List<CoordinatePoint.POINT>>();
-            config.LineError = 50; 
-            config.PtReqNum = 20;
-            config.NegeError = 100; // 线段至少10cm长
+            config.LineError = 50; // 线段的点的浮动误差 
+            config.PtReqNum = 30;
+            config.NegeError = 200; // 线段至少10cm长
 
             // 切割成直线，获取对应直线
             List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
@@ -240,6 +238,10 @@ namespace AGVproject.Class
 
                 if (0 < config.xLine) { double[] xL = CoordinatePoint.Fit(config.Lines[config.xLine - 1]); correct.xL = xL[1]; }
                 if (config.xLine < config.Lines.Count - 1) { double[] xR = CoordinatePoint.Fit(config.Lines[config.xLine + 1]); correct.xR = xR[1]; }
+
+                if (correct.xA < 0) { correct.xA += 180; }
+                if (correct.xL < 0) { correct.xL += 180; }
+                if (correct.xR < 0) { correct.xR += 180; }
             }
 
             // 获取 Y 方向下次校准的参数
@@ -257,6 +259,10 @@ namespace AGVproject.Class
 
                 if (0 < config.yLine) { double[] yL = CoordinatePoint.Fit(config.Lines[config.yLine - 1]); correct.yL = yL[1]; }
                 if (config.yLine < config.Lines.Count - 1) { double[] yR = CoordinatePoint.Fit(config.Lines[config.yLine + 1]); correct.yR = yR[1]; }
+
+                if (correct.yA < 0) { correct.yA += 180; }
+                if (correct.yL < 0) { correct.yL += 180; }
+                if (correct.yR < 0) { correct.yR += 180; }
             }
             
             // 返回结果
@@ -395,6 +401,9 @@ namespace AGVproject.Class
             List<int> indexofLine = new List<int>();
             for (int i = 0; i < config.Lines.Count; i++) { indexofLine.Add(i); }
 
+            double[] XXX = CoordinatePoint.Fit(config.Lines[0]);
+            double[] YYY = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[0]));
+
             // 寻找匹配直线
             bool xFound = false, yFound = false;
             while (indexofLine.Count != 0 && (!xFound || !yFound))
@@ -414,6 +423,10 @@ namespace AGVproject.Class
                 if (indexofMost > 0) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost - 1]); L = KAB[1]; }
                 if (indexofMost < config.Lines.Count - 1) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost + 1]); R = KAB[1]; }
 
+                if (A < 0) { A += 180; }
+                if (L < 0) { L += 180; }
+                if (R < 0) { R += 180; }
+
                 // 寻找 X 方向的匹配直线
                 if (!xFound && !correct.xInvalid)
                 {
@@ -423,15 +436,15 @@ namespace AGVproject.Class
                     double sAngleL = correct.xL - correct.xA;//Math.Abs(correct.xA - correct.xL); if (sAngleL > 180) { sAngleL -= 180; }
                     double iAngleR = R - A;// Math.Abs(R - A); if (iAngleR > 180) { iAngleR -= 180; }
                     double sAngleR = correct.xR - correct.xA;//Math.Abs(correct.xA - correct.xR); if (sAngleR > 180) { sAngleR -= 180; }
-
+                    
                     double ErrorL = Math.Abs(iAngleL - sAngleL);
                     double ErrorR = Math.Abs(iAngleR - sAngleR);
                     double ErrorC = Math.Abs(CoordinatePoint.AverageA(config.Lines[indexofMost]) - correct.xC);
 
                     bool SuitL = L == 0 || correct.xL == 0 || (L != 0 && correct.xL != 0 && ErrorL < 10);
                     bool SuitR = R == 0 || correct.xR == 0 || (R != 0 && correct.xR != 0 && ErrorR < 10);
-                    bool SuitC = ErrorC < 20;
-                    if (!xFound && SuitL && SuitR) { xFound = true; config.xLine = indexofMost; continue; }
+                    bool SuitC = ErrorC < 10;
+                    if (!xFound && (SuitL || SuitR) && SuitC) { xFound = true; config.xLine = indexofMost; continue; }
                 }
 
                 // 寻找 Y 方向的匹配直线
@@ -450,9 +463,9 @@ namespace AGVproject.Class
 
                     bool SuitL = L == 0 || correct.yL == 0 || (L != 0 && correct.yL != 0 && ErrorL < 10);
                     bool SuitR = R == 0 || correct.yR == 0 || (R != 0 && correct.yR != 0 && ErrorR < 10);
-                    bool SuitC = ErrorC < 20;
+                    bool SuitC = ErrorC < 10;
 
-                    if (!yFound && SuitL && SuitR) { yFound = true; config.yLine = indexofMost; }
+                    if (!yFound && (SuitL || SuitR) && SuitC) { yFound = true; config.yLine = indexofMost; }
                 }
             }
         }

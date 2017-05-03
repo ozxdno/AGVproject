@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
+using AGVproject.Solution_FollowTrack;
+
 namespace AGVproject.Class
 {
     /// <summary>
@@ -290,6 +292,8 @@ namespace AGVproject.Class
 
                 g.FillEllipse(Brushes.Black, x, y, 2, 2);
             }
+
+           
         }
         public static void getLocateData()
         {
@@ -307,6 +311,19 @@ namespace AGVproject.Class
             int X = (int)((HouseMap.HouseWidth - point.x) / Form_Start.config.PixLength);
             int Y = (int)(point.y / Form_Start.config.PixLength);
             g.FillEllipse(Brushes.Red, X - 4, Y - 4, 8, 8);
+
+            int Len = Math.Min(MapLength, MapWidth) / 2;
+            foreach (BuildRoute.ROUTE route in BuildRoute.Route)
+            {
+                int xBG = (int)(Len * route.StartPosition.x / 4000) + Len;
+                int yBG = (int)(Len * route.StartPosition.y / 4000) + Len;
+                int xED = (int)(Len * route.TargetPosition.x / 4000) + Len;
+                int yED = (int)(Len * route.TargetPosition.y / 4000) + Len;
+
+                g.DrawLine(Pens.Red, xBG, yBG, xED, yED);
+                g.FillEllipse(Brushes.Red, xBG - 2, yBG - 2, 4, 4);
+                g.FillEllipse(Brushes.Red, xED - 2, yED - 2, 4, 4);
+            }
         }
         public static void getPermitRoute()
         {
