@@ -19,46 +19,36 @@ namespace AGVproject.Solution_FollowTrack
                 AST_GuideByPosition.ApproachY = false;
                 AST_GuideByPosition.ApproachA = false;
 
-                double xMove = route.TargetPosition.x - route.StartPosition.x;
-                double yMove = route.TargetPosition.y - route.StartPosition.y;
-                double aMove = route.TargetPosition.aCar - route.StartPosition.aCar;
-
-                int test = 0; test++;
-
                 while (!AST_GuideByPosition.ApproachA)
                 {
-                    //if (aMove < 5) { break; }
+                    if (Math.Abs(route.aMove) < 5) { break; }
 
                     int xSpeed = AST_GuideBySpeed.getSpeedX(0);
                     int ySpeed = AST_GuideBySpeed.getSpeedY(0);
-                    int aSpeed = AST_GuideByPosition.getSpeedA(aMove);
+                    int aSpeed = AST_GuideByPosition.getSpeedA(route.aMove);
 
                     TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
                 }
 
-                while (!AST_GuideByPosition.ApproachX || !AST_GuideByPosition.ApproachY)
+                while (!AST_GuideByPosition.ApproachX)
                 {
-                    //if (yMove < 50) { break; }
-
-                    int xSpeed = AST_GuideByPosition.getSpeedX(xMove);
-                    int ySpeed = AST_GuideByPosition.getSpeedY(yMove);
-                    int aSpeed = AST_GuideBySpeed.getSpeedA(0);
-
-                    TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
-                }
-
-                while (false)
-                {
-                    //if (xMove < 50) { break; }
-
-                    int xSpeed = AST_GuideByPosition.getSpeedX(xMove);
+                    int xSpeed = AST_GuideByPosition.getSpeedX(route.xMove);
                     int ySpeed = AST_GuideBySpeed.getSpeedY(0);
                     int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
                     TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
                 }
 
-                AST_CorrectPosition.Start(route.TargetCorrect);
+                while (!AST_GuideByPosition.ApproachY)
+                {
+                    int xSpeed = AST_GuideBySpeed.getSpeedX(0);
+                    int ySpeed = AST_GuideByPosition.getSpeedY(route.yMove);
+                    int aSpeed = AST_GuideBySpeed.getSpeedA(0);
+
+                    TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                }
+
+                //AST_CorrectPosition.Start(route.TargetCorrect);
             }
         }
     }

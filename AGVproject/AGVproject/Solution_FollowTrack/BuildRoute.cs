@@ -23,18 +23,22 @@ namespace AGVproject.Solution_FollowTrack
         public struct ROUTE
         {
             /// <summary>
-            /// 小车初始位置
+            /// X 
             /// </summary>
-            public CoordinatePoint.POINT StartPosition;
+            public double xMove;
             /// <summary>
-            /// 小车目标位置
+            /// Y
             /// </summary>
-            public CoordinatePoint.POINT TargetPosition;
+            public double yMove;
+            /// <summary>
+            /// A
+            /// </summary>
+            public double aMove;
 
             /// <summary>
-            /// 目标点校准信息
+            /// 校准信息
             /// </summary>
-            public AST_CorrectPosition.CORRECT TargetCorrect;
+            public AST_CorrectPosition.CORRECT Correct;
         }
 
         ////////////////////////////////////////////////// private attribute /////////////////////////////////////////
@@ -44,7 +48,8 @@ namespace AGVproject.Solution_FollowTrack
         {
             public bool Over;
 
-            public ROUTE CurrentRoute;
+            public CoordinatePoint.POINT StartPosition;
+            public CoordinatePoint.POINT TargetPosition;
 
             public CoordinatePoint.POINT LastPosition;
             public CoordinatePoint.POINT NextPosition;
@@ -52,10 +57,6 @@ namespace AGVproject.Solution_FollowTrack
             public double xMove;
             public double yMove;
             public double aMove;
-
-            public bool IsStop;
-            public int LastDirection; // 0 停止 1 X 2 Y 3 A
-            public int NextDirection;
         }
 
         ////////////////////////////////////////////////// public method /////////////////////////////////////////
@@ -64,64 +65,69 @@ namespace AGVproject.Solution_FollowTrack
         {
             Route = new List<ROUTE>();
             config.Over = false;
+            config.StartPosition = TH_MeasurePosition.getPosition();
 
             while (!config.Over)
             {
-                config.LastPosition = TH_MeasurePosition.getPosition();
-                System.Threading.Thread.Sleep(200);
-                config.NextPosition = TH_MeasurePosition.getPosition();
+                // 等待停止事件
+                if (!IsStop()) { continue; }
 
+                // 记录路径
+                config.TargetPosition = TH_MeasurePosition.getPosition();
                 getMove();
+                ROUTE route = new ROUTE(); route.Correct = AST_CorrectPosition.getCorrect();
+                route.xMove = config.xMove;
+                route.yMove = config.yMove;
+                route.aMove = config.aMove;
+                Route.Add(route);
 
-                if (config.IsStop)
-                {
-                    // 记录历史数据
-                    config.CurrentRoute.TargetPosition = TH_MeasurePosition.getPosition();
-                    config.CurrentRoute.TargetCorrect = AST_CorrectPosition.getCorrect();
-                    Route.Add(config.CurrentRoute);
+                TH_AutoSearchTrack.control.Event = "Saved This Mark!";
 
-                    config.CurrentRoute = new ROUTE();
-                    config.CurrentRoute.StartPosition = Route[Route.Count - 1].TargetPosition;
+                // 更新初始位置
+                config.StartPosition = TH_MeasurePosition.getPosition();
 
-                    // 等待再次启动
-                    while (config.IsStop && !config.Over)
-                    { System.Threading.Thread.Sleep(200); config.NextPosition = TH_MeasurePosition.getPosition(); getMove(); }
-                    continue;
-                }
-
-                if (config.NextDirection != config.LastDirection)
-                {
-                    config.CurrentRoute.TargetPosition = TH_MeasurePosition.getPosition();
-                    config.CurrentRoute.TargetCorrect = AST_CorrectPosition.getCorrect();
-                    Route.Add(config.CurrentRoute);
-
-                    config.CurrentRoute = new ROUTE();
-                    config.CurrentRoute.StartPosition = Route[Route.Count - 1].TargetPosition;
-                }
+                // 等待再次启动
+                while (!config.Over && IsStop()) ;
+                TH_AutoSearchTrack.control.Event = "Finding Mark...";
             }
         }
-        public static void Stop()
-        {
-            config.Over = true;
-        }
+        public static void Stop() { config.Over = true; }
 
         ////////////////////////////////////////////////// private method /////////////////////////////////////////
         
         private static void getMove()
         {
-            config.LastDirection = config.NextDirection;
+            double xMove = config.TargetPosition.x - config.StartPosition.x;
+            double yMove = config.TargetPosition.y - config.StartPosition.y;
+            double aMove = config.TargetPosition.aCar - config.StartPosition.aCar;
 
-            config.xMove = config.NextPosition.x - config.LastPosition.x;
-            config.yMove = config.NextPosition.y - config.LastPosition.y;
-            config.aMove = config.NextPosition.aCar - config.LastPosition.aCar;
+            CoordinatePoint.POINT Move = CoordinatePoint.Create_XY(xMove, yMove);
 
-            config.IsStop = config.xMove == 0 && config.yMove == 0 && config.aMove == 0;
-            config.NextDirection = config.LastDirection;
+            double dir = config.TargetPosition.aCar + 90;
+            while (dir < -90) { dir += 360; }
+            while (dir > 270) { dir -= 360; }
 
-            if (config.IsStop) { config.NextDirection = 0; }
-            if (config.xMove > 10) { config.NextDirection = 1; }
-            if (config.yMove > 10) { config.NextDirection = 2; }
-            if (config.aMove > 10) { config.NextDirection = 3; }
+            dir = dir - Move.a; config.aMove = aMove; config.xMove = 0; config.yMove = 0;
+
+            if (-30 < dir && dir < 30) { config.xMove = 0; config.yMove = Move.d; }
+            if (-120 < dir && dir < -60) { config.xMove = -Move.d; config.yMove = 0; }
+            if (60 < dir && dir < 120) { config.xMove = Move.d; config.yMove = 0; }
+            if (150 < dir && dir < 210) { config.xMove = 0; config.yMove = -Move.d; }
+            if (-210 < dir && dir < -150) { config.xMove = 0; config.yMove = -Move.d; }
+        }
+        private static bool IsStop()
+        {
+            // 间隔 100ms 检测一次
+            config.LastPosition = TH_MeasurePosition.getPosition();
+            System.Threading.Thread.Sleep(100);
+            config.NextPosition = TH_MeasurePosition.getPosition();
+
+            // 判断是否停止
+            if (config.LastPosition.x != config.NextPosition.x) { return false; }
+            if (config.LastPosition.y != config.NextPosition.y) { return false; }
+            if (config.LastPosition.aCar != config.NextPosition.aCar) { return false; }
+
+            return true;
         }
     }
 }

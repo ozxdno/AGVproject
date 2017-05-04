@@ -53,9 +53,13 @@ namespace AGVproject.Class
             /// </summary>
             public double aMove;
         }
-        
+
         ////////////////////////////////////////// private attribute ////////////////////////////////////////////////
-        
+
+        private static KalmanFilter FilterX = new KalmanFilter();
+        private static KalmanFilter FilterY = new KalmanFilter();
+        private static KalmanFilter FilterA = new KalmanFilter();
+
         private static CONFIG config;
         private struct CONFIG
         {
@@ -209,8 +213,6 @@ namespace AGVproject.Class
 
             config.IsGettingSpeed = false;
 
-
-
             int currSpeed_HL = -speed.HeadL;
             int currSpeed_HR = speed.HeadR;
             int currSpeed_TL = -speed.TailL;
@@ -246,6 +248,10 @@ namespace AGVproject.Class
 
             config.Speed = new SPEED();
             config.Current = new CoordinatePoint.POINT();
+
+            FilterX.P = 10; FilterX.Q = 10; FilterX.R = 10; FilterX.Last = 0;
+            FilterY.P = 10; FilterY.Q = 10; FilterY.R = 10; FilterY.Last = 0;
+            FilterA.P = 01; FilterA.Q = 01; FilterA.R = 01; FilterA.Last = 0;
         }
 
         private static void portDataReceived(object sender, EventArgs e)
@@ -348,6 +354,10 @@ namespace AGVproject.Class
             X = X / 4.077;
             Y = Y / 4.077;
             A = A / 4.077;
+
+            //X = FilterX.Start(X);
+            //Y = FilterY.Start(Y);
+            //A = FilterA.Start(A);
 
             config.IsSetting = true;
             while (config.IsGetting) ;

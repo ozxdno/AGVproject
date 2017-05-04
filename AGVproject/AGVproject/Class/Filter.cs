@@ -113,31 +113,31 @@ namespace AGVproject.Class
         /// <summary>
         /// 暂时没弄清楚
         /// </summary>
-        public static double P;
+        public double P;
         /// <summary>
         /// 系统噪声方差
         /// </summary>
-        public static double Q;
+        public double Q;
         /// <summary>
         /// 观测噪声方差
         /// </summary>
-        public static double R;
+        public double R;
 
         /// <summary>
         /// 上一时刻的估计值
         /// </summary>
-        public static double Last;
+        public double Last;
         /// <summary>
         /// 这一时刻的估计值
         /// </summary>
-        public static double Next;
+        public double Next;
 
         /// <summary>
         /// 卡尔曼滤波器，返回本次的估计结果
         /// </summary>
         /// <param name="measure">测量值</param>
         /// <returns></returns>
-        public static double Start(double measure)
+        public double Start(double measure)
         {
             // 用系统方程估计下一时刻的状态值
             double sX_next = Last;

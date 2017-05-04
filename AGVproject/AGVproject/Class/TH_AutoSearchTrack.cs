@@ -228,13 +228,13 @@ namespace AGVproject.Class
                 }
 
                 // 测试自动校准
-                AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
-                while (true)
-                {
-                    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
-                    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
-                    if (Form_Start.corrpos) { AST_CorrectPosition.Start(correct); }
-                }
+                //AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
+                //while (true)
+                //{
+                //    TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+                //    if (Form_Start.record) { Form_Start.record = false; correct = AST_CorrectPosition.getCorrect(); }
+                //    if (Form_Start.corrpos) { AST_CorrectPosition.Start(correct); }
+                //}
 
                 // 测试自动记录路径并按路径行进
                 Form_Start.corrpos = true;

@@ -150,11 +150,7 @@ namespace AGVproject.Class
                 sortLines();
 
                 // 获取匹配直线索引号
-                //double aMove = TH_MeasurePosition.getPosition().aCar - refPos.aCar;
-                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
-                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
-
-                getMatch(correctTarget);
+                getMatch2(correctTarget);
 
                 // 退出条件
                 if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
@@ -177,11 +173,7 @@ namespace AGVproject.Class
                 sortLines();
 
                 // 获取匹配直线索引号
-                //double aMove = 0;// TH_MeasurePosition.getPosition().aCar - refPos.aCar;
-                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
-                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
-
-                getMatch(correctTarget);
+                getMatch2(correctTarget);
 
                 // 退出条件
                 if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
@@ -204,11 +196,7 @@ namespace AGVproject.Class
                 sortLines();
 
                 // 获取匹配直线索引号
-                //double aMove = 0;// TH_MeasurePosition.getPosition().aCar - refPos.aCar;
-                //if (!correctTarget.xInvalid) { config.xLine = getMatch(xAverage - aMove); }
-                //if (!correctTarget.yInvalid) { config.yLine = getMatch(yAverage - aMove); }
-
-                getMatch(correctTarget);
+                getMatch2(correctTarget);
 
                 // 退出条件
                 if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
@@ -561,8 +549,8 @@ namespace AGVproject.Class
 
             foreach (ERROR error in Error)
             {
-                double xe = error.xPos + error.xFit + error.xL + error.xR + error.xD;
-                double ye = error.yPos + error.yFit + error.yL + error.yR + error.yD;
+                double xe = error.xPos + error.xFit + error.xL + error.xR + 0.1 * error.xD;
+                double ye = error.yPos + error.yFit + error.yL + error.yR + 0.1 * error.yD;
 
                 if (xe < xFactor) { xFactor = xe; xBest = error.index; }
                 if (ye < yFactor) { yFactor = ye; yBest = error.index; }
