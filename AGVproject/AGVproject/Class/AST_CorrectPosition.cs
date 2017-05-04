@@ -42,13 +42,21 @@ namespace AGVproject.Class
             /// </summary>
             public double xC;
             /// <summary>
-            /// X 方向直线的 Y 轴截距
+            /// X 方向直线的长度
             /// </summary>
             public double xD;
+            /// <summary>
+            /// X 方向左边直线通过了交换 X-Y 的变换
+            /// </summary>
+            public bool xL_exchanged;
             /// <summary>
             /// 该直线的左边一条直线的角度
             /// </summary>
             public double xL;
+            /// <summary>
+            /// X 方向右边直线通过了交换 X-Y 的变换
+            /// </summary>
+            public bool xR_exchanged;
             /// <summary>
             /// 该直线的右边一条直线的角度
             /// </summary>
@@ -59,7 +67,9 @@ namespace AGVproject.Class
             public double yB;
             public double yC;
             public double yD;
+            public bool yL_exchanged;
             public double yL;
+            public bool yR_exchanged;
             public double yR;
         }
 
@@ -72,13 +82,29 @@ namespace AGVproject.Class
             public double LineError;
             public double NegeError;
             public int PtReqNum;
-
+            
             public int xLine;
             public int yLine;
 
             public bool ApproachX;
             public bool ApproachY;
             public bool ApproachA;
+        }
+        private struct ERROR
+        {
+            public int index;
+
+            public double xPos;
+            public double xFit;
+            public double xL;
+            public double xR;
+            public double xD;
+
+            public double yPos;
+            public double yFit;
+            public double yL;
+            public double yR;
+            public double yD;
         }
 
         ////////////////////////////////////////////////// public method ///////////////////////////////////////////
@@ -227,42 +253,36 @@ namespace AGVproject.Class
             // 获取 X 方向下次校准的参数
             if (!correct.xInvalid)
             {
+                CoordinatePoint.POINT ptBG = config.Lines[config.xLine][0];
+                CoordinatePoint.POINT ptED = config.Lines[config.xLine][config.Lines[config.xLine].Count - 1];
+
                 double[] xKAB = CoordinatePoint.Fit(config.Lines[config.xLine]);
                 correct.xK = xKAB[0];
                 correct.xA = xKAB[1];
                 correct.xB = xKAB[2];
                 correct.xC = CoordinatePoint.AverageA(config.Lines[config.xLine]);
-                correct.xD = xKAB[2];
+                correct.xD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
                 correct.xL = 0;
                 correct.xR = 0;
 
                 if (0 < config.xLine) { double[] xL = CoordinatePoint.Fit(config.Lines[config.xLine - 1]); correct.xL = xL[1]; }
                 if (config.xLine < config.Lines.Count - 1) { double[] xR = CoordinatePoint.Fit(config.Lines[config.xLine + 1]); correct.xR = xR[1]; }
-
-                if (correct.xA < 0) { correct.xA += 180; }
-                if (correct.xL < 0) { correct.xL += 180; }
-                if (correct.xR < 0) { correct.xR += 180; }
             }
 
             // 获取 Y 方向下次校准的参数
             if (!correct.yInvalid)
             {
-                double[] yKAB = CoordinatePoint.Fit(config.Lines[config.yLine]);
+                double[] yKAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[config.yLine]));
                 correct.yK = yKAB[0];
                 correct.yA = yKAB[1];
                 correct.yB = yKAB[2];
                 correct.yC = CoordinatePoint.AverageA(config.Lines[config.yLine]);
-                double[] yKABr = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[config.yLine]));
-                correct.yD = yKABr[2];
+                correct.yD = yKAB[2];
                 correct.yL = 0;
                 correct.yR = 0;
 
                 if (0 < config.yLine) { double[] yL = CoordinatePoint.Fit(config.Lines[config.yLine - 1]); correct.yL = yL[1]; }
                 if (config.yLine < config.Lines.Count - 1) { double[] yR = CoordinatePoint.Fit(config.Lines[config.yLine + 1]); correct.yR = yR[1]; }
-
-                if (correct.yA < 0) { correct.yA += 180; }
-                if (correct.yL < 0) { correct.yL += 180; }
-                if (correct.yR < 0) { correct.yR += 180; }
             }
             
             // 返回结果
@@ -400,10 +420,7 @@ namespace AGVproject.Class
             // 存下索引号备用
             List<int> indexofLine = new List<int>();
             for (int i = 0; i < config.Lines.Count; i++) { indexofLine.Add(i); }
-
-            double[] XXX = CoordinatePoint.Fit(config.Lines[0]);
-            double[] YYY = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[0]));
-
+            
             // 寻找匹配直线
             bool xFound = false, yFound = false;
             while (indexofLine.Count != 0 && (!xFound || !yFound))
@@ -469,27 +486,89 @@ namespace AGVproject.Class
                 }
             }
         }
-        private static int getMatch(double centreAngle)
+        private static void getMatch2(CORRECT correct)
         {
-            // 调整过程中寻找匹配直线
-            double minError = double.MaxValue;
-            int selectIndex = -1;
+            // 初始化
+            config.xLine = -1; config.yLine = -1;
 
-            // 找到序号
+            // 切割成直线
+            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            config.Lines = new List<List<CoordinatePoint.POINT>>();
+            cutPointsToGroup(points);
+            sortLines();
+
+            // 获取各条直线的 KAB 值。xKAB, yKAB
+            List<double[]> xKAB = new List<double[]>();
+            List<double[]> yKAB = new List<double[]>();
             for (int i = 0; i < config.Lines.Count; i++)
             {
-                double angleBG = config.Lines[i][0].a;
-                double angleED = config.Lines[i][config.Lines[i].Count - 1].a;
-                if (angleBG <= centreAngle && centreAngle <= angleED) { selectIndex = i; break; }
+                double[] x = CoordinatePoint.Fit(config.Lines[i]);
+                double[] y = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[i]));
 
-                double iError = Math.Min(Math.Abs(angleBG - centreAngle), Math.Abs(angleED - centreAngle));
-                if (iError < minError) { minError = iError; selectIndex = i; }
+                xKAB.Add(x); yKAB.Add(y);
             }
-            if (selectIndex == -1) { return selectIndex; }
 
-            // 更新中心角度，返回结果
-            //centreAngle = CoordinatePoint.AverageA(config.Lines[selectIndex]);
-            return selectIndex;
+            // 获取各种误差参数
+            List<ERROR> Error = new List<ERROR>();
+            CoordinatePoint.POINT ptBG, ptED;
+            double angleLx, angleLy, angleRx, angleRy;
+            for (int i = 0; i < config.Lines.Count; i++)
+            {
+                ERROR err = new ERROR(); err.index = i;
+                int N = config.Lines[i].Count;
+
+                ptBG = config.Lines[i][0];
+                ptED = config.Lines[i][N - 1];
+
+                err.xPos = Math.Min(Math.Abs(ptBG.a - correct.xC), Math.Abs(ptED.a - correct.xC));
+                if (ptBG.a < correct.xC && correct.xC < ptED.a) { err.xPos = 0; }
+                err.xFit = Math.Abs(xKAB[i][1] - correct.xA);
+
+                if (i > 0 && correct.xL_exchanged)
+                { err.xL = Math.Abs((xKAB[i][1] - yKAB[i - 1][1]) - (correct.xA - correct.xL)); }
+                if (i > 0 && !correct.xL_exchanged)
+                { err.xL = Math.Abs((xKAB[i][1] - xKAB[i - 1][1]) - (correct.xA - correct.xL)); }
+                if (i < N - 1 && correct.xR_exchanged)
+                { err.xR = Math.Abs((xKAB[i][1] - yKAB[i + 1][1]) - (correct.xA - correct.xR)); }
+                if (i < N - 1 && !correct.xR_exchanged)
+                { err.xR = Math.Abs((xKAB[i][1] - xKAB[i + 1][1]) - (correct.xA - correct.xR)); }
+
+                err.xD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
+                err.xD = Math.Abs(err.xD - correct.xD);
+
+                err.yPos = Math.Min(Math.Abs(ptBG.a - correct.yC), Math.Abs(ptED.a - correct.yC));
+                if (ptBG.a < correct.yC && correct.yC < ptED.a) { err.yPos = 0; }
+                err.yFit = Math.Abs(yKAB[i][1] - correct.yA);
+
+                if (i > 0 && correct.yL_exchanged)
+                { err.yL = Math.Abs((yKAB[i][1] - yKAB[i - 1][1]) - (correct.yA - correct.yL)); }
+                if (i > 0 && !correct.yL_exchanged)
+                { err.yL = Math.Abs((yKAB[i][1] - xKAB[i - 1][1]) - (correct.yA - correct.yL)); }
+                if (i < N - 1 && correct.yR_exchanged)
+                { err.yR = Math.Abs((yKAB[i][1] - yKAB[i + 1][1]) - (correct.yA - correct.yR)); }
+                if (i < N - 1 && !correct.yR_exchanged)
+                { err.yR = Math.Abs((yKAB[i][1] - xKAB[i + 1][1]) - (correct.yA - correct.yR)); }
+
+                err.yD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
+                err.yD = Math.Abs(err.yD - correct.yD);
+
+                Error.Add(err);
+            }
+
+            // 寻找最优的匹配直线
+            double xFactor = double.MaxValue, yFactor = double.MaxValue;
+            int xBest = -1, yBest = -1;
+
+            foreach (ERROR error in Error)
+            {
+                double xe = error.xPos + error.xFit + error.xL + error.xR + error.xD;
+                double ye = error.yPos + error.yFit + error.yL + error.yR + error.yD;
+
+                if (xe < xFactor) { xFactor = xe; xBest = error.index; }
+                if (ye < yFactor) { yFactor = ye; yBest = error.index; }
+            }
+
+            config.xLine = xBest; config.yLine = yBest;
         }
 
         private static int getSpeedX(CORRECT correctTarget)
