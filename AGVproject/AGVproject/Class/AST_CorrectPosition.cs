@@ -12,7 +12,7 @@ namespace AGVproject.Class
         ////////////////////////////////////////////////// public attribute /////////////////////////////////////////
 
         /// <summary>
-        /// 进行校准时必要的信息
+        /// 进行校准时必要的信息，X 方向：平行于 X 轴的方向，Y 同理
         /// </summary>
         public struct CORRECT
         {
@@ -112,7 +112,7 @@ namespace AGVproject.Class
         /// <summary>
         /// 开始校准
         /// </summary>
-        /// <param name="correctTarget">校准信息，若无效则不校准</param>
+        /// <param name="correctTarget">校准信息</param>
         public static void Start(CORRECT correctTarget)
         {
             // 获取匹配直线
@@ -499,7 +499,6 @@ namespace AGVproject.Class
             // 获取各种误差参数
             List<ERROR> Error = new List<ERROR>();
             CoordinatePoint.POINT ptBG, ptED;
-            double angleLx, angleLy, angleRx, angleRy;
             for (int i = 0; i < config.Lines.Count; i++)
             {
                 ERROR err = new ERROR(); err.index = i;

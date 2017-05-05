@@ -640,11 +640,11 @@ namespace AGVproject.Class
             if (denominator == 0) { denominator = 0.000000001; }
 
             // 计算斜率和截距
-            double UrgK = (N * sumXY - sumX * sumY) / denominator;
-            double UrgB = (sumXX * sumY - sumX * sumXY) / denominator;
-            double UrgA = Math.Atan(UrgK) * 180 / Math.PI;
+            double K = (N * sumXY - sumX * sumY) / denominator;
+            double B = (sumXX * sumY - sumX * sumXY) / denominator;
+            double A = Math.Atan(K) * 180 / Math.PI;
 
-            return new double[3] { UrgK, UrgA, UrgB };
+            return new double[3] { K, A, B };
         }
     }
 }

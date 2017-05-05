@@ -91,6 +91,12 @@
     </Compile>
     <Compile Include="Solution_FollowTrack\BuildRoute.cs" />
     <Compile Include="Solution_FollowTrack\FollowTrack.cs" />
+    <Compile Include="Solution_FollowTrack\UpdataPictureBox.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\ExtractFeatures.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\MatchFeature.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\MeasureMove.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\UpdataMap.cs" />
+    <Compile Include="Solution_SLAM\Feature\Feature.cs" />
     <Compile Include="StartProject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
@@ -130,6 +136,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Solution_FollowStack\" />
+    <Folder Include="Solution_SLAM\FeedBack\" />
+    <Folder Include="Solution_SLAM\Location\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

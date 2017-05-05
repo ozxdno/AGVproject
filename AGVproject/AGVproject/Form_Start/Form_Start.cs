@@ -29,7 +29,6 @@ namespace AGVproject
         {
             public System.Timers.Timer Timer;
             public DateTime Time;
-            public List<int> KeyValue;
 
             public List<FILE> Map;
             public List<FILE> Route;
@@ -306,7 +305,6 @@ namespace AGVproject
             this.checkLocPort.Checked = config.CheckLocatePort;
 
             // config
-            config.KeyValue = new List<int>();
             config.Timer = new System.Timers.Timer(100);
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
             config.Timer.AutoReset = true;

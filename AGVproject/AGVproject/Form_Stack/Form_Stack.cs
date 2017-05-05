@@ -24,7 +24,7 @@ namespace AGVproject.Form_Stack
         public static double Distance;
 
         public static double Length;
-        public static double Width;
+        public new static double Width;
 
         public static double AisleWidth_U;
         public static double AisleWidth_D;

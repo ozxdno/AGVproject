@@ -8,6 +8,9 @@ using AGVproject.Class;
 
 namespace AGVproject.Solution_FollowTrack
 {
+    /// <summary>
+    /// 建立路径
+    /// </summary>
     class BuildRoute
     {
         ////////////////////////////////////////////////// public attribute /////////////////////////////////////////
@@ -23,15 +26,15 @@ namespace AGVproject.Solution_FollowTrack
         public struct ROUTE
         {
             /// <summary>
-            /// X 
+            /// X 方向移动距离
             /// </summary>
             public double xMove;
             /// <summary>
-            /// Y
+            /// Y 方向移动距离
             /// </summary>
             public double yMove;
             /// <summary>
-            /// A
+            /// A 方向移动距离
             /// </summary>
             public double aMove;
 
@@ -61,6 +64,9 @@ namespace AGVproject.Solution_FollowTrack
 
         ////////////////////////////////////////////////// public method /////////////////////////////////////////
 
+        /// <summary>
+        /// 开始记录路径
+        /// </summary>
         public static void Start()
         {
             Route = new List<ROUTE>();
@@ -91,6 +97,9 @@ namespace AGVproject.Solution_FollowTrack
                 TH_AutoSearchTrack.control.Event = "Finding Mark...";
             }
         }
+        /// <summary>
+        /// 停止记录路径
+        /// </summary>
         public static void Stop() { config.Over = true; }
 
         ////////////////////////////////////////////////// private method /////////////////////////////////////////
@@ -99,21 +108,28 @@ namespace AGVproject.Solution_FollowTrack
         {
             double xMove = config.TargetPosition.x - config.StartPosition.x;
             double yMove = config.TargetPosition.y - config.StartPosition.y;
+
             double aMove = config.TargetPosition.aCar - config.StartPosition.aCar;
+            double rMove = config.TargetPosition.rCar - config.StartPosition.rCar;
 
             CoordinatePoint.POINT Move = CoordinatePoint.Create_XY(xMove, yMove);
+            Move = CoordinatePoint.TransformCoordinate(Move, 0, 0, rMove);
 
-            double dir = config.TargetPosition.aCar + 90;
-            while (dir < -90) { dir += 360; }
-            while (dir > 270) { dir -= 360; }
+            config.xMove = Move.x;
+            config.yMove = Move.y;
+            config.aMove = aMove;
 
-            dir = dir - Move.a; config.aMove = aMove; config.xMove = 0; config.yMove = 0;
+            //double dir = config.TargetPosition.aCar + 90;
+            //while (dir < -90) { dir += 360; }
+            //while (dir > 270) { dir -= 360; }
 
-            if (-30 < dir && dir < 30) { config.xMove = 0; config.yMove = Move.d; }
-            if (-120 < dir && dir < -60) { config.xMove = -Move.d; config.yMove = 0; }
-            if (60 < dir && dir < 120) { config.xMove = Move.d; config.yMove = 0; }
-            if (150 < dir && dir < 210) { config.xMove = 0; config.yMove = -Move.d; }
-            if (-210 < dir && dir < -150) { config.xMove = 0; config.yMove = -Move.d; }
+            //dir = dir - Move.a; config.aMove = aMove; config.xMove = 0; config.yMove = 0;
+
+            //if (-30 < dir && dir < 30) { config.xMove = 0; config.yMove = Move.d; }
+            //if (-120 < dir && dir < -60) { config.xMove = -Move.d; config.yMove = 0; }
+            //if (60 < dir && dir < 120) { config.xMove = Move.d; config.yMove = 0; }
+            //if (150 < dir && dir < 210) { config.xMove = 0; config.yMove = -Move.d; }
+            //if (-210 < dir && dir < -150) { config.xMove = 0; config.yMove = -Move.d; }
         }
         private static bool IsStop()
         {
