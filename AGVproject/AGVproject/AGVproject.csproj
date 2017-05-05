@@ -57,6 +57,8 @@
     <Compile Include="Class\AST_GuideBySurrounding.cs" />
     <Compile Include="Class\CoordinatePoint.cs" />
     <Compile Include="Class\Filter.cs" />
+    <Compile Include="Class\HouseStack.cs" />
+    <Compile Include="Class\HouseTrack.cs" />
     <Compile Include="Class\TH_AutoSearchTrack.cs" />
     <Compile Include="Class\Configuration.cs" />
     <Compile Include="Class\Hardware.cs" />
@@ -136,8 +138,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Solution_FollowStack\" />
+    <Folder Include="Solution_ScanStack\" />
     <Folder Include="Solution_SLAM\FeedBack\" />
     <Folder Include="Solution_SLAM\Location\" />
+    <Folder Include="Solution_VSLAM\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
