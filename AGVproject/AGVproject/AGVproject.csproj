@@ -50,7 +50,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class\AST_AlignAisle.cs" />
     <Compile Include="Solution_FollowTrack\CorrectPosition.cs" />
     <Compile Include="Class\AST_GuideBySpeed.cs" />
     <Compile Include="Class\AST_GuideByPosition.cs" />
@@ -66,18 +65,11 @@
     <Compile Include="Class\TH_MeasureSurrounding.cs" />
     <Compile Include="Class\TH_SendCommand.cs" />
     <Compile Include="Class\HouseStack.cs" />
-    <Compile Include="Class\TH_UpdataPictureBox.cs" />
     <Compile Include="Form_Input\Form_Input.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form_Input\Form_Input.Designer.cs">
       <DependentUpon>Form_Input.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Form_Route\Form_Route.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form_Route\Form_Route.Designer.cs">
-      <DependentUpon>Form_Route.cs</DependentUpon>
     </Compile>
     <Compile Include="Form_Stack\Form_Stack.cs">
       <SubType>Form</SubType>
@@ -103,9 +95,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
       <DependentUpon>Form_Input.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Form_Route\Form_Route.resx">
-      <DependentUpon>Form_Route.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Stack\Form_Stack.resx">
       <DependentUpon>Form_Stack.cs</DependentUpon>
@@ -137,6 +126,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Form_Config\" />
     <Folder Include="Solution_FollowStack\" />
     <Folder Include="Solution_ScanStack\" />
     <Folder Include="Solution_SLAM\FeedBack\" />

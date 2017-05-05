@@ -105,6 +105,7 @@ namespace AGVproject.Class
             return points;
         }
     }
+
     /// <summary>
     /// 卡尔曼滤波器
     /// </summary>
@@ -139,6 +140,9 @@ namespace AGVproject.Class
         /// <returns></returns>
         public double Start(double measure)
         {
+            // 更新 Last
+            Last = Next;
+
             // 用系统方程估计下一时刻的状态值
             double sX_next = Last;
 

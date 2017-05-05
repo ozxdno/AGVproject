@@ -44,6 +44,8 @@ namespace AGVproject.Class
 
             Load_FormStart();
             Load_HouseMap();
+            Load_HouseStack();
+            Load_HouseTrack();
             Load_Hardware();
             Load_AST();
         }
@@ -55,6 +57,8 @@ namespace AGVproject.Class
 
             Save_FormStart();
             Save_HouseMap();
+            Save_HouseStack();
+            Save_HouseTrack();
             Save_Hardware();
             Save_AST();
 
@@ -129,7 +133,6 @@ namespace AGVproject.Class
             Form_Start.config.CheckLocatePort = getFieldValue1_INT("FormStart.CheckLocatePort") == 1;
 
             Form_Start.config.urgRange = getFieldValue1_INT("FormStart.urgRange");
-            Form_Start.config.PixLength = getFieldValue1_DOUBLE("FormStart.PixLength");
         }
         private static void Save_FormStart()
         {
@@ -176,31 +179,48 @@ namespace AGVproject.Class
             setFieldValue("FormStart.CheckLocatePort", Form_Start.config.CheckLocatePort);
 
             setFieldValue("FormStart.urgRange", Form_Start.config.urgRange);
-            setFieldValue("FormStart.PixLength", Form_Start.config.PixLength);
         }
         private static void Load_HouseMap()
         {
-            HouseStack.HouseLength = getFieldValue1_DOUBLE("HouseMap.HouseLength");
-            HouseStack.HouseWidth = getFieldValue1_DOUBLE("HouseMap.HouseWidth");
-            HouseStack.TotalStacksL = getFieldValue1_INT("HouseMap.TotalStacksL");
-            HouseStack.TotalStacksR = getFieldValue1_INT("HouseMap.TotalStacksR");
+            HouseMap.Initial();
 
-            HouseStack.DefaultCentreRoadWidth = getFieldValue1_DOUBLE("HouseMap.DefaultCentreRoadWidth");
-            HouseStack.DefaultAisleWidth = getFieldValue1_DOUBLE("HouseMap.DefaultAisleWidth");
-            HouseStack.DefaultStackLength = getFieldValue1_DOUBLE("HouseMap.DefaultStackLength");
-            HouseStack.DefaultStackWidth = getFieldValue1_DOUBLE("HouseMap.DefaultStackWidth");
+            HouseMap.HouseLength = getFieldValue1_DOUBLE("HouseMap.HouseLength");
+            HouseMap.HouseWidth = getFieldValue1_DOUBLE("HouseMap.HouseWidth");
+            HouseMap.PixLength = getFieldValue1_DOUBLE("HouseMap.PixLength");
         }
         private static void Save_HouseMap()
         {
-            setFieldValue("HouseMap.HouseLength", HouseStack.HouseLength);
-            setFieldValue("HouseMap.HouseWidth", HouseStack.HouseWidth);
-            setFieldValue("HouseMap.TotalStacksL", HouseStack.TotalStacksL);
-            setFieldValue("HouseMap.TotalStacksR", HouseStack.TotalStacksR);
+            setFieldValue("HouseMap.HouseLength", HouseMap.HouseLength);
+            setFieldValue("HouseMap.HouseWidth", HouseMap.HouseWidth);
+            setFieldValue("HouseMap.PixLength", HouseMap.PixLength);
+        }
+        private static void Load_HouseStack()
+        {
+            HouseStack.Initial();
 
-            setFieldValue("HouseMap.DefaultCentreRoadWidth", HouseStack.DefaultCentreRoadWidth);
-            setFieldValue("HouseMap.DefaultAisleWidth", HouseStack.DefaultAisleWidth);
-            setFieldValue("HouseMap.DefaultStackLength", HouseStack.DefaultStackLength);
-            setFieldValue("HouseMap.DefaultStackWidth", HouseStack.DefaultStackWidth);
+            HouseStack.TotalStacksL = getFieldValue1_INT("HouseStack.TotalStacksL");
+            HouseStack.TotalStacksR = getFieldValue1_INT("HouseStack.TotalStacksR");
+            HouseStack.DefaultAisleWidthLR = getFieldValue1_DOUBLE("HouseStack.DefaultAisleWidthLR");
+            HouseStack.DefaultAisleWidthUD = getFieldValue1_DOUBLE("HouseStack.DefaultAisleWidthUD");
+            HouseStack.DefaultStackLength = getFieldValue1_DOUBLE("HouseStack.DefaultStackLength");
+            HouseStack.DefaultStackWidth = getFieldValue1_DOUBLE("HouseStack.DefaultStackWidth");
+        }
+        private static void Save_HouseStack()
+        {
+            setFieldValue("HouseStack.TotalStacksL", HouseStack.TotalStacksL);
+            setFieldValue("HouseStack.TotalStacksR", HouseStack.TotalStacksR);
+            setFieldValue("HouseStack.DefaultAisleWidthLR", HouseStack.DefaultAisleWidthLR);
+            setFieldValue("HouseStack.DefaultAisleWidthUD", HouseStack.DefaultAisleWidthUD);
+            setFieldValue("HouseStack.DefaultStackLength", HouseStack.DefaultStackLength);
+            setFieldValue("HouseStack.DefaultStackWidth", HouseStack.DefaultStackWidth);
+        }
+        private static void Load_HouseTrack()
+        {
+            HouseTrack.Initial();
+        }
+        private static void Save_HouseTrack()
+        {
+
         }
         private static void Load_Hardware()
         {
@@ -390,6 +410,8 @@ namespace AGVproject.Class
             setFieldValue("AST.EMA", TH_AutoSearchTrack.control.EMA);
             setFieldValue("AST.NearStack", TH_AutoSearchTrack.control.NearStack);
         }
+
+
         public static bool Save_Map(ref int index)
         {
             string MapPath = Form_Start.config.SelectedMap < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedMap].Path;
@@ -410,28 +432,28 @@ namespace AGVproject.Class
 
             StreamWriter sw = new StreamWriter(sf.FileName);
 
-            foreach (HouseStack.STACK stack in HouseStack.Stacks)
-            {
-                sw.WriteLine("No = " + stack.No.ToString());
-                sw.WriteLine("IsLeft = " + stack.IsLeft.ToString());
-                sw.WriteLine("Length = " + stack.Length.ToString());
-                sw.WriteLine("Width = " + stack.Width.ToString());
+            //foreach (HouseStack.STACK stack in HouseStack.Stacks)
+            //{
+            //    sw.WriteLine("No = " + stack.No.ToString());
+            //    sw.WriteLine("IsLeft = " + stack.IsLeft.ToString());
+            //    sw.WriteLine("Length = " + stack.Length.ToString());
+            //    sw.WriteLine("Width = " + stack.Width.ToString());
 
-                sw.WriteLine("AisleWidth_U = " + stack.AisleWidth_U.ToString());
-                sw.WriteLine("AisleWidth_D = " + stack.AisleWidth_D.ToString());
-                sw.WriteLine("AisleWidth_L = " + stack.AisleWidth_L.ToString());
-                sw.WriteLine("AisleWidth_R = " + stack.AisleWidth_R.ToString());
+            //    sw.WriteLine("AisleWidth_U = " + stack.AisleWidth_U.ToString());
+            //    sw.WriteLine("AisleWidth_D = " + stack.AisleWidth_D.ToString());
+            //    sw.WriteLine("AisleWidth_L = " + stack.AisleWidth_L.ToString());
+            //    sw.WriteLine("AisleWidth_R = " + stack.AisleWidth_R.ToString());
 
-                sw.WriteLine("KeepDistanceU = " + stack.KeepDistanceU.ToString());
-                sw.WriteLine("KeepDistanceD = " + stack.KeepDistanceU.ToString());
-                sw.WriteLine("KeepDistanceL = " + stack.KeepDistanceU.ToString());
-                sw.WriteLine("KeepDistanceR = " + stack.KeepDistanceU.ToString());
+            //    sw.WriteLine("KeepDistanceU = " + stack.KeepDistanceU.ToString());
+            //    sw.WriteLine("KeepDistanceD = " + stack.KeepDistanceU.ToString());
+            //    sw.WriteLine("KeepDistanceL = " + stack.KeepDistanceU.ToString());
+            //    sw.WriteLine("KeepDistanceR = " + stack.KeepDistanceU.ToString());
 
-                sw.WriteLine("CarPosition = " + ((int)stack.CarPosition).ToString());
-                sw.WriteLine("Distance = " + stack.Distance.ToString());
+            //    sw.WriteLine("CarPosition = " + ((int)stack.CarPosition).ToString());
+            //    sw.WriteLine("Distance = " + stack.Distance.ToString());
 
-                sw.WriteLine("");
-            }
+            //    sw.WriteLine("");
+            //}
 
             sw.Close();
             
@@ -492,7 +514,7 @@ namespace AGVproject.Class
             }
 
             sr.Close();
-            HouseStack.Stacks = Stacks;
+            //HouseStack.Stacks = Stacks;
             HouseStack.TotalStacksL = TotalL;
             HouseStack.TotalStacksR = TotalR;
             return true;
@@ -515,19 +537,19 @@ namespace AGVproject.Class
             name = name.Substring(0, name.Length - 6);
             if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
 
-            StreamWriter sw = new StreamWriter(sf.FileName);
+            //StreamWriter sw = new StreamWriter(sf.FileName);
 
-            foreach (TH_UpdataPictureBox.ROUTE route in TH_UpdataPictureBox.Route)
-            {
-                sw.WriteLine("No = " + route.No.ToString());
-                sw.WriteLine("IsLeft = " + route.IsLeft.ToString());
-                sw.WriteLine("Direction = " + ((int)route.Direction).ToString());
-                sw.WriteLine("Direction = " + (route.Distance * Form_Start.config.PixLength).ToString());
+            //foreach (TH_UpdataPictureBox.ROUTE route in TH_UpdataPictureBox.Route)
+            //{
+            //    sw.WriteLine("No = " + route.No.ToString());
+            //    sw.WriteLine("IsLeft = " + route.IsLeft.ToString());
+            //    sw.WriteLine("Direction = " + ((int)route.Direction).ToString());
+            //    sw.WriteLine("Direction = " + (route.Distance * Form_Start.config.PixLength).ToString());
                 
-                sw.WriteLine("");
-            }
+            //    sw.WriteLine("");
+            //}
 
-            sw.Close();
+            //sw.Close();
 
             foreach (Form_Start.CONFIG.FILE route in Form_Start.config.Route)
             {
@@ -548,43 +570,44 @@ namespace AGVproject.Class
         }
         public static bool Load_Route(int index)
         {
-            if (index == -1)
-            {
-                while (TH_UpdataPictureBox.IsGettingRoute) ;
-                TH_UpdataPictureBox.IsSettingRoute = true;
-                TH_UpdataPictureBox.getAutoRoute();
-                TH_UpdataPictureBox.IsSettingRoute = false;
-                return true;
-            }
+            return false;
+            //if (index == -1)
+            //{
+            //    while (TH_UpdataPictureBox.IsGettingRoute) ;
+            //    TH_UpdataPictureBox.IsSettingRoute = true;
+            //    TH_UpdataPictureBox.getAutoRoute();
+            //    TH_UpdataPictureBox.IsSettingRoute = false;
+            //    return true;
+            //}
 
-            string filepath = Form_Start.config.Route[index].Full;
-            if (!File.Exists(filepath)) { return false; }
+            //string filepath = Form_Start.config.Route[index].Full;
+            //if (!File.Exists(filepath)) { return false; }
 
-            List<TH_UpdataPictureBox.ROUTE> Route = new List<TH_UpdataPictureBox.ROUTE>();
+            //List<TH_UpdataPictureBox.ROUTE> Route = new List<TH_UpdataPictureBox.ROUTE>();
 
-            StreamReader sr = new StreamReader(filepath);
-            while (!sr.EndOfStream)
-            {
-                TH_UpdataPictureBox.ROUTE route = new TH_UpdataPictureBox.ROUTE();
+            //StreamReader sr = new StreamReader(filepath);
+            //while (!sr.EndOfStream)
+            //{
+            //    TH_UpdataPictureBox.ROUTE route = new TH_UpdataPictureBox.ROUTE();
 
-                string line = sr.ReadLine(); route.No = Convert.ToInt32(line.Substring(5));
-                line = sr.ReadLine(); route.IsLeft = Convert.ToBoolean(line.Substring(9));
-                line = sr.ReadLine(); route.Direction = (TH_AutoSearchTrack.Direction)Convert.ToInt32(line.Substring(12));
-                line = sr.ReadLine(); route.Distance = (int)(Convert.ToDouble(line.Substring(11)) / Form_Start.config.PixLength);
+            //    string line = sr.ReadLine(); route.No = Convert.ToInt32(line.Substring(5));
+            //    line = sr.ReadLine(); route.IsLeft = Convert.ToBoolean(line.Substring(9));
+            //    line = sr.ReadLine(); route.Direction = (TH_AutoSearchTrack.Direction)Convert.ToInt32(line.Substring(12));
+            //    line = sr.ReadLine(); route.Distance = (int)(Convert.ToDouble(line.Substring(11)) / Form_Start.config.PixLength);
                 
-                line = sr.ReadLine();
+            //    line = sr.ReadLine();
 
-                route.MapPoint = TH_UpdataPictureBox.getRouteMapPoint(route);
-                Route.Add(route);
-            }
+            //    route.MapPoint = TH_UpdataPictureBox.getRouteMapPoint(route);
+            //    Route.Add(route);
+            //}
 
-            sr.Close();
+            //sr.Close();
             
-            while (TH_UpdataPictureBox.IsGettingRoute) ;
-            TH_UpdataPictureBox.IsSettingRoute = true;
-            TH_UpdataPictureBox.Route = Route;
-            TH_UpdataPictureBox.IsSettingRoute = false;
-            return true;
+            //while (TH_UpdataPictureBox.IsGettingRoute) ;
+            //TH_UpdataPictureBox.IsSettingRoute = true;
+            //TH_UpdataPictureBox.Route = Route;
+            //TH_UpdataPictureBox.IsSettingRoute = false;
+            //return true;
         }
 
         private static string getFieldValue1_STRING(string Field)

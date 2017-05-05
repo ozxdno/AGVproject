@@ -14,6 +14,14 @@ namespace AGVproject.Class
         //////////////////////////////////////////////////// public attribute ///////////////////////////////////////
         
         /// <summary>
+        /// 路径总数量
+        /// </summary>
+        public static int TotalTrack
+        {
+            get { lock (config.TrackLock) { return Track.Count; } }
+        }
+
+        /// <summary>
         /// 路径信息
         /// </summary>
         public struct TRACK
@@ -106,7 +114,10 @@ namespace AGVproject.Class
             oTrack.StackPos.No = 0;
             oTrack.StackPos.Direction = TH_AutoSearchTrack.Direction.Down;
             oTrack.StackPos.Distance = HouseStack.getLength(0) / 2;
-            oTrack.TargetPosition
+            oTrack.TargetPosition = Position_Rel2Abs(oTrack.StackPos);
+            oTrack.xMode = TRACK.MODE_X.ByPosition;
+            oTrack.yMode = TRACK.MODE_Y.ByPosition;
+            oTrack.aMode = TRACK.MODE_A.ByPosition;
         }
 
         /// <summary>
@@ -141,80 +152,72 @@ namespace AGVproject.Class
         /// </summary>
         public static void Fit()
         {
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-
-            for (int i = 0; i < Track.Count; i++) { Fit(i); }
-
-            config.HoldTrack = false;
+            for (int i = 0; i < Track.Count; i++) { fitTrack(i); }
         }
-
-        /// <summary>
-        /// 重新按堆垛信息获取路径的坐标
-        /// </summary>
-        /// <param name="No">路径编号</param>
-        public static void Fit(int No)
-        {
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-            
-            // 
-
-            config.HoldTrack = false;
-        }
-
+        
         /// <summary>
         /// 添加路径
         /// </summary>
         /// <param name="track">路径信息</param>
-        public static void AddTrack(TRACK track)
+        public static void addTrack(TRACK track)
         {
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-            Track.Add(track);
-            config.HoldTrack = false;
+            lock (config.TrackLock) { Track.Add(track); }
+        }
+        /// <summary>
+        /// 在指定位置插入路径
+        /// </summary>
+        /// <param name="No">插入位置</param>
+        /// <param name="track">路径信息</param>
+        public static void addTrack(int No, TRACK track)
+        {
+            if (No < 0 || No > Track.Count - 1) { return; }
+            lock (config.TrackLock) { Track.Insert(No, track); }
         }
         /// <summary>
         /// 删除路径
         /// </summary>
         /// <param name="No">路径编号</param>
-        public static void DelTrack(int No)
+        public static void delTrack(int No)
         {
             if (No < 0 || No > Track.Count - 1) { return; }
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-            Track.RemoveAt(No);
-            config.HoldTrack = false;
+            lock (config.TrackLock) { Track.RemoveAt(No); }
         }
         /// <summary>
         /// 设置路径
         /// </summary>
         /// <param name="No">路径编号</param>
         /// <param name="track">路径信息</param>
-        public static void SetTrack(int No, TRACK track)
+        public static void setTrack(int No, TRACK track)
         {
             if (No < 0 || No > Track.Count - 1) { return; }
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-            Track[No] = track;
-            config.HoldTrack = false;
+            lock (config.TrackLock) { Track[No] = track; }
         }
         /// <summary>
         /// 获取路径
         /// </summary>
         /// <param name="No">路径编号</param>
         /// <returns></returns>
-        public static TRACK GetTrack(int No)
+        public static TRACK getTrack(int No)
         {
             TRACK track = new TRACK();
             if (No < 0 || No > Track.Count - 1) { return track; }
 
-            while (config.HoldTrack) ;
-            config.HoldTrack = true;
-            track = Track[No];
-            config.HoldTrack = false;
-
+            lock (config.TrackLock) { track = Track[No]; }
             return track;
+        }
+        /// <summary>
+        /// 重新按堆垛信息获取路径的坐标
+        /// </summary>
+        /// <param name="No">路径编号</param>
+        public static void fitTrack(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return; }
+            lock (config.TrackLock)
+            {
+                TRACK track = Track[No];
+                track.TargetPosition = Position_Rel2Abs(track.StackPos);
+                Track[No] = track;
+            }
         }
 
         /// <summary>
@@ -236,7 +239,8 @@ namespace AGVproject.Class
 
             if (pos.Direction == TH_AutoSearchTrack.Direction.Up) { Base.x += pos.Distance; Base.y -= keepU; }
             if (pos.Direction == TH_AutoSearchTrack.Direction.Down) { Base.x += L - pos.Distance; Base.y += W + keepD; }
-
+            if (pos.Direction == TH_AutoSearchTrack.Direction.Left) { Base.x -= keepL; Base.y += W - pos.Distance; }
+            if (pos.Direction == TH_AutoSearchTrack.Direction.Right) { Base.x += L + keepR; Base.y += pos.Distance; }
 
             return Base;
         }
@@ -256,6 +260,35 @@ namespace AGVproject.Class
         public static bool Load()
         {
             return false;
+        }
+
+        public static CoordinatePoint.POINT getTargetPosition(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return new CoordinatePoint.POINT(); }
+            TRACK track = getTrack(No);
+
+            return track.TargetPosition;
+        }
+        public static double getTragetPositionX(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return -1; }
+            TRACK track = getTrack(No);
+
+            return track.TargetPosition.x;
+        }
+        public static double getTragetPositionY(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return -1; }
+            TRACK track = getTrack(No);
+
+            return track.TargetPosition.y;
+        }
+        public static double getTragetPositionA(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return 0; }
+            TRACK track = getTrack(No);
+
+            return track.TargetPosition.aCar;
         }
     }
 }

@@ -577,6 +577,23 @@ namespace AGVproject.Class
         }
 
         /// <summary>
+        /// 点对点进行移动，从源坐标移动到目标坐标的移动策略
+        /// </summary>
+        /// <param name="sour">源坐标</param>
+        /// <param name="dest">目的坐标</param>
+        /// <returns></returns>
+        public POINT MoveMethod(POINT sour, POINT dest)
+        {
+            double xMove = dest.x - sour.x;
+            double yMove = dest.y - sour.y;
+
+            double aMove = dest.aCar - sour.aCar;
+            double rMove = dest.rCar - sour.rCar;
+
+            POINT Move = CoordinatePoint.Create_XY(xMove, yMove);
+            return TransformCoordinate(Move, 0, 0, rMove);
+        }
+        /// <summary>
         /// 变换坐标系
         /// </summary>
         /// <param name="point">需要变换的点（原坐标系中的点）</param>

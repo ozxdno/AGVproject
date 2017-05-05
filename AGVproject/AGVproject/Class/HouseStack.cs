@@ -230,7 +230,7 @@ namespace AGVproject.Class
                     NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
                     NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
                     NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
-                    Stacks.Insert(TotalStacksR, NewStack);
+                    Stacks.Insert(TotalStacksR + 1, NewStack);
 
                     ptY += DefaultStackWidth + DefaultAisleWidthUD;
                 }
@@ -317,6 +317,15 @@ namespace AGVproject.Class
             lock (config.StacksLock) { Stacks[No] = stack; }
         }
 
+        public static void Load()
+        {
+
+        }
+        public static void Save()
+        {
+
+        }
+        
 
         public static bool getIsLeft(int No)
         {

@@ -237,7 +237,7 @@ namespace AGVproject.Class
                 //}
 
                 // 测试自动记录路径并按路径行进
-                Form_Start.corrpos = true;
+                //Form_Start.corrpos = true;
                 Solution_FollowTrack.BuildRoute.Start();
                 Solution_FollowTrack.FollowTrack.Start();
 

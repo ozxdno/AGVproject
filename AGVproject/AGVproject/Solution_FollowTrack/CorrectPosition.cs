@@ -155,7 +155,7 @@ namespace AGVproject.Solution_FollowTrack
                 getMatch2(correctTarget);
 
                 // 退出条件
-                if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
 
                 // 获取控制
                 //int xSpeed = getSpeedX(correctTarget);
@@ -178,7 +178,7 @@ namespace AGVproject.Solution_FollowTrack
                 getMatch2(correctTarget);
 
                 // 退出条件
-                if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
 
                 // 获取控制
                 //int xSpeed = getSpeedX(correctTarget);
@@ -201,7 +201,7 @@ namespace AGVproject.Solution_FollowTrack
                 getMatch2(correctTarget);
 
                 // 退出条件
-                if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
 
                 // 获取控制
                 int xSpeed = getSpeedX(correctTarget);

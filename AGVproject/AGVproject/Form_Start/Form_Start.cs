@@ -21,9 +21,6 @@ namespace AGVproject
             InitializeComponent();
         }
         
-        public static bool corrpos;
-        public static bool record;
-
         public static CONFIG config;
         public struct CONFIG
         {
@@ -93,26 +90,21 @@ namespace AGVproject
                 this.TimeLabel.Text = TimeString;
 
                 // 刷新事件
-                CoordinatePoint.POINT currPos = TH_MeasurePosition.getPosition();
-                string Event = "Current: ";
-                Event += ((int)currPos.x).ToString() + ",";
-                Event += ((int)currPos.y).ToString() + ",";
-                Event += ((int)currPos.aCar).ToString() + "  ";
                 if (TH_AutoSearchTrack.control.Event == null) { TH_AutoSearchTrack.control.Event = "Normal: Waitting  "; }
-                Event += TH_AutoSearchTrack.control.Event;
-                this.EventLabel.Text = Event;
+                this.EventLabel.Text = TH_AutoSearchTrack.control.Event;
                 if (TH_AutoSearchTrack.control.EventColor.IsEmpty == true) { TH_AutoSearchTrack.control.EventColor = Color.Black; }
                 this.EventLabel.ForeColor = TH_AutoSearchTrack.control.EventColor;
 
                 // 刷新图片
-                TH_UpdataPictureBox.BoxLength = this.pictureBox.Height;
-                TH_UpdataPictureBox.BoxWidth = this.pictureBox.Width;
-                TH_UpdataPictureBox.Updata();
+                HouseMap.PictureBoxHeight = this.pictureBox.Height;
+                HouseMap.PictureBoxWidth = this.pictureBox.Width;
 
-                this.pictureBox.Height = TH_UpdataPictureBox.BaseMapPicture.Height;
-                this.pictureBox.Width = TH_UpdataPictureBox.BaseMapPicture.Width;
-                this.pictureBox.Image = TH_UpdataPictureBox.BaseMapPicture;
-                if (TH_UpdataPictureBox.CurrsorInMap) { this.Cursor = TH_UpdataPictureBox.Cursor; }
+                HouseMap.DrawMap();
+
+                this.pictureBox.Height = HouseMap.MapHeight;
+                this.pictureBox.Width = HouseMap.MapWidth;
+                this.pictureBox.Image = HouseMap.Map;
+                //if (TH_UpdataPictureBox.CurrsorInMap) { this.Cursor = TH_UpdataPictureBox.Cursor; }
 
                 // 刷新开始按钮位置
                 int xScroll = this.panel1.HorizontalScroll.Value / this.panel1.HorizontalScroll.Maximum;
@@ -126,8 +118,7 @@ namespace AGVproject
                 int mouY = MousePosition.Y;
                 int reqX = this.Location.X + this.Width - 230;
                 int reqY = this.Location.Y + this.Height - 130;
-                this.button.Visible = TH_UpdataPictureBox.DrawOver &&
-                    reqX < mouX && mouX < reqX + 180 && reqY < mouY && mouY < reqY + 80;
+                this.button.Visible = reqX < mouX && mouX < reqX + 180 && reqY < mouY && mouY < reqY + 80;
             });
         }
         private void Form_Start_FormClosed(object sender, FormClosedEventArgs e)
@@ -156,7 +147,7 @@ namespace AGVproject
             }
 
             if (config.SelectedMap > config.Map.Count - 1) { config.SelectedMap = -1; }
-            config.MapNameIndexBG = this.mapToolStripMenuItem.DropDownItems.Count - 1;
+            config.MapNameIndexBG = this.mapToolStripMenuItem.DropDownItems.Count;
 
             foreach (CONFIG.FILE file in config.Map)
             {
@@ -170,11 +161,6 @@ namespace AGVproject
                 [config.SelectedMap + config.MapNameIndexBG];
             setSelectedMap(SelectedMap, e);
 
-            this.CheckMap.Checked = config.CheckMap;
-            this.pixLen.Text = config.PixLength.ToString();
-
-            TH_UpdataPictureBox.Initial();
-
             // Route
             for (int i = config.Route.Count - 1; i >= 0; i--)
             {
@@ -182,7 +168,7 @@ namespace AGVproject
             }
 
             if (config.SelectedRoute > config.Route.Count - 1) { config.SelectedRoute = -1; }
-            config.RouteNameIndexBG = this.routeToolStripMenuItem.DropDownItems.Count - 1;
+            config.RouteNameIndexBG = this.routeToolStripMenuItem.DropDownItems.Count;
 
             foreach (CONFIG.FILE file in config.Route)
             {
@@ -324,13 +310,13 @@ namespace AGVproject
             this.panel1.Width = this.Width - 30;
             
             Point picBoxPos = new Point(0, 0);
-            if (TH_UpdataPictureBox.MapLength < this.panel1.Height)
+            if (HouseMap.MapHeight < this.panel1.Height)
             {
-                picBoxPos.Y = (this.panel1.Height - TH_UpdataPictureBox.MapLength) / 2;
+                picBoxPos.Y = (this.panel1.Height - HouseMap.MapHeight) / 2;
             }
-            if (TH_UpdataPictureBox.MapWidth < this.panel1.Width)
+            if (HouseMap.MapWidth < this.panel1.Width)
             {
-                picBoxPos.X = (this.panel1.Width - TH_UpdataPictureBox.MapWidth) / 2;
+                picBoxPos.X = (this.panel1.Width - HouseMap.MapWidth) / 2;
             }
             this.pictureBox.Location = picBoxPos;
 
@@ -342,123 +328,25 @@ namespace AGVproject
         
         private void MouseEnterMap(object sender, EventArgs e)
         {
-            TH_UpdataPictureBox.CurrsorInMap = true;
+            HouseMap.MouseEnter();
         }
         private void MouseLeaveMap(object sender, EventArgs e)
         {
-            TH_UpdataPictureBox.CurrsorInMap = false;
+            HouseMap.MouseLeave();
             this.Cursor = Cursors.Default;
         }
         private void MapMouseMove(object sender, MouseEventArgs e)
         {
-            TH_UpdataPictureBox.setMousePosition(e.X, e.Y);
+            HouseMap.MouseMove(e.X, e.Y);
         }
         private void MapMouseClicked(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right) { return; }
-            TH_UpdataPictureBox.MouseLeftClicked();
+            HouseMap.MouseLeftClicked();
         }
         private void MapMouseDoubleClicked(object sender, MouseEventArgs e)
         {
-            if (!config.CheckMap && !config.CheckRoute) { return; }
-
-            TH_UpdataPictureBox.MOUSE mousePos = TH_UpdataPictureBox.getMousePosition();
-            if (mousePos.No == -1) { return; }
-            if (mousePos.Direction != TH_AutoSearchTrack.Direction.Tuning) { return; }
-
-            HouseStack.STACK stack = HouseStack.Stacks[mousePos.No];
-
-            Form_Stack.Form_Stack.StackNo = stack.No;
-            Form_Stack.Form_Stack.Direction = (int)stack.CarPosition;
-            //Form_Stack.Form_Stack.Distance = stack.;
-
-            Form_Stack.Form_Stack.Length = stack.Length;
-            Form_Stack.Form_Stack.Width = stack.Width;
-
-            Form_Stack.Form_Stack.AisleWidth_U = stack.AisleWidth_U;
-            Form_Stack.Form_Stack.AisleWidth_D = stack.AisleWidth_D;
-            Form_Stack.Form_Stack.AisleWidth_L = stack.AisleWidth_L;
-            Form_Stack.Form_Stack.AisleWidth_R = stack.AisleWidth_R;
-
-            Form_Stack.Form_Stack.SetKeepU = stack.KeepDistanceU;
-            Form_Stack.Form_Stack.SetKeepD = stack.KeepDistanceD;
-            Form_Stack.Form_Stack.SetKeepL = stack.KeepDistanceL;
-            Form_Stack.Form_Stack.SetKeepR = stack.KeepDistanceR;
-
-            Form_Stack.Form_Stack formStack = new Form_Stack.Form_Stack();
-            //formStack.Location = MousePosition;
-            formStack.ShowDialog();
-
-            stack.No = Form_Stack.Form_Stack.StackNo;
-            stack.CarPosition = (TH_AutoSearchTrack.Direction)Form_Stack.Form_Stack.Direction;
-            //stack. = Form_Stack.Form_Stack.StackNo;
-
-            stack.Length = Form_Stack.Form_Stack.Length;
-            stack.Width = Form_Stack.Form_Stack.Width;
-
-            stack.AisleWidth_U = Form_Stack.Form_Stack.AisleWidth_U;
-            stack.AisleWidth_D = Form_Stack.Form_Stack.AisleWidth_D;
-            stack.AisleWidth_L = Form_Stack.Form_Stack.AisleWidth_L;
-            stack.AisleWidth_R = Form_Stack.Form_Stack.AisleWidth_R;
-
-            stack.KeepDistanceU = Form_Stack.Form_Stack.SetKeepU;
-            stack.KeepDistanceD = Form_Stack.Form_Stack.SetKeepD;
-            stack.KeepDistanceL = Form_Stack.Form_Stack.SetKeepL;
-            stack.KeepDistanceR = Form_Stack.Form_Stack.SetKeepR;
-
-            HouseStack.Stacks[mousePos.No] = stack;
-            if (stack.No == 0) { TH_UpdataPictureBox.Stacks[0] = TH_UpdataPictureBox.RealStack2MapStack(0); return; }
-
-            if (stack.IsLeft)
-            {
-                int u = stack.No + 1, d = stack.No - 1;
-
-                if (HouseStack.TotalStacksR + 1 <= u && u <= HouseStack.TotalStacks)
-                {
-                    HouseStack.STACK ustack = HouseStack.Stacks[u];
-                    ustack.AisleWidth_D = stack.AisleWidth_U;
-                    HouseStack.Stacks[u] = ustack;
-                }
-                if (HouseStack.TotalStacksR + 1 <= d && d <= HouseStack.TotalStacks)
-                {
-                    HouseStack.STACK dstack = HouseStack.Stacks[d];
-                    dstack.AisleWidth_U = stack.AisleWidth_D;
-                    HouseStack.Stacks[d] = dstack;
-                }
-            }
-            if (!stack.IsLeft)
-            {
-                int u = stack.No - 1, d = stack.No + 1;
-
-                if (1 <= u && u <= HouseStack.TotalStacksR)
-                {
-                    HouseStack.STACK ustack = HouseStack.Stacks[u];
-                    ustack.AisleWidth_D = stack.AisleWidth_U;
-                    HouseStack.Stacks[u] = ustack;
-                }
-                if (1 <= d && d <= HouseStack.TotalStacksR)
-                {
-                    HouseStack.STACK dstack = HouseStack.Stacks[d];
-                    dstack.AisleWidth_U = stack.AisleWidth_D;
-                    HouseStack.Stacks[d] = dstack;
-                }
-            }
-
-            //if (!mousePos.IsLeft)
-            //{
-            //    HouseMap.STACK lstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
-            //    lstack.AisleWidth_R = stack.AisleWidth_L;
-            //    HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = lstack;
-            //}
-            //if (mousePos.IsLeft)
-            //{
-            //    HouseMap.STACK rstack = HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1];
-            //    rstack.AisleWidth_L = stack.AisleWidth_R;
-            //    HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = rstack;
-            //}
-
-            for (int i = 1; i <= HouseStack.TotalStacks; i++)
-            { TH_UpdataPictureBox.Stacks[i] = TH_UpdataPictureBox.RealStack2MapStack(i); }
+            HouseMap.MouseDoubleClicked();
         }
         private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
@@ -468,7 +356,6 @@ namespace AGVproject
 
             if (item == "Finish")
             {
-                if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
             }
             if (item == "Save Map" && config.CheckMap)
             {
@@ -478,8 +365,16 @@ namespace AGVproject
             {
                 saveRoute(sender, e);
             }
-            if (item == "Clear") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedClear(); }
-            if (item == "Undo") { TH_UpdataPictureBox.DrawOver = false; TH_UpdataPictureBox.ClieckedUndo(); }
+            if (item == "Clear")
+            {
+                HouseTrack.Clear();
+                HouseMap.DrawOver = false;
+            }
+            if (item == "Undo")
+            {
+                HouseTrack.delTrack(HouseTrack.TotalTrack - 1);
+                HouseMap.DrawOver = false;
+            }
         }
 
         private void Start(object sender, EventArgs e)
@@ -538,18 +433,7 @@ namespace AGVproject
         }
         private void formKeyDown(object sender, KeyEventArgs e)
         {
-            // 1-49 a-65
-            //if (49 <= e.KeyValue && e.KeyValue <= 58)
-            //{ config.KeyValue.Clear(); config.KeyValue.Add(e.KeyValue); return; }
-
-            if (e.KeyValue == 82) { record = true; }
-
-            if (e.KeyValue == 83)
-            {
-                corrpos = !corrpos;
-                if (corrpos) { TH_AutoSearchTrack.control.Event = "Correct: Running"; }
-                else { TH_AutoSearchTrack.control.Event = "Correct: Stopped"; }
-            }
+            
             
         }
 
@@ -570,20 +454,22 @@ namespace AGVproject
                 if (config.Map[i].Name == menu.Text) { config.SelectedMap = i; break; }
             }
 
-            bool existFile = Configuration.Load_Map(config.SelectedMap);
-            if (existFile)
-            {
-                List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-                for (int i = 0; i <= HouseStack.TotalStacks; i++)
-                { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
+            HouseStack.getDefaultStacks();
 
-                TH_UpdataPictureBox.setStack(Stacks);
-            }
-            else
-            {
-                DialogResult dr = MessageBox.Show("Not Exist Map: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
-                if ( dr == DialogResult.Yes) { delSelectedMap(sender, e); }
-            }
+            //bool existFile = Configuration.Load_Map(config.SelectedMap);
+            //if (existFile)
+            //{
+            //    //List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
+            //    //for (int i = 0; i <= HouseStack.TotalStacks; i++)
+            //    //{ Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
+
+            //    //TH_UpdataPictureBox.setStack(Stacks);
+            //}
+            //else
+            //{
+            //    //DialogResult dr = MessageBox.Show("Not Exist Map: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
+            //    //if ( dr == DialogResult.Yes) { delSelectedMap(sender, e); }
+            //}
 
             menu.Checked = true;
             showMapRoute();
@@ -663,20 +549,20 @@ namespace AGVproject
         }
         private void changePixLen(object sender, EventArgs e)
         {
-            Form_Input.Form_Input input = new Form_Input.Form_Input();
-            input.Location = new Point(MousePosition.X, MousePosition.Y);
-            input.ShowDialog();
+            //Form_Input.Form_Input input = new Form_Input.Form_Input();
+            //input.Location = new Point(MousePosition.X, MousePosition.Y);
+            //input.ShowDialog();
 
-            double pixLen = 0;
-            try { pixLen = double.Parse(input.Input); } catch { MessageBox.Show("Input Error !"); return; }
+            //double pixLen = 0;
+            //try { pixLen = double.Parse(input.Input); } catch { MessageBox.Show("Input Error !"); return; }
 
-            this.pixLen.Text = input.Input;
-            config.PixLength = pixLen;
+            //this.pixLen.Text = input.Input;
+            //config.PixLength = pixLen;
 
-            List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-            for (int i = 0; i <= HouseStack.TotalStacks; i++) { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
+            //List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
+            //for (int i = 0; i <= HouseStack.TotalStacks; i++) { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
 
-            TH_UpdataPictureBox.setStack(Stacks);
+            //TH_UpdataPictureBox.setStack(Stacks);
         }
 
         private void setSelectedRoute(object sender, EventArgs e)
@@ -696,16 +582,16 @@ namespace AGVproject
                 if (config.Route[i].Name == menu.Text) { config.SelectedRoute = i; break; }
             }
 
-            bool existFile = Configuration.Load_Route(config.SelectedRoute);
-            if (existFile)
-            {
-                TH_UpdataPictureBox.DrawOver = TH_UpdataPictureBox.Route.Count != 0;
-            }
-            else
-            {
-                DialogResult dr = MessageBox.Show("Not Exist Route: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
-                if (dr == DialogResult.Yes) { delSelectedRoute(sender, e); }
-            }
+            //bool existFile = Configuration.Load_Route(config.SelectedRoute);
+            //if (existFile)
+            //{
+            //    //TH_UpdataPictureBox.DrawOver = TH_UpdataPictureBox.Route.Count != 0;
+            //}
+            //else
+            //{
+            //    //DialogResult dr = MessageBox.Show("Not Exist Route: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
+            //    //if (dr == DialogResult.Yes) { delSelectedRoute(sender, e); }
+            //}
 
             menu.Checked = true;
             showMapRoute();
@@ -769,11 +655,11 @@ namespace AGVproject
         }
         private void editRoute(object sender, EventArgs e)
         {
-            TH_UpdataPictureBox.DrawOver = false;
+            //TH_UpdataPictureBox.DrawOver = false;
         }
         private void saveRoute(object sender, EventArgs e)
         {
-            if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
+            //if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
 
             int index = -1;
             bool needAdd = Configuration.Save_Route(ref index);
