@@ -51,13 +51,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class\AST_AlignAisle.cs" />
-    <Compile Include="Class\AST_CorrectPosition.cs" />
+    <Compile Include="Solution_FollowTrack\CorrectPosition.cs" />
     <Compile Include="Class\AST_GuideBySpeed.cs" />
     <Compile Include="Class\AST_GuideByPosition.cs" />
     <Compile Include="Class\AST_GuideBySurrounding.cs" />
     <Compile Include="Class\CoordinatePoint.cs" />
     <Compile Include="Class\Filter.cs" />
-    <Compile Include="Class\HouseStack.cs" />
+    <Compile Include="Class\HouseMap.cs" />
     <Compile Include="Class\HouseTrack.cs" />
     <Compile Include="Class\TH_AutoSearchTrack.cs" />
     <Compile Include="Class\Configuration.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="Class\TH_MeasurePosition.cs" />
     <Compile Include="Class\TH_MeasureSurrounding.cs" />
     <Compile Include="Class\TH_SendCommand.cs" />
-    <Compile Include="Class\HouseMap.cs" />
+    <Compile Include="Class\HouseStack.cs" />
     <Compile Include="Class\TH_UpdataPictureBox.cs" />
     <Compile Include="Form_Input\Form_Input.cs">
       <SubType>Form</SubType>
@@ -93,7 +93,7 @@
     </Compile>
     <Compile Include="Solution_FollowTrack\BuildRoute.cs" />
     <Compile Include="Solution_FollowTrack\FollowTrack.cs" />
-    <Compile Include="Solution_FollowTrack\UpdataPictureBox.cs" />
+    <Compile Include="Solution_SLAM\CorrectPosition\CorrectByUrg.cs" />
     <Compile Include="Solution_SLAM\BuildMap\ExtractFeatures.cs" />
     <Compile Include="Solution_SLAM\BuildMap\MatchFeature.cs" />
     <Compile Include="Solution_SLAM\BuildMap\MeasureMove.cs" />

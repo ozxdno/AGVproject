@@ -30,8 +30,8 @@ namespace AGVproject.Class
         public static MOUSE MousePosition;
         public static Font StrFont;
 
-        public static int MapWidth { get { return (int)(HouseMap.HouseLength / Form_Start.config.PixLength); } }
-        public static int MapLength { get { return (int)(HouseMap.HouseWidth / Form_Start.config.PixLength); } }
+        public static int MapWidth { get { return (int)(HouseStack.HouseLength / Form_Start.config.PixLength); } }
+        public static int MapLength { get { return (int)(HouseStack.HouseWidth / Form_Start.config.PixLength); } }
         public static int BoxLength;
         public static int BoxWidth;
 
@@ -151,7 +151,7 @@ namespace AGVproject.Class
             NoOperate = false;
 
             Stacks = new List<STACK>();
-            for (int i = 0; i <= HouseMap.TotalStacks; i++)
+            for (int i = 0; i <= HouseStack.TotalStacks; i++)
             { Stacks.Add(RealStack2MapStack(i)); }
 
             Route = new List<ROUTE>();
@@ -308,7 +308,7 @@ namespace AGVproject.Class
             //g.DrawString("A: " + point.aCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 1);
             //g.DrawString("R: " + point.rCar.ToString(), StrFont, Brushes.Black, 30, centre + size.Width * 3);
 
-            int X = (int)((HouseMap.HouseWidth - point.x) / Form_Start.config.PixLength);
+            int X = (int)((HouseStack.HouseWidth - point.x) / Form_Start.config.PixLength);
             int Y = (int)(point.y / Form_Start.config.PixLength);
             g.FillEllipse(Brushes.Red, X - 4, Y - 4, 8, 8);
         }
@@ -421,7 +421,7 @@ namespace AGVproject.Class
             toRight.MapPoint = getRouteMapPoint(toRight);
             Route.Add(toRight);
 
-            for (int i = 1; i <= HouseMap.TotalStacksR; i++)
+            for (int i = 1; i <= HouseStack.TotalStacksR; i++)
             {
                 ROUTE UR = new ROUTE();
                 UR.IsLeft = false;
@@ -458,7 +458,7 @@ namespace AGVproject.Class
             
             ROUTE toCentre = new ROUTE();
             toCentre.IsLeft = false;
-            toCentre.No = HouseMap.TotalStacksR;
+            toCentre.No = HouseStack.TotalStacksR;
             toCentre.Direction = TH_AutoSearchTrack.Direction.Down;
             toCentre.Distance = Stacks[toCentre.No].Length + Stacks[toCentre.No].SetKeepL;
             toCentre.MapPoint = getRouteMapPoint(toCentre);
@@ -466,7 +466,7 @@ namespace AGVproject.Class
 
             ROUTE toLeft = new ROUTE();
             toLeft.IsLeft = true;
-            toLeft.No = HouseMap.TotalStacksR + 1;
+            toLeft.No = HouseStack.TotalStacksR + 1;
             toLeft.Direction = TH_AutoSearchTrack.Direction.Down;
             toLeft.Distance = -Stacks[toLeft.No].SetKeepR;
             toLeft.MapPoint = getRouteMapPoint(toLeft);
@@ -476,7 +476,7 @@ namespace AGVproject.Class
             toLeft.MapPoint = getRouteMapPoint(toLeft);
             Route.Add(toLeft);
 
-            for (int i = HouseMap.TotalStacksR + 1; i <= HouseMap.TotalStacks; i++)
+            for (int i = HouseStack.TotalStacksR + 1; i <= HouseStack.TotalStacks; i++)
             {
                 ROUTE DL = new ROUTE();
                 DL.IsLeft = true;
@@ -512,7 +512,7 @@ namespace AGVproject.Class
             }
             
             toCentre.IsLeft = true;
-            toCentre.No = HouseMap.TotalStacks;
+            toCentre.No = HouseStack.TotalStacks;
             toCentre.Direction = TH_AutoSearchTrack.Direction.Right;
             toCentre.Distance = -Stacks[toCentre.No].SetKeepU;
             toCentre.MapPoint = getRouteMapPoint(toCentre);
@@ -764,30 +764,30 @@ namespace AGVproject.Class
             return route;
         }
         
-        public static HouseMap.STACK MapStack2ReadStack(int No)
+        public static HouseStack.STACK MapStack2ReadStack(int No)
         {
-            return new HouseMap.STACK();
+            return new HouseStack.STACK();
         }
         public static STACK RealStack2MapStack(int No)
         {
-            if (No < 0 || No > HouseMap.TotalStacks) { return new STACK(); }
+            if (No < 0 || No > HouseStack.TotalStacks) { return new STACK(); }
             STACK stack = new STACK();
 
-            stack.IsLeft = HouseMap.Stacks[No].IsLeft;
+            stack.IsLeft = HouseStack.Stacks[No].IsLeft;
             stack.No = No;
 
-            stack.Length = (int)(HouseMap.Stacks[No].Length / Form_Start.config.PixLength);
-            stack.Width = (int)(HouseMap.Stacks[No].Width / Form_Start.config.PixLength);
-            stack.AisleWidth_U = (int)(HouseMap.Stacks[No].AisleWidth_U / Form_Start.config.PixLength);
-            stack.AisleWidth_D = (int)(HouseMap.Stacks[No].AisleWidth_D / Form_Start.config.PixLength);
-            stack.AisleWidth_L = (int)(HouseMap.Stacks[No].AisleWidth_L / Form_Start.config.PixLength);
-            stack.AisleWidth_R = (int)(HouseMap.Stacks[No].AisleWidth_R / Form_Start.config.PixLength);
+            stack.Length = (int)(HouseStack.Stacks[No].Length / Form_Start.config.PixLength);
+            stack.Width = (int)(HouseStack.Stacks[No].Width / Form_Start.config.PixLength);
+            stack.AisleWidth_U = (int)(HouseStack.Stacks[No].AisleWidth_U / Form_Start.config.PixLength);
+            stack.AisleWidth_D = (int)(HouseStack.Stacks[No].AisleWidth_D / Form_Start.config.PixLength);
+            stack.AisleWidth_L = (int)(HouseStack.Stacks[No].AisleWidth_L / Form_Start.config.PixLength);
+            stack.AisleWidth_R = (int)(HouseStack.Stacks[No].AisleWidth_R / Form_Start.config.PixLength);
 
             stack.Direction = TH_AutoSearchTrack.Direction.Tuning;
-            stack.SetKeepU = (int)(HouseMap.Stacks[No].KeepDistanceU / Form_Start.config.PixLength);
-            stack.SetKeepD = (int)(HouseMap.Stacks[No].KeepDistanceD / Form_Start.config.PixLength);
-            stack.SetKeepL = (int)(HouseMap.Stacks[No].KeepDistanceL / Form_Start.config.PixLength);
-            stack.SetKeepR = (int)(HouseMap.Stacks[No].KeepDistanceR / Form_Start.config.PixLength);
+            stack.SetKeepU = (int)(HouseStack.Stacks[No].KeepDistanceU / Form_Start.config.PixLength);
+            stack.SetKeepD = (int)(HouseStack.Stacks[No].KeepDistanceD / Form_Start.config.PixLength);
+            stack.SetKeepL = (int)(HouseStack.Stacks[No].KeepDistanceL / Form_Start.config.PixLength);
+            stack.SetKeepR = (int)(HouseStack.Stacks[No].KeepDistanceR / Form_Start.config.PixLength);
 
             //if (No != 0)
             //{
@@ -799,19 +799,19 @@ namespace AGVproject.Class
             
 
             double xBG = 0, yBG = 0;
-            if (HouseMap.Stacks[No].IsLeft)
+            if (HouseStack.Stacks[No].IsLeft)
             {
-                for (int i = HouseMap.TotalStacks; i > No; i--)
-                { yBG += HouseMap.Stacks[i].AisleWidth_U + HouseMap.Stacks[i].Width; }
-                xBG = HouseMap.Stacks[No].AisleWidth_L;
-                yBG += HouseMap.Stacks[No].AisleWidth_U;
+                for (int i = HouseStack.TotalStacks; i > No; i--)
+                { yBG += HouseStack.Stacks[i].AisleWidth_U + HouseStack.Stacks[i].Width; }
+                xBG = HouseStack.Stacks[No].AisleWidth_L;
+                yBG += HouseStack.Stacks[No].AisleWidth_U;
             }
             else
             {
                 for (int i = 1; i < No; i++)
-                { yBG += HouseMap.Stacks[i].AisleWidth_U + HouseMap.Stacks[i].Width; }
-                xBG = HouseMap.HouseWidth - HouseMap.Stacks[No].Length - HouseMap.Stacks[No].AisleWidth_R;
-                yBG += HouseMap.Stacks[No].AisleWidth_U;
+                { yBG += HouseStack.Stacks[i].AisleWidth_U + HouseStack.Stacks[i].Width; }
+                xBG = HouseStack.HouseWidth - HouseStack.Stacks[No].Length - HouseStack.Stacks[No].AisleWidth_R;
+                yBG += HouseStack.Stacks[No].AisleWidth_U;
             }
 
             stack.xBG = (int)(xBG / Form_Start.config.PixLength);
@@ -977,7 +977,7 @@ namespace AGVproject.Class
                         Route.Add(tRoute);
                     }
 
-                    for (int i = last.No + 1; i <= HouseMap.TotalStacks; i++)
+                    for (int i = last.No + 1; i <= HouseStack.TotalStacks; i++)
                     {
                         ROUTE dRoute = new ROUTE(); dRoute.IsLeft = true; dRoute.No = i; dRoute.Direction = TH_AutoSearchTrack.Direction.Right;
                         dRoute.Distance = Stacks[i].Width + Stacks[i].SetKeepD;
@@ -1048,7 +1048,7 @@ namespace AGVproject.Class
                     oRoute.MapPoint = getRouteMapPoint(oRoute);
                     Route.Add(oRoute);
 
-                    last.No = next.IsLeft ? HouseMap.TotalStacks : 1;
+                    last.No = next.IsLeft ? HouseStack.TotalStacks : 1;
                     last.Direction = next.IsLeft ? TH_AutoSearchTrack.Direction.Right : TH_AutoSearchTrack.Direction.Left;
                     last.Distance = next.IsLeft ?
                         -Stacks[Stacks.Count - 1].SetKeepU :

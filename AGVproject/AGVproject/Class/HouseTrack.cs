@@ -79,28 +79,42 @@ namespace AGVproject.Class
 
         //////////////////////////////////////////////////// private attribute ///////////////////////////////////////
         
-        /// <summary>
-        /// 路径信息，读取权大于写入权
-        /// </summary>
-        private static List<TRACK> Track = new List<TRACK>();
+        private static List<TRACK> Track;
         private static CONFIG config;
         private struct CONFIG
         {
-            public bool IsSetting;
-            public bool IsGetting;
+            public object TrackLock;
         }
 
         /////////////////////////////////////////////////// public method //////////////////////////////////////////
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public static void Initial()
+        {
+            Track = new List<TRACK>();
+            config.TrackLock = new object();
+        }
+        /// <summary>
+        /// 获取默认路径
+        /// </summary>
+        public static void getDefauteTrack()
+        {
+            TRACK oTrack = new TRACK();
+            oTrack.StackPos.IsLeft = HouseStack.getIsLeft(0);
+            oTrack.StackPos.No = 0;
+            oTrack.StackPos.Direction = TH_AutoSearchTrack.Direction.Down;
+            oTrack.StackPos.Distance = HouseStack.getLength(0) / 2;
+            oTrack.TargetPosition
+        }
 
         /// <summary>
         /// 清除当前路径信息
         /// </summary>
         public static void Clear()
         {
-            while (config.IsGetting) ;
-            config.IsSetting = true;
-            Track.Clear();
-            config.IsSetting = false;
+            lock (config.TrackLock) { Track.Clear(); }
         }
         /// <summary>
         /// 重新设置整个路径
@@ -108,10 +122,7 @@ namespace AGVproject.Class
         /// <param name="track">路径信息</param>
         public static void Set(List<TRACK> track)
         {
-            while (config.IsGetting) ;
-            config.IsSetting = true;
-            Track = track;
-            config.IsSetting = false;
+            lock (config.TrackLock) { Track = track; }
         }
         /// <summary>
         /// 获取整个路径的信息
@@ -119,15 +130,10 @@ namespace AGVproject.Class
         /// <returns></returns>
         public static List<TRACK> Get()
         {
-            config.IsGetting = true;
-            while (config.IsSetting) ;
-            
             List<TRACK> track = new List<TRACK>();
             if (Track == null) { return track; }
 
-            foreach (TRACK i in Track) { track.Add(i); }
-            config.IsGetting = false;
-
+            lock (config.TrackLock) { foreach (TRACK i in Track) { track.Add(i); } }
             return track;
         }
         /// <summary>
@@ -135,25 +141,26 @@ namespace AGVproject.Class
         /// </summary>
         public static void Fit()
         {
-            while (config.IsGetting) ;
-            config.IsSetting = true;
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
 
             for (int i = 0; i < Track.Count; i++) { Fit(i); }
 
-            config.IsSetting = false;
+            config.HoldTrack = false;
         }
+
         /// <summary>
         /// 重新按堆垛信息获取路径的坐标
         /// </summary>
         /// <param name="No">路径编号</param>
         public static void Fit(int No)
         {
-            while (config.IsGetting) ;
-            config.IsSetting = true;
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
             
             // 
 
-            config.IsSetting = false;
+            config.HoldTrack = false;
         }
 
         /// <summary>
@@ -162,10 +169,10 @@ namespace AGVproject.Class
         /// <param name="track">路径信息</param>
         public static void AddTrack(TRACK track)
         {
-            while (config.IsGetting) ;
-            config.IsSetting = true;
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
             Track.Add(track);
-            config.IsSetting = false;
+            config.HoldTrack = false;
         }
         /// <summary>
         /// 删除路径
@@ -174,10 +181,10 @@ namespace AGVproject.Class
         public static void DelTrack(int No)
         {
             if (No < 0 || No > Track.Count - 1) { return; }
-            while (config.IsGetting) ;
-            config.IsSetting = true;
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
             Track.RemoveAt(No);
-            config.IsSetting = false;
+            config.HoldTrack = false;
         }
         /// <summary>
         /// 设置路径
@@ -187,25 +194,58 @@ namespace AGVproject.Class
         public static void SetTrack(int No, TRACK track)
         {
             if (No < 0 || No > Track.Count - 1) { return; }
-            while (config.IsGetting) ;
-            config.IsSetting = true;
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
             Track[No] = track;
-            config.IsSetting = false;
+            config.HoldTrack = false;
+        }
+        /// <summary>
+        /// 获取路径
+        /// </summary>
+        /// <param name="No">路径编号</param>
+        /// <returns></returns>
+        public static TRACK GetTrack(int No)
+        {
+            TRACK track = new TRACK();
+            if (No < 0 || No > Track.Count - 1) { return track; }
+
+            while (config.HoldTrack) ;
+            config.HoldTrack = true;
+            track = Track[No];
+            config.HoldTrack = false;
+
+            return track;
+        }
+
+        /// <summary>
+        /// 利用相对于堆垛的位置获取仓库坐标系下的坐标
+        /// </summary>
+        /// <param name="pos">相对位置信息</param>
+        /// <returns></returns>
+        public static CoordinatePoint.POINT Position_Rel2Abs(TRACK.STACK_POS pos)
+        {
+            CoordinatePoint.POINT Base = HouseStack.getPosition(pos.No);
+
+            double keepU = HouseStack.getKeepDistanceU(pos.No);
+            double keepD = HouseStack.getKeepDistanceD(pos.No);
+            double keepL = HouseStack.getKeepDistanceL(pos.No);
+            double keepR = HouseStack.getKeepDistanceR(pos.No);
+
+            double L = HouseStack.getLength(pos.No);
+            double W = HouseStack.getWidth(pos.No);
+
+            if (pos.Direction == TH_AutoSearchTrack.Direction.Up) { Base.x += pos.Distance; Base.y -= keepU; }
+            if (pos.Direction == TH_AutoSearchTrack.Direction.Down) { Base.x += L - pos.Distance; Base.y += W + keepD; }
+
+
+            return Base;
         }
         
         /// <summary>
         /// 保存当前路径为文本格式
         /// </summary>
         /// <returns></returns>
-        public static bool Save_TXT()
-        {
-            return false;
-        }
-        /// <summary>
-        /// 保存当前路径为图片格式
-        /// </summary>
-        /// <returns></returns>
-        public static bool Save_PIC()
+        public static bool Save()
         {
             return false;
         }
@@ -213,15 +253,7 @@ namespace AGVproject.Class
         /// 加载指定的文本格式路径
         /// </summary>
         /// <returns></returns>
-        public static bool Load_TXT()
-        {
-            return false;
-        }
-        /// <summary>
-        /// 加载指定的图片格式路径
-        /// </summary>
-        /// <returns></returns>
-        public static bool Load_PIC()
+        public static bool Load()
         {
             return false;
         }

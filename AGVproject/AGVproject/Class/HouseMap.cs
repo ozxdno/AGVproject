@@ -3,504 +3,331 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
 
 namespace AGVproject.Class
 {
+    /// <summary>
+    /// 绘制地图
+    /// </summary>
     class HouseMap
     {
-        ///////////////////////////////////////////// attribute //////////////////////////////////////////////////
+        ////////////////////////////////////////////// public attribute ///////////////////////////////////////////
 
         /// <summary>
-        /// 仓库的前后距离 单位：mm
+        /// 仓库长度（仓库前后距离） 单位：mm
         /// </summary>
         public static double HouseLength;
         /// <summary>
-        /// 仓库的左右距离 单位：mm
+        /// 仓库宽度（仓库左右距离） 单位：mm
         /// </summary>
         public static double HouseWidth;
+        /// <summary>
+        /// 一个像素点所代表的长度 单位：mm
+        /// </summary>
+        public static double PixLength;
+
+        /// <summary>
+        /// 显示地图图片
+        /// </summary>
+        public static Bitmap Map;
+        /// <summary>
+        /// 显示鼠标形状
+        /// </summary>
+        public static Cursor Cursor;
+
+        /// <summary>
+        /// 地图图片高度 单位：像素
+        /// </summary>
+        public static int MapHeight { get { return (int)(HouseLength / PixLength); } }
+        /// <summary>
+        /// 地图图片宽度 单位：像素
+        /// </summary>
+        public static int MapWidth { get { return (int)(HouseWidth / PixLength); } }
+
+        /// <summary>
+        /// 挂起地图图片（不允许操作地图图片）
+        /// </summary>
+        public static bool HoldMap;
+
+        /// <summary>
+        /// 鼠标位置信息
+        /// </summary>
+        public struct MOUSE
+        {
+            /// <summary>
+            /// 鼠标在图片上的 X 轴坐标
+            /// </summary>
+            public int X;
+            /// <summary>
+            /// 鼠标在图片上的 Y 轴坐标
+            /// </summary>
+            public int Y;
+
+            /// <summary>
+            /// 鼠标与门、堆垛、路径等的相对位置
+            /// </summary>
+            public POSITION Position;
+
+            /// <summary>
+            /// 当前堆垛编号
+            /// </summary>
+            public int StackNo;
+            /// <summary>
+            /// 当前路径编号（1 开始）
+            /// </summary>
+            public int LineNo;
+            /// <summary>
+            /// 当前路径编号（0 开始）
+            /// </summary>
+            public int TrackNo;
+
+            /// <summary>
+            /// 鼠标与门、堆垛、路径等的相对位置
+            /// </summary>
+            public enum POSITION
+            {
+                /// <summary>
+                /// 在门的位置上
+                /// </summary>
+                OnDoor,
+                /// <summary>
+                /// 在堆垛上
+                /// </summary>
+                OnStack,
+                /// <summary>
+                /// 在路径直线上
+                /// </summary>
+                OnLine,
+                /// <summary>
+                /// 在路径端点上
+                /// </summary>
+                OnTrack
+            }
+        }
+
+        ////////////////////////////////////////////// public attribute ///////////////////////////////////////////
+
+        private static CONFIG config;
+        private struct CONFIG
+        {
+            public bool HoldMouse;
+            public bool HoldInform;
+
+            public bool NoOperate;
+            public bool DrawOver;
+            public bool DrawMove;
+            public bool PushedCursor;
+            public bool CursorInMap;
+
+            public Graphics g;
+            public MOUSE mouse;
+            public Font font;
+            public string inform;
+        }
         
-        /// <summary>
-        /// 堆垛信息
-        /// </summary>
-        public static List<STACK> Stacks = new List<STACK>();
+        ////////////////////////////////////////////// public method ///////////////////////////////////////////
 
         /// <summary>
-        /// 站在仓库门口并背对仓库门口，左手边堆垛数量
+        /// 初始化
         /// </summary>
-        public static int TotalStacksL;
+        public static void Initial()
+        {
+            HouseLength = 0;
+            HouseWidth = 0;
+            PixLength = 0;
+            Map = null;
+            Cursor = Cursors.Default;
+            HoldMap = false;
+
+            config.HoldMouse = false;
+            config.HoldInform = false;
+            config.NoOperate = false;
+            config.DrawOver = false;
+            config.DrawMove = true;
+            config.PushedCursor = false;
+            config.CursorInMap = false;
+
+            config.g = null;
+            config.mouse = new MOUSE();
+            config.font = new Font("Arial", 10);
+            config.inform = "";
+        }
         /// <summary>
-        /// 站在仓库门口并背对仓库门口，右手边堆垛数量
+        /// 绘制地图
         /// </summary>
-        public static int TotalStacksR;
-        /// <summary>
-        /// 总的堆垛数量
-        /// </summary>
-        public static int TotalStacks { get { return TotalStacksL + TotalStacksR; } }
+        public static void DrawMap()
+        {
+            while (HoldMap) ;
+            HoldMap = true;
+
+
+            HoldMap = false;
+        }
 
         /// <summary>
-        /// 设定中间通路宽度 单位：mm
+        /// 把实际长度转换为图片上的长度
         /// </summary>
-        public static double DefaultCentreRoadWidth;
+        /// <param name="length">距离 单位：mm</param>
+        /// <returns></returns>
+        public static int Length_Real2Map(double length)
+        {
+            return (int)(length / PixLength);
+        }
         /// <summary>
-        /// 设定通道宽度 单位：mm
+        /// 把图片上的长度转换为实际长度
         /// </summary>
-        public static double DefaultAisleWidth;
+        /// <param name="length">像素跨度 单位：像素</param>
+        /// <returns></returns>
+        public static double Length_Map2Real(int length)
+        {
+            return length * PixLength;
+        }
         /// <summary>
-        /// 设定堆垛长度
+        /// 把仓库位置坐标转换为图片上的位置坐标
         /// </summary>
-        public static double DefaultStackLength;
+        /// <param name="point">仓库位置坐标</param>
+        /// <returns></returns>
+        public static Point Point_House2Map(CoordinatePoint.POINT point)
+        {
+            return new Point(Length_Real2Map(point.x), Length_Real2Map(point.y));
+        }
         /// <summary>
-        /// 设定堆垛宽度
+        /// 把图片上的位置坐标转换为仓库坐标系下的位置坐标
         /// </summary>
-        public static double DefaultStackWidth;
+        /// <param name="point">图片上的位置坐标</param>
+        /// <returns></returns>
+        public static CoordinatePoint.POINT Point_Map2House(Point point)
+        {
+            double x = Length_Map2Real(point.X);
+            double y = Length_Map2Real(point.Y);
+
+            return CoordinatePoint.Create_XY(x, y);
+        }
+
+        /// <summary>
+        /// 在图片中显示紧急通知
+        /// </summary>
+        /// <param name="inform">通知信息</param>
+        public static void setInform(string inform)
+        {
+            while (config.HoldInform) ;
+            config.HoldInform = true;
+            config.inform = inform;
+            config.HoldInform = false;
+        }
+
+        /// <summary>
+        /// 获取鼠标详细位置信息
+        /// </summary>
+        /// <returns></returns>
+        public static MOUSE getMousePosition()
+        {
+            while (config.HoldMouse) ;
+            config.HoldMouse = true;
+
+            MOUSE mouse = new MOUSE();
+            mouse.X = config.mouse.X;
+            mouse.X = config.mouse.X;
+            mouse.Position = config.mouse.Position;
+            mouse.StackNo = config.mouse.StackNo;
+            mouse.LineNo = config.mouse.LineNo;
+            mouse.TrackNo = config.mouse.TrackNo;
+
+            config.HoldMouse = false;
+            return mouse;
+        }
+        /// <summary>
+        /// 获取鼠标详细位置信息
+        /// </summary>
+        /// <param name="X">鼠标在图上的 X 轴坐标</param>
+        /// <param name="Y">鼠标在图上的 Y 轴坐标</param>
+        /// <returns></returns>
+        public static MOUSE getMousePosition(int X, int Y)
+        {
+            MOUSE mouse = new MOUSE();
+
+
+
+            return config.mouse;
+        }
+        /// <summary>
+        /// 设置鼠标的详细位置信息
+        /// </summary>
+        /// <param name="mouse">鼠标位置信息</param>
+        public static void setMousePosition(MOUSE mouse)
+        {
+            while (config.HoldMouse) ;
+            config.HoldMouse = true;
+            config.mouse = mouse;
+            config.HoldMouse = false;
+        }
         
-        /// <summary>
-        /// 堆垛参数
-        /// </summary>
-        public struct STACK
+        public static void MouseLeftClicked()
         {
-            /// <summary>
-            /// 是否为左边的堆垛
-            /// </summary>
-            public bool IsLeft;
-            /// <summary>
-            /// 堆垛编号
-            /// </summary>
-            public int No;
 
-            /// <summary>
-            /// 堆垛长度 单位：mm
-            /// </summary>
-            public double Length;
-            /// <summary>
-            /// 堆垛宽度 单位：mm
-            /// </summary>
-            public double Width;
+        }
+        public static void MouseDoubleClicked()
+        {
+            if (!config.CursorInMap) { return; }
+        }
+        public static void MouseRightClicked_SaveMap()
+        {
 
-            /// <summary>
-            /// 该堆垛左方的通道宽度 单位：mm
-            /// </summary>
-            public double AisleWidth_L;
-            /// <summary>
-            /// 该堆垛右方的通道宽度 单位：mm
-            /// </summary>
-            public double AisleWidth_R;
-            /// <summary>
-            /// 该堆垛上方的通道宽度 单位：mm
-            /// </summary>
-            public double AisleWidth_U;
-            /// <summary>
-            /// 该堆垛下方的通道宽度 单位：mm
-            /// </summary>
-            public double AisleWidth_D;
-            
-            /// <summary>
-            /// 车与垛区的相对位置（上、下、左、右、无法确定）
-            /// </summary>
-            public TH_AutoSearchTrack.Direction CarPosition;
-            /// <summary>
-            /// 车头的方向
-            /// </summary>
-            public TH_AutoSearchTrack.Direction CarDirection;
-            /// <summary>
-            /// 与参考点的相对距离 单位：mm
-            /// </summary>
-            public double Distance;
-            /// <summary>
-            /// 参考点仓库坐标
-            /// </summary>
-            public CoordinatePoint.POINT ReferencePoint;
-
-            /// <summary>
-            /// 小车在该堆垛时，小车与堆垛左方保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistanceL;
-            /// <summary>
-            /// 小车在该堆垛时，小车与堆垛右方保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistanceR;
-            /// <summary>
-            /// 小车在该堆垛时，小车与堆垛上方保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistanceU;
-            /// <summary>
-            /// 小车在该堆垛时，小车与堆垛下方保持的距离 单位：mm
-            /// </summary>
-            public double KeepDistanceD;
+        }
+        public static void MouseMove(int X, int Y)
+        {
+            if (config.CursorInMap) { setMousePosition(getMousePosition(X,Y)); }
+        }
+        public static void MouseLeave()
+        {
+            config.CursorInMap = false;
+        }
+        public static void MouseEnter()
+        {
+            config.CursorInMap = true;
         }
 
-        ///////////////////////////////////////////// Stacks //////////////////////////////////////////////////
-        
-        public static void getDefaultStacks()
+        ////////////////////////////////////////////// private method ///////////////////////////////////////////
+
+        private static void drawStacks()
         {
-            Stacks = new List<STACK>();
 
-            STACK stack0 = new STACK();
-            stack0.IsLeft = false;
-            stack0.No = 0;
-            stack0.AisleWidth_L = (HouseWidth - 2000) / 2;
-            stack0.AisleWidth_R = (HouseWidth - 2000) / 2;
-            stack0.AisleWidth_U = 0;
-            stack0.AisleWidth_D = 0;
-            stack0.CarPosition = TH_AutoSearchTrack.Direction.Tuning;
-            stack0.Length = 2000;
-            stack0.Width = 100;
-            Stacks.Add(stack0);
-
-            for (int i = 1; i <= TotalStacksR; i++)
-            {
-                STACK NewStack = new STACK();
-
-                NewStack.IsLeft = false;
-                NewStack.No = i;
-                NewStack.Length = DefaultStackLength;
-                NewStack.Width = DefaultStackWidth;
-                NewStack.AisleWidth_R = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
-                NewStack.AisleWidth_L = DefaultCentreRoadWidth;
-                NewStack.AisleWidth_U = DefaultAisleWidth;
-                NewStack.AisleWidth_D = DefaultAisleWidth;
-
-                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
-                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
-                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
-                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
-
-                Stacks.Add(NewStack);
-            }
-            for (int i = TotalStacksR + 1; i <= TotalStacks; i++)
-            {
-                STACK NewStack = new STACK();
-
-                NewStack.IsLeft = true;
-                NewStack.No = i;
-                NewStack.Length = DefaultStackLength;
-                NewStack.Width = DefaultStackWidth;
-                NewStack.AisleWidth_L = (HouseWidth - DefaultCentreRoadWidth - DefaultStackLength * 2) / 2;
-                NewStack.AisleWidth_R = DefaultCentreRoadWidth;
-                NewStack.AisleWidth_U = DefaultAisleWidth;
-                NewStack.AisleWidth_D = DefaultAisleWidth;
-
-                NewStack.KeepDistanceU = NewStack.AisleWidth_U / 2;
-                NewStack.KeepDistanceD = NewStack.AisleWidth_D / 2;
-                NewStack.KeepDistanceL = NewStack.AisleWidth_L / 2;
-                NewStack.KeepDistanceR = NewStack.AisleWidth_R / 2;
-
-                Stacks.Add(NewStack);
-            }
         }
-
-        public static bool getIsLeft()
+        private static void drawPermitTrack()
         {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return false; }
-            return Stacks[No].IsLeft;
+
         }
-
-        public static bool getAisleWidth(ref double AisleWidth)
+        private static void drawCurrentTrack()
         {
-            // 取点
-            List<CoordinatePoint.POINT> pointsL = TH_MeasureSurrounding.getSurroundingA(150, 180);
-            List<CoordinatePoint.POINT> pointsR = TH_MeasureSurrounding.getSurroundingA(0, 30);
 
-            // 点的数量不够
-            int reqAmount = 30;
-            if (pointsL.Count < reqAmount) { return false; }
-            if (pointsR.Count < reqAmount) { return false; }
-
-            // 取最近距离
-            double minL = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsL));
-            double minR = CoordinatePoint.MinX(CoordinatePoint.AbsX(pointsR));
-
-            AisleWidth = minL + minR;
-            return true;
         }
-        public static double getAisleWidth()
+        private static void drawMove()
         {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return -1; }
 
-            TH_AutoSearchTrack.Direction d = Stacks[No].CarPosition;
-
-            if (d == TH_AutoSearchTrack.Direction.Left) { return Stacks[No].AisleWidth_L; }
-            if (d == TH_AutoSearchTrack.Direction.Right) { return Stacks[No].AisleWidth_R; }
-            if (d == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].AisleWidth_U; }
-            if (d == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].AisleWidth_D; }
-
-            return -1;
         }
-        public static double getAisleWidth(TH_AutoSearchTrack.Direction direction)
+        private static void drawCursor()
         {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return -1; }
-            
-            if (direction == TH_AutoSearchTrack.Direction.Left) { return Stacks[No].AisleWidth_L; }
-            if (direction == TH_AutoSearchTrack.Direction.Right) { return Stacks[No].AisleWidth_R; }
-            if (direction == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].AisleWidth_U; }
-            if (direction == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].AisleWidth_D; }
 
-            return -1;
         }
-        public static double getAisleWidth(int No, TH_AutoSearchTrack.Direction direction)
+        private static void drawUltraSonicData()
         {
-            if (No < 0 || No > TotalStacks) { return -1; }
 
-            if (direction == TH_AutoSearchTrack.Direction.Left) { return Stacks[No].AisleWidth_L; }
-            if (direction == TH_AutoSearchTrack.Direction.Right) { return Stacks[No].AisleWidth_R; }
-            if (direction == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].AisleWidth_U; }
-            if (direction == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].AisleWidth_D; }
-
-            return -1;
         }
-
-        public static bool setAisleWidth()
+        private static void drawUrgData()
         {
-            double width = 0;
-            bool get = getAisleWidth(ref width); if (!get) { return get; }
-            setAisleWidth(width);
-            return get;
+
         }
-        public static void setAisleWidth(double width)
+        private static void drawCarPosition()
         {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return; }
 
-            STACK iStack = Stacks[No];
-
-            TH_AutoSearchTrack.Direction direction = iStack.CarPosition;
-
-            if (direction == TH_AutoSearchTrack.Direction.Left) { iStack.AisleWidth_L = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Right) { iStack.AisleWidth_R = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Up) { iStack.AisleWidth_U = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Down) { iStack.AisleWidth_D = width; }
-
-            Stacks[No] = iStack;
         }
-        public static void setAisleWidth(double width, TH_AutoSearchTrack.Direction direction)
+        private static void drawInform()
         {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return; }
 
-            STACK iStack = Stacks[No];
-            
-            if (direction == TH_AutoSearchTrack.Direction.Left) { iStack.AisleWidth_L = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Right) { iStack.AisleWidth_R = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Up) { iStack.AisleWidth_U = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Down) { iStack.AisleWidth_D = width; }
-
-            Stacks[No] = iStack;
-        }
-        public static void setAisleWidth(double width, int No, TH_AutoSearchTrack.Direction direction)
-        {
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-
-            if (direction == TH_AutoSearchTrack.Direction.Left) { iStack.AisleWidth_L = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Right) { iStack.AisleWidth_R = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Up) { iStack.AisleWidth_U = width; }
-            if (direction == TH_AutoSearchTrack.Direction.Down) { iStack.AisleWidth_D = width; }
-
-            Stacks[No] = iStack;
-        }
-
-        public static double getKeepDistance(bool fromcar = false)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return -1; }
-
-            TH_AutoSearchTrack.Direction pos = Stacks[No].CarPosition;
-            TH_AutoSearchTrack.Direction dir = Stacks[No].CarDirection;
-            bool IsLeft = Stacks[No].IsLeft;
-
-            if (pos == TH_AutoSearchTrack.Direction.Up)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceU; }
-                if (IsLeft) { return Stacks[No].KeepDistanceU - Hardware_PlatForm.AxisSideL; }
-                else { return Stacks[No].KeepDistanceU + Hardware_PlatForm.AxisSideR; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Down)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceD; }
-                if (IsLeft) { return Stacks[No].KeepDistanceD + Hardware_PlatForm.AxisSideR; }
-                else { return Stacks[No].KeepDistanceD - Hardware_PlatForm.AxisSideL; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Left)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceL; }
-                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
-                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Right)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceR; }
-                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
-                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
-            }
-            return -1;
-        }
-        public static double getKeepDistance(TH_AutoSearchTrack.Direction pos, bool fromcar = false)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return -1; }
-            
-            TH_AutoSearchTrack.Direction dir = Stacks[No].CarDirection;
-            bool IsLeft = Stacks[No].IsLeft;
-
-            if (pos == TH_AutoSearchTrack.Direction.Up)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceU; }
-                if (IsLeft) { return Stacks[No].KeepDistanceU - Hardware_PlatForm.AxisSideL; }
-                else { return Stacks[No].KeepDistanceU + Hardware_PlatForm.AxisSideR; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Down)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceD; }
-                if (IsLeft) { return Stacks[No].KeepDistanceD + Hardware_PlatForm.AxisSideR; }
-                else { return Stacks[No].KeepDistanceD - Hardware_PlatForm.AxisSideL; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Left)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceL; }
-                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
-                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
-            }
-            if (pos == TH_AutoSearchTrack.Direction.Right)
-            {
-                if (fromcar) { return Stacks[No].KeepDistanceR; }
-                if (dir == TH_AutoSearchTrack.Direction.Down) { return Stacks[No].KeepDistanceL + Hardware_PlatForm.AxisSideR; }
-                if (dir == TH_AutoSearchTrack.Direction.Up) { return Stacks[No].KeepDistanceL - Hardware_PlatForm.AxisSideL; }
-            }
-            return -1;
-        }
-
-        public static double getStackWidth()
-        {
-            return DefaultStackWidth;
-        }
-        public static double getStackWidth(int No)
-        {
-            return DefaultStackWidth;
-        }
-
-        public static double getStackLength()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return -1; }
-
-            return Stacks[No].Length;
-        }
-        public static double getStackLength(int No)
-        {
-            if (No < 0 || No > TotalStacks) { return -1; }
-
-            return Stacks[No].Length;
-        }
-
-        public static void setStackLength(double length)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-            iStack.Length = length;
-            Stacks[No] = iStack;
-        }
-        public static void setStackLength(double length, int No)
-        {
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-            iStack.Length = length;
-            Stacks[No] = iStack;
-        }
-
-        public static TH_AutoSearchTrack.Direction getCarPosition()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-
-            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
-            return Stacks[No].CarPosition;
-        }
-        public static TH_AutoSearchTrack.Direction getCarPosition(int No)
-        {
-            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
-            return Stacks[No].CarPosition;
-        }
-
-        public static void setCarPosition(TH_AutoSearchTrack.Direction direction)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-
-            if (No < 0 || No > TotalStacks) { return; }
-            STACK iStack = Stacks[No];
-            iStack.CarPosition = direction; Stacks[No] = iStack;
-        }
-        public static void setCarPosition(TH_AutoSearchTrack.Direction direction, int No)
-        {
-            if (No < 0 || No > TotalStacks) { return; }
-            STACK iStack = Stacks[No];
-            iStack.CarPosition = direction; Stacks[No] = iStack;
-        }
-
-        public static TH_AutoSearchTrack.Direction getCarDirection()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
-
-            return Stacks[No].CarDirection;
-        }
-        public static TH_AutoSearchTrack.Direction getCarDirection(int No)
-        {
-            if (No < 0 || No > TotalStacks) { return TH_AutoSearchTrack.Direction.Tuning; }
-            return Stacks[No].CarDirection;
-        }
-
-        public static void setCarDirection(TH_AutoSearchTrack.Direction direction)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-
-            if (No < 0 || No > TotalStacks) { return; }
-            STACK iStack = Stacks[No];
-            iStack.CarDirection = direction; Stacks[No] = iStack;
-        }
-
-        public static void setReferencePoint()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-            iStack.ReferencePoint = TH_MeasurePosition.getPosition(); Stacks[No] = iStack;
-        }
-        public static void setReferencePoint(CoordinatePoint.POINT point)
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-            iStack.ReferencePoint = point; Stacks[No] = iStack;
-        }
-        public static void setReferencePoint(CoordinatePoint.POINT point, int No)
-        {
-            if (No < 0 || No > TotalStacks) { return; }
-
-            STACK iStack = Stacks[No];
-            iStack.ReferencePoint = point; Stacks[No] = iStack;
-        }
-
-        public static CoordinatePoint.POINT getReferencePoint()
-        {
-            int No = TH_AutoSearchTrack.control.NearStack;
-            if (No < 0 || No > TotalStacks) { return CoordinatePoint.getNegPoint(); }
-
-            return Stacks[No].ReferencePoint;
-        }
-        public static CoordinatePoint.POINT getReferencePoint(int No)
-        {
-            if (No < 0 || No > TotalStacks) { return CoordinatePoint.getNegPoint(); }
-
-            return Stacks[No].ReferencePoint;
         }
     }
 }

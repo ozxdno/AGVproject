@@ -61,7 +61,6 @@ namespace AGVproject
             public bool CheckLocatePort;
 
             public double urgRange;
-            public double PixLength;
             public struct FILE { public string Full, Path, Name; public string[] Text; }
         }
         
@@ -367,7 +366,7 @@ namespace AGVproject
             if (mousePos.No == -1) { return; }
             if (mousePos.Direction != TH_AutoSearchTrack.Direction.Tuning) { return; }
 
-            HouseMap.STACK stack = HouseMap.Stacks[mousePos.No];
+            HouseStack.STACK stack = HouseStack.Stacks[mousePos.No];
 
             Form_Stack.Form_Stack.StackNo = stack.No;
             Form_Stack.Form_Stack.Direction = (int)stack.CarPosition;
@@ -407,41 +406,41 @@ namespace AGVproject
             stack.KeepDistanceL = Form_Stack.Form_Stack.SetKeepL;
             stack.KeepDistanceR = Form_Stack.Form_Stack.SetKeepR;
 
-            HouseMap.Stacks[mousePos.No] = stack;
+            HouseStack.Stacks[mousePos.No] = stack;
             if (stack.No == 0) { TH_UpdataPictureBox.Stacks[0] = TH_UpdataPictureBox.RealStack2MapStack(0); return; }
 
             if (stack.IsLeft)
             {
                 int u = stack.No + 1, d = stack.No - 1;
 
-                if (HouseMap.TotalStacksR + 1 <= u && u <= HouseMap.TotalStacks)
+                if (HouseStack.TotalStacksR + 1 <= u && u <= HouseStack.TotalStacks)
                 {
-                    HouseMap.STACK ustack = HouseMap.Stacks[u];
+                    HouseStack.STACK ustack = HouseStack.Stacks[u];
                     ustack.AisleWidth_D = stack.AisleWidth_U;
-                    HouseMap.Stacks[u] = ustack;
+                    HouseStack.Stacks[u] = ustack;
                 }
-                if (HouseMap.TotalStacksR + 1 <= d && d <= HouseMap.TotalStacks)
+                if (HouseStack.TotalStacksR + 1 <= d && d <= HouseStack.TotalStacks)
                 {
-                    HouseMap.STACK dstack = HouseMap.Stacks[d];
+                    HouseStack.STACK dstack = HouseStack.Stacks[d];
                     dstack.AisleWidth_U = stack.AisleWidth_D;
-                    HouseMap.Stacks[d] = dstack;
+                    HouseStack.Stacks[d] = dstack;
                 }
             }
             if (!stack.IsLeft)
             {
                 int u = stack.No - 1, d = stack.No + 1;
 
-                if (1 <= u && u <= HouseMap.TotalStacksR)
+                if (1 <= u && u <= HouseStack.TotalStacksR)
                 {
-                    HouseMap.STACK ustack = HouseMap.Stacks[u];
+                    HouseStack.STACK ustack = HouseStack.Stacks[u];
                     ustack.AisleWidth_D = stack.AisleWidth_U;
-                    HouseMap.Stacks[u] = ustack;
+                    HouseStack.Stacks[u] = ustack;
                 }
-                if (1 <= d && d <= HouseMap.TotalStacksR)
+                if (1 <= d && d <= HouseStack.TotalStacksR)
                 {
-                    HouseMap.STACK dstack = HouseMap.Stacks[d];
+                    HouseStack.STACK dstack = HouseStack.Stacks[d];
                     dstack.AisleWidth_U = stack.AisleWidth_D;
-                    HouseMap.Stacks[d] = dstack;
+                    HouseStack.Stacks[d] = dstack;
                 }
             }
 
@@ -458,7 +457,7 @@ namespace AGVproject
             //    HouseMap.Stacks[HouseMap.TotalStacks - mousePos.No + 1] = rstack;
             //}
 
-            for (int i = 1; i <= HouseMap.TotalStacks; i++)
+            for (int i = 1; i <= HouseStack.TotalStacks; i++)
             { TH_UpdataPictureBox.Stacks[i] = TH_UpdataPictureBox.RealStack2MapStack(i); }
         }
         private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -575,7 +574,7 @@ namespace AGVproject
             if (existFile)
             {
                 List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-                for (int i = 0; i <= HouseMap.TotalStacks; i++)
+                for (int i = 0; i <= HouseStack.TotalStacks; i++)
                 { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
 
                 TH_UpdataPictureBox.setStack(Stacks);
@@ -675,7 +674,7 @@ namespace AGVproject
             config.PixLength = pixLen;
 
             List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-            for (int i = 0; i <= HouseMap.TotalStacks; i++) { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
+            for (int i = 0; i <= HouseStack.TotalStacks; i++) { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
 
             TH_UpdataPictureBox.setStack(Stacks);
         }

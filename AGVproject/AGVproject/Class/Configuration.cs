@@ -180,27 +180,27 @@ namespace AGVproject.Class
         }
         private static void Load_HouseMap()
         {
-            HouseMap.HouseLength = getFieldValue1_DOUBLE("HouseMap.HouseLength");
-            HouseMap.HouseWidth = getFieldValue1_DOUBLE("HouseMap.HouseWidth");
-            HouseMap.TotalStacksL = getFieldValue1_INT("HouseMap.TotalStacksL");
-            HouseMap.TotalStacksR = getFieldValue1_INT("HouseMap.TotalStacksR");
+            HouseStack.HouseLength = getFieldValue1_DOUBLE("HouseMap.HouseLength");
+            HouseStack.HouseWidth = getFieldValue1_DOUBLE("HouseMap.HouseWidth");
+            HouseStack.TotalStacksL = getFieldValue1_INT("HouseMap.TotalStacksL");
+            HouseStack.TotalStacksR = getFieldValue1_INT("HouseMap.TotalStacksR");
 
-            HouseMap.DefaultCentreRoadWidth = getFieldValue1_DOUBLE("HouseMap.DefaultCentreRoadWidth");
-            HouseMap.DefaultAisleWidth = getFieldValue1_DOUBLE("HouseMap.DefaultAisleWidth");
-            HouseMap.DefaultStackLength = getFieldValue1_DOUBLE("HouseMap.DefaultStackLength");
-            HouseMap.DefaultStackWidth = getFieldValue1_DOUBLE("HouseMap.DefaultStackWidth");
+            HouseStack.DefaultCentreRoadWidth = getFieldValue1_DOUBLE("HouseMap.DefaultCentreRoadWidth");
+            HouseStack.DefaultAisleWidth = getFieldValue1_DOUBLE("HouseMap.DefaultAisleWidth");
+            HouseStack.DefaultStackLength = getFieldValue1_DOUBLE("HouseMap.DefaultStackLength");
+            HouseStack.DefaultStackWidth = getFieldValue1_DOUBLE("HouseMap.DefaultStackWidth");
         }
         private static void Save_HouseMap()
         {
-            setFieldValue("HouseMap.HouseLength", HouseMap.HouseLength);
-            setFieldValue("HouseMap.HouseWidth", HouseMap.HouseWidth);
-            setFieldValue("HouseMap.TotalStacksL", HouseMap.TotalStacksL);
-            setFieldValue("HouseMap.TotalStacksR", HouseMap.TotalStacksR);
+            setFieldValue("HouseMap.HouseLength", HouseStack.HouseLength);
+            setFieldValue("HouseMap.HouseWidth", HouseStack.HouseWidth);
+            setFieldValue("HouseMap.TotalStacksL", HouseStack.TotalStacksL);
+            setFieldValue("HouseMap.TotalStacksR", HouseStack.TotalStacksR);
 
-            setFieldValue("HouseMap.DefaultCentreRoadWidth", HouseMap.DefaultCentreRoadWidth);
-            setFieldValue("HouseMap.DefaultAisleWidth", HouseMap.DefaultAisleWidth);
-            setFieldValue("HouseMap.DefaultStackLength", HouseMap.DefaultStackLength);
-            setFieldValue("HouseMap.DefaultStackWidth", HouseMap.DefaultStackWidth);
+            setFieldValue("HouseMap.DefaultCentreRoadWidth", HouseStack.DefaultCentreRoadWidth);
+            setFieldValue("HouseMap.DefaultAisleWidth", HouseStack.DefaultAisleWidth);
+            setFieldValue("HouseMap.DefaultStackLength", HouseStack.DefaultStackLength);
+            setFieldValue("HouseMap.DefaultStackWidth", HouseStack.DefaultStackWidth);
         }
         private static void Load_Hardware()
         {
@@ -410,7 +410,7 @@ namespace AGVproject.Class
 
             StreamWriter sw = new StreamWriter(sf.FileName);
 
-            foreach (HouseMap.STACK stack in HouseMap.Stacks)
+            foreach (HouseStack.STACK stack in HouseStack.Stacks)
             {
                 sw.WriteLine("No = " + stack.No.ToString());
                 sw.WriteLine("IsLeft = " + stack.IsLeft.ToString());
@@ -454,18 +454,18 @@ namespace AGVproject.Class
         }
         public static bool Load_Map(int index)
         {
-            if (index == -1) { HouseMap.getDefaultStacks(); return true; }
+            if (index == -1) { HouseStack.getDefaultStacks(); return true; }
 
             string filepath = Form_Start.config.Map[index].Full;
-            if (!File.Exists(filepath)) { HouseMap.getDefaultStacks(); return false; }
+            if (!File.Exists(filepath)) { HouseStack.getDefaultStacks(); return false; }
 
-            List<HouseMap.STACK> Stacks = new List<HouseMap.STACK>();
+            List<HouseStack.STACK> Stacks = new List<HouseStack.STACK>();
             int TotalL = 0, TotalR = 0;
 
             StreamReader sr = new StreamReader(filepath);
             while (!sr.EndOfStream)
             {
-                HouseMap.STACK stack = new HouseMap.STACK();
+                HouseStack.STACK stack = new HouseStack.STACK();
 
                 string line = sr.ReadLine(); stack.No = Convert.ToInt32(line.Substring(5));
                 line = sr.ReadLine(); stack.IsLeft = Convert.ToBoolean(line.Substring(9));
@@ -492,9 +492,9 @@ namespace AGVproject.Class
             }
 
             sr.Close();
-            HouseMap.Stacks = Stacks;
-            HouseMap.TotalStacksL = TotalL;
-            HouseMap.TotalStacksR = TotalR;
+            HouseStack.Stacks = Stacks;
+            HouseStack.TotalStacksL = TotalL;
+            HouseStack.TotalStacksR = TotalR;
             return true;
         }
         public static bool Save_Route(ref int index)

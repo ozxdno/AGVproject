@@ -262,7 +262,7 @@ namespace AGVproject.Class
             if (points.Count <= 3) { return AST_GuideBySpeed.getSpeedA(0); }
 
             // 控制策略
-            double current = getFitAngle(points, 0, HouseMap.DefaultAisleWidth / 2 - Hardware_PlatForm.AxisSideL);
+            double current = getFitAngle(points, 0, HouseStack.DefaultAisleWidth / 2 - Hardware_PlatForm.AxisSideL);
             double target = 0;
             double Kp = 30;
             double adjust = Kp * (current - target);
@@ -371,7 +371,7 @@ namespace AGVproject.Class
             if (points.Count <= 3) { return AST_GuideBySpeed.getSpeedA(0); }
 
             // 控制策略
-            double current = getFitAngle(points, 0, HouseMap.DefaultAisleWidth / 2 + Hardware_PlatForm.AxisSideR);
+            double current = getFitAngle(points, 0, HouseStack.DefaultAisleWidth / 2 + Hardware_PlatForm.AxisSideR);
             double target = 0;
             double Kp = 30;
 
@@ -435,7 +435,7 @@ namespace AGVproject.Class
             if (points.Count <= 3) { return AST_GuideBySpeed.getSpeedA(0); }
 
             // 控制策略
-            double current = getFitAngle(points, -Hardware_PlatForm.AxisSideD, HouseMap.DefaultAisleWidth / 2 + Hardware_PlatForm.AxisSideR);
+            double current = getFitAngle(points, -Hardware_PlatForm.AxisSideD, HouseStack.DefaultAisleWidth / 2 + Hardware_PlatForm.AxisSideR);
             double target = 0;
             double Kp = 20;
 

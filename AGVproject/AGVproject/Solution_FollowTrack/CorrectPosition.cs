@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AGVproject.Class
+using AGVproject.Class;
+
+namespace AGVproject.Solution_FollowTrack
 {
     class AST_CorrectPosition
     {
