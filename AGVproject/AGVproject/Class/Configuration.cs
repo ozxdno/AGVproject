@@ -11,9 +11,24 @@ namespace AGVproject.Class
 {
     class Configuration
     {
-        public static List<CFG_FILE> CFG;
-        public struct CFG_FILE { public string Field; public string[] Value; }
-        
+        private static List<CFG_FILE> CFG;
+        private struct CFG_FILE { public string Field; public string[] Value; }
+
+        /// <summary>
+        /// 清空 CFG 中缓存信息
+        /// </summary>
+        public static void Clear()
+        {
+            if (CFG == null) { CFG = new List<CFG_FILE>(); } CFG.Clear();
+        }
+        /// <summary>
+        /// 判断 CFG 是否为空
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsEmpty()
+        {
+            return CFG == null || CFG.Count == 0;
+        }
         /// <summary>
         /// 加载配置文件信息
         /// </summary>
@@ -25,7 +40,21 @@ namespace AGVproject.Class
             CFG = new List<CFG_FILE>();
 
             string FullPath = exe_path + "\\cqu_agv.cfg";
-            return Load(FullPath);
+            if (!Load(FullPath)) { return false; }
+
+            // 分发变量
+            Hardware_PlatForm.Load();
+            Hardware_URG.Load();
+            Hardware_UltraSonic.Load();
+
+            HouseMap.Load();
+            HouseStack.Load();
+            HouseTrack.Load();
+
+            Form_Start.load();
+            TH_AutoSearchTrack.Load();
+
+            return true;
         }
         /// <summary>
         /// 加载指定位置的文件
@@ -70,23 +99,23 @@ namespace AGVproject.Class
         /// <param name="load">是否加载该文件</param>
         public static bool Load(string extensions, ref string path, ref string name, ref string extension, bool load = true)
         {
-            SaveFileDialog sf = new SaveFileDialog();
-            sf.Filter = extensions;
-            sf.RestoreDirectory = true;
-            sf.FileName = name;
-            if (sf.ShowDialog() != DialogResult.OK) { return false; }
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = false;
+            fileDialog.Filter = extensions;
+            if (fileDialog.ShowDialog() != DialogResult.OK) { return false; }
 
-            int cut = sf.FileName.LastIndexOf("\\");
-            path = sf.FileName.Substring(0, cut);
-            name = sf.FileName.Substring(cut + 1);
+            int cut = fileDialog.FileName.LastIndexOf("\\");
+            path = fileDialog.FileName.Substring(0, cut);
+            name = fileDialog.FileName.Substring(cut + 1);
 
             cut = name.LastIndexOf('.');
             extension = name.Substring(cut + 1);
             name = name.Substring(0, cut);
+            
             if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
 
-            if (!save) { return true; }
-            return Save(sf.FileName);
+            if (!load) { return true; }
+            return Load(fileDialog.FileName);
         }
         /// <summary>
         /// 保存配置文件信息
@@ -96,6 +125,17 @@ namespace AGVproject.Class
             string exe_path = Application.ExecutablePath;
             exe_path = exe_path.Substring(0, exe_path.LastIndexOf('\\'));
             CFG = new List<CFG_FILE>();
+
+            Hardware_PlatForm.Save();
+            Hardware_URG.Save();
+            Hardware_UltraSonic.Save();
+
+            HouseMap.Save();
+            HouseStack.Save();
+            HouseTrack.Save();
+
+            Form_Start.save();
+            TH_AutoSearchTrack.Save();
 
             string FullPath = exe_path + "\\cqu_agv.cfg";
             return Save(FullPath);
@@ -154,13 +194,30 @@ namespace AGVproject.Class
             if (!save) { return true; }
             return Save(sf.FileName);
         }
+        /// <summary>
+        /// 切割完整的文件名，得到路径、名称、后缀信息
+        /// </summary>
+        /// <param name="fullname">完整文件名</param>
+        /// <param name="path">路径</param>
+        /// <param name="name">名称</param>
+        /// <param name="extension">后缀</param>
+        public static void cutFullName(string fullname, ref string path, ref string name, ref string extension)
+        {
+            int cut = fullname.LastIndexOf('\\');
+            path = fullname.Substring(0, cut);
+            name = fullname.Substring(cut + 1);
+
+            cut = name.LastIndexOf('.');
+            extension = name.Substring(cut + 1);
+            name = name.Substring(0, cut);
+        }
 
         public static string getFieldValue1_STRING(string Field)
         {
             if (CFG == null) { return ""; }
-
+            
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return item.Value[0]; } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return item.Value[0]; } }
 
             return "";
         }
@@ -169,7 +226,7 @@ namespace AGVproject.Class
             if (CFG == null) { return -1; }
 
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return int.Parse(item.Value[0]); } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return int.Parse(item.Value[0]); } }
 
             return -1;
         }
@@ -178,7 +235,7 @@ namespace AGVproject.Class
             if (CFG == null) { return false; }
 
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return int.Parse(item.Value[0]) == 1; } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return int.Parse(item.Value[0]) == 1; } }
 
             return false;
         }
@@ -187,7 +244,7 @@ namespace AGVproject.Class
             if (CFG == null) { return 0; }
 
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return double.Parse(item.Value[0]); } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return double.Parse(item.Value[0]); } }
 
             return 0;
         }
@@ -196,7 +253,7 @@ namespace AGVproject.Class
             if (CFG == null) { return new string[0]; }
 
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return item.Value; } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return item.Value; } }
 
             return new string[0];
         }
@@ -205,7 +262,7 @@ namespace AGVproject.Class
             if (CFG == null) { return new List<string>(); }
 
             foreach (CFG_FILE item in CFG)
-            { if (item.Field.Equals(Field)) { return item.Value.ToList(); } }
+            { if (item.Field.Equals(Field)) { CFG.Remove(item); return item.Value.ToList(); } }
 
             return new List<string>();
         }
@@ -217,9 +274,13 @@ namespace AGVproject.Class
             foreach (CFG_FILE item in CFG)
             {
                 if (item.Field.Equals(Field))
-                { foreach (string istr in item.Value) { try { intValue.Add(int.Parse(istr)); } catch { } } }
+                {
+                    CFG.Remove(item);
+                    foreach (string istr in item.Value) { try { intValue.Add(int.Parse(istr)); } catch { } }
+                    break;
+                }
             }
-
+            
             return intValue;
         }
         public static List<double> getFieldValue2_DOUBLE(string Field)
@@ -230,9 +291,13 @@ namespace AGVproject.Class
             foreach (CFG_FILE item in CFG)
             {
                 if (item.Field.Equals(Field))
-                { foreach (string istr in item.Value) { try { doubleValue.Add(double.Parse(istr)); } catch { } } }
+                {
+                    CFG.Remove(item);
+                    foreach (string istr in item.Value) { try { doubleValue.Add(double.Parse(istr)); } catch { } }
+                    break;
+                }
             }
-
+            
             return doubleValue;
         }
 

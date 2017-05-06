@@ -8,7 +8,7 @@ using AGVproject.Class;
 
 namespace AGVproject.Solution_FollowTrack
 {
-    class AST_CorrectPosition
+    class CorrectPosition
     {
 
         ////////////////////////////////////////////////// public attribute /////////////////////////////////////////

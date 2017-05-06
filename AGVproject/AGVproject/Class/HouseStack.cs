@@ -129,7 +129,7 @@ namespace AGVproject.Class
             public object StacksLock;
         }
 
-        ///////////////////////////////////////////// Stacks //////////////////////////////////////////////////
+        ///////////////////////////////////////////// public method //////////////////////////////////////////////////
 
         /// <summary>
         /// 初始化
@@ -332,6 +332,44 @@ namespace AGVproject.Class
             DefaultStackWidth = Configuration.getFieldValue1_DOUBLE("HouseStack.DefaultStackWidth");
         }
         /// <summary>
+        /// 加载堆垛信息
+        /// </summary>
+        /// <param name="fullname">文件名</param>
+        public static bool Load(string fullname)
+        {
+            Configuration.Clear();
+            if (!Configuration.Load(fullname)) { return false; }
+
+            List<STACK> stacks = new List<STACK>();
+            while (!Configuration.IsEmpty())
+            {
+                STACK stack = new STACK();
+
+                stack.IsLeft = Configuration.getFieldValue1_BOOL("IsLeft");
+                stack.No = Configuration.getFieldValue1_INT("No");
+                stack.Length = Configuration.getFieldValue1_DOUBLE("Length");
+                stack.Width = Configuration.getFieldValue1_DOUBLE("Width");
+                stack.Position = CoordinatePoint.Double2Point(Configuration.getFieldValue2_DOUBLE("Position"));
+                stack.AisleWidth_U = Configuration.getFieldValue1_DOUBLE("AisleWidth_U");
+                stack.AisleWidth_D = Configuration.getFieldValue1_DOUBLE("AisleWidth_D");
+                stack.AisleWidth_L = Configuration.getFieldValue1_DOUBLE("AisleWidth_L");
+                stack.AisleWidth_R = Configuration.getFieldValue1_DOUBLE("AisleWidth_R");
+                stack.CarPosition = (TH_AutoSearchTrack.Direction)Configuration.getFieldValue1_INT("CarPosition");
+                stack.CarDirection = (TH_AutoSearchTrack.Direction)Configuration.getFieldValue1_INT("CarDirection");
+                stack.Distance = Configuration.getFieldValue1_DOUBLE("Distance");
+                stack.ReferencePoint = CoordinatePoint.Double2Point(Configuration.getFieldValue2_DOUBLE("ReferencePoint"));
+                stack.KeepDistanceU = Configuration.getFieldValue1_DOUBLE("KeepDistanceU");
+                stack.KeepDistanceD = Configuration.getFieldValue1_DOUBLE("KeepDistanceD");
+                stack.KeepDistanceL = Configuration.getFieldValue1_DOUBLE("KeepDistanceL");
+                stack.KeepDistanceR = Configuration.getFieldValue1_DOUBLE("KeepDistanceR");
+
+                stacks.Add(stack);
+            }
+
+            Set(stacks);
+            return true;
+        }
+        /// <summary>
         /// 保存参数到配置文件中
         /// </summary>
         public static void Save()
@@ -343,11 +381,37 @@ namespace AGVproject.Class
             Configuration.setFieldValue("HouseStack.DefaultStackLength", DefaultStackLength);
             Configuration.setFieldValue("HouseStack.DefaultStackWidth", DefaultStackWidth);
         }
-        public static void Save(ref string name, ref string path, ref string extension)
+        /// <summary>
+        /// 保存堆垛信息
+        /// </summary>
+        /// <param name="fullname">文件名</param>
+        public static bool Save(string fullname)
         {
+            Configuration.Clear(); List<STACK> stacks = Get();
 
+            foreach (STACK stack in stacks)
+            {
+                Configuration.setFieldValue("No", stack.No);
+                Configuration.setFieldValue("IsLeft", stack.IsLeft);
+                Configuration.setFieldValue("Length", stack.Length);
+                Configuration.setFieldValue("Width", stack.Width);
+                Configuration.setFieldValue("Position", CoordinatePoint.Point2Double(stack.Position));
+                Configuration.setFieldValue("AisleWidthU", stack.AisleWidth_U);
+                Configuration.setFieldValue("AisleWidthD", stack.AisleWidth_D);
+                Configuration.setFieldValue("AisleWidthL", stack.AisleWidth_L);
+                Configuration.setFieldValue("AisleWidthR", stack.AisleWidth_R);
+                Configuration.setFieldValue("CarPosition", (int)stack.CarPosition);
+                Configuration.setFieldValue("CarDirection", (int)stack.CarDirection);
+                Configuration.setFieldValue("Distance", stack.Distance);
+                Configuration.setFieldValue("ReferencePoint", CoordinatePoint.Point2Double(stack.ReferencePoint));
+                Configuration.setFieldValue("KeepDistanceU", stack.KeepDistanceU);
+                Configuration.setFieldValue("KeepDistanceD", stack.KeepDistanceD);
+                Configuration.setFieldValue("KeepDistanceL", stack.KeepDistanceL);
+                Configuration.setFieldValue("KeepDistanceR", stack.KeepDistanceR);
+            }
+
+            return Configuration.Save(fullname);
         }
-
 
         public static bool getIsLeft(int No)
         {
@@ -489,5 +553,9 @@ namespace AGVproject.Class
 
             return stack.KeepDistanceR;
         }
+
+        ///////////////////////////////////////////// private method //////////////////////////////////////////////////
+
+        
     }
 }

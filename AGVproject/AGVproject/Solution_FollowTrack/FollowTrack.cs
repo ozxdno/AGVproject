@@ -12,27 +12,31 @@ namespace AGVproject.Solution_FollowTrack
     {
         public static void Start()
         {
-            foreach (BuildRoute.ROUTE route in BuildRoute.Route)
+
+            for (int i = 1; i < HouseTrack.TotalTrack; i++)
             {
-                AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
+                CoordinatePoint.POINT sour = HouseTrack.getTargetPosition(i - 1);
+                CoordinatePoint.POINT dest = HouseTrack.getTargetPosition(i);
+                CoordinatePoint.POINT move = CoordinatePoint.MoveMethod(sour, dest);
+
                 AST_GuideByPosition.ApproachX = false;
                 AST_GuideByPosition.ApproachY = false;
                 AST_GuideByPosition.ApproachA = false;
 
                 while (!AST_GuideByPosition.ApproachA)
                 {
-                    if (Math.Abs(route.aMove) < 5) { break; }
+                    if (Math.Abs(move.aCar) < 5) { break; }
 
                     int xSpeed = AST_GuideBySpeed.getSpeedX(0);
                     int ySpeed = AST_GuideBySpeed.getSpeedY(0);
-                    int aSpeed = AST_GuideByPosition.getSpeedA(route.aMove);
+                    int aSpeed = AST_GuideByPosition.getSpeedA(move.aCar);
 
                     TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
                 }
 
                 while (!AST_GuideByPosition.ApproachX)
                 {
-                    int xSpeed = AST_GuideByPosition.getSpeedX(route.xMove);
+                    int xSpeed = AST_GuideByPosition.getSpeedX(move.x);
                     int ySpeed = AST_GuideBySpeed.getSpeedY(0);
                     int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
@@ -42,13 +46,13 @@ namespace AGVproject.Solution_FollowTrack
                 while (!AST_GuideByPosition.ApproachY)
                 {
                     int xSpeed = AST_GuideBySpeed.getSpeedX(0);
-                    int ySpeed = AST_GuideByPosition.getSpeedY(route.yMove);
+                    int ySpeed = AST_GuideByPosition.getSpeedY(move.y);
                     int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
                     TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
                 }
 
-                //AST_CorrectPosition.Start(route.TargetCorrect);
+                CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(i));
             }
         }
     }

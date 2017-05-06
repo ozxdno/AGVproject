@@ -289,6 +289,7 @@ namespace AGVproject.Class
             Configuration.setFieldValue("Hardware_UltraSonic.Tail_R_Y", UltraSonic2Double(Tail_R_Y));
         }
 
+        
         private static List<double> UltraSonic2Double(ULTRASONIC ultraSonic)
         {
             List<double> data = new List<double>();
@@ -305,13 +306,15 @@ namespace AGVproject.Class
         private static ULTRASONIC Double2UltraSonic(List<double> data)
         {
             ULTRASONIC ultraSonic = new ULTRASONIC();
+            if (data.Count == 0) { return ultraSonic; }
 
             ultraSonic.x = data[0];
-            ultraSonic.y = data[0];
-            ultraSonic.z = data[0];
-            ultraSonic.max = data[0];
-            ultraSonic.min = data[0];
+            ultraSonic.y = data[1];
+            ultraSonic.z = data[2];
+            ultraSonic.max = data[3];
+            ultraSonic.min = data[4];
 
+            data.RemoveRange(0, 5);
             return ultraSonic;
         }
     }

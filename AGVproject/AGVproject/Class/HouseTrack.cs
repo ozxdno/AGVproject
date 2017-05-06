@@ -25,6 +25,24 @@ namespace AGVproject.Class
         }
 
         /// <summary>
+        /// 保存额外信息的代理函数
+        /// </summary>
+        public delegate void SaveExtra(object Extra);
+        /// <summary>
+        /// 保存路径额外信息的方法
+        /// </summary>
+        public static SaveExtra SaveHandle;
+
+        /// <summary>
+        /// 加载额外信息的代理函数
+        /// </summary>
+        public delegate object LoadExtra();
+        /// <summary>
+        /// 加载额外信息的方法
+        /// </summary>
+        public static LoadExtra LoadHandle;
+
+        /// <summary>
         /// 路径信息
         /// </summary>
         public struct TRACK
@@ -54,7 +72,7 @@ namespace AGVproject.Class
             /// <summary>
             /// 辅助信息
             /// </summary>
-            public object Auxiliary;
+            public object Extra;
         }
 
         //////////////////////////////////////////////////// private attribute ///////////////////////////////////////
@@ -75,6 +93,9 @@ namespace AGVproject.Class
         {
             Track = new List<TRACK>();
             config.TrackLock = new object();
+
+            SaveHandle = Solution_FollowTrack.TrackFile.Save;
+            LoadHandle = Solution_FollowTrack.TrackFile.Load;
         }
         /// <summary>
         /// 获取默认路径
@@ -213,42 +234,71 @@ namespace AGVproject.Class
 
             pos.TargetPosition = Base;
         }
-        
+
         /// <summary>
-        /// 保存当前路径
+        /// 保存参数到配置文件中
         /// </summary>
         /// <returns></returns>
         public static bool Save()
         {
-            // 加载保存界面
-            string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Path;
-            string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Name;
-            string path = "", name = "";
-
-            SaveFileDialog sf = new SaveFileDialog();
-            sf.Filter = "Route File（*.route）|*.route|Picture File（*.jpg）|*.jpg";
-            sf.RestoreDirectory = true;
-            sf.FileName = RouteName;
-            if (sf.ShowDialog() != DialogResult.OK) { return false; }
-
-            int cut = sf.FileName.LastIndexOf("\\");
-            path = sf.FileName.Substring(0, cut);
-            name = sf.FileName.Substring(cut + 1);
-            name = name.Substring(0, name.Length - 6);
-            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
-
-            // 保存文件
-            
-
             return true;
         }
         /// <summary>
-        /// 加载指定路径
+        /// 保存路径信息
+        /// </summary>
+        /// <param name="fullname">文件名</param>
+        /// <returns></returns>
+        public static bool Save(string fullname )
+        {
+            Configuration.Clear(); List<TRACK> track = Get();
+
+            foreach (TRACK t in track)
+            {
+                Configuration.setFieldValue("Position", CoordinatePoint.Point2Double(t.TargetPosition));
+                Configuration.setFieldValue("IsLeft", t.IsLeft);
+                Configuration.setFieldValue("No", t.No);
+                Configuration.setFieldValue("Direction", (int)t.Direction);
+                Configuration.setFieldValue("Distance", t.Distance);
+
+                SaveHandle(t.Extra);
+            }
+
+            return Configuration.Save(fullname);
+        }
+        /// <summary>
+        /// 从配置文件中加载参数
         /// </summary>
         /// <returns></returns>
         public static bool Load()
         {
-            return false;
+            Initial(); return true;
+        }
+        /// <summary>
+        /// 加载路径信息
+        /// </summary>
+        /// <param name="fullname">路径名称</param>
+        /// <returns></returns>
+        public static bool Load(string fullname)
+        {
+            Configuration.Clear();
+            if (!Configuration.Load(fullname)) { return false; }
+
+            List<TRACK> track = new List<TRACK>();
+            while (!Configuration.IsEmpty())
+            {
+                TRACK t = new TRACK();
+
+                t.TargetPosition = CoordinatePoint.Double2Point(Configuration.getFieldValue2_DOUBLE("TargetPosition"));
+                t.IsLeft = Configuration.getFieldValue1_BOOL("IsLeft");
+                t.No = Configuration.getFieldValue1_INT("No");
+                t.Direction = (TH_AutoSearchTrack.Direction)Configuration.getFieldValue1_INT("Direction");
+                t.Distance = Configuration.getFieldValue1_DOUBLE("Distance");
+                t.Extra = LoadHandle();
+
+                track.Add(t);
+            }
+
+            Set(track); return true;
         }
 
         public static CoordinatePoint.POINT getTargetPosition(int No)
@@ -278,6 +328,34 @@ namespace AGVproject.Class
             TRACK track = getTrack(No);
 
             return track.TargetPosition.aCar;
+        }
+        public static bool getIsLeft(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return false; }
+            TRACK track = getTrack(No);
+
+            return track.IsLeft;
+        }
+        public static int getStackNo(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return -1; }
+            TRACK track = getTrack(No);
+
+            return track.No;
+        }
+        public static TH_AutoSearchTrack.Direction getDirection(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return TH_AutoSearchTrack.Direction.Tuning; }
+            TRACK track = getTrack(No);
+
+            return track.Direction;
+        }
+        public static object getExtra(int No)
+        {
+            if (No < 0 || No > Track.Count - 1) { return null; }
+            TRACK track = getTrack(No);
+
+            return track.Extra;
         }
     }
 }

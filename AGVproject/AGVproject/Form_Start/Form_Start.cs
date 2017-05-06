@@ -60,6 +60,102 @@ namespace AGVproject
             public double urgRange;
             public struct FILE { public string Full, Path, Name; public string[] Text; }
         }
+        public static void load()
+        {
+            config.Map = new List<CONFIG.FILE>();
+            List<string> Map = Configuration.getFieldValue2_STRING("Form_Start.Map");
+            foreach (string m in Map)
+            {
+                CONFIG.FILE map = new CONFIG.FILE();
+                string path = "", name = "", extension = "";
+                Configuration.cutFullName(m, ref path, ref name, ref extension);
+
+                map.Full = m;
+                map.Path = path;
+                map.Name = name;
+                map.Text = Configuration.getFieldValue2(m);
+                config.Map.Add(map);
+            }
+
+            config.Route = new List<CONFIG.FILE>();
+            List<string> Route = Configuration.getFieldValue2_STRING("Form_Start.Route");
+            foreach (string r in Route)
+            {
+                CONFIG.FILE route = new CONFIG.FILE();
+                string path = "", name = "", extension = "";
+                Configuration.cutFullName(r, ref path, ref name, ref extension);
+
+                route.Full = r;
+                route.Path = path;
+                route.Name = name;
+                route.Text = Configuration.getFieldValue2(r);
+                config.Route.Add(route);
+            }
+
+            config.SelectedMap = Configuration.getFieldValue1_INT("Form_Start.SelectedMap");
+            config.SelectedRoute = Configuration.getFieldValue1_INT("Form_Start.SelectedRoute");
+            config.CheckMap = Configuration.getFieldValue1_BOOL("Form_Start.CheckMap");
+            config.CheckRoute = Configuration.getFieldValue1_BOOL("Form_Start.CheckRoute");
+
+            config.ConPortName = Configuration.getFieldValue2_STRING("Form_Start.ConPortName");
+            config.ConBaudRate = Configuration.getFieldValue2_INT("Form_Start.ConBaudRate");
+            config.UrgPortName = Configuration.getFieldValue2_STRING("Form_Start.UrgPortName");
+            config.UrgBaudRate = Configuration.getFieldValue2_INT("Form_Start.UrgBaudRate");
+            config.LocPortName = Configuration.getFieldValue2_STRING("Form_Start.LocPortName");
+            config.LocBaudRate = Configuration.getFieldValue2_INT("Form_Start.LocBaudRate");
+
+            config.SelectedControlPortName = Configuration.getFieldValue1_INT("Form_Start.SelectedControlPortName");
+            config.SelectedControlBaudRate = Configuration.getFieldValue1_INT("Form_Start.SelectedControlBaudRate");
+            config.SelectedUrgPortName = Configuration.getFieldValue1_INT("Form_Start.SelectedUrgPortName");
+            config.SelectedUrgBaudRate = Configuration.getFieldValue1_INT("Form_Start.SelectedUrgBaudRate");
+            config.SelectedLocatePortName = Configuration.getFieldValue1_INT("Form_Start.SelectedLocatePortName");
+            config.SelectedLocateBaudRate = Configuration.getFieldValue1_INT("Form_Start.SelectedLocateBaudRate");
+
+            config.CheckControlPort = Configuration.getFieldValue1_BOOL("Form_Start.CheckControlPort");
+            config.CheckUrgPort = Configuration.getFieldValue1_BOOL("Form_Start.CheckUrgPort");
+            config.CheckLocatePort = Configuration.getFieldValue1_BOOL("Form_Start.CheckLocatePort");
+
+            config.urgRange = Configuration.getFieldValue1_DOUBLE("Form_Start.urgRange");
+        }
+        public static void save()
+        {
+            List<string> Map = new List<string>();
+            foreach (CONFIG.FILE map in config.Map) { Map.Add(map.Full); }
+            Configuration.setFieldValue("Form_Start.Map", Map);
+            foreach (CONFIG.FILE map in config.Map)
+            { Configuration.setFieldValue(map.Full, map.Text); }
+
+            List<string> Route = new List<string>();
+            foreach (CONFIG.FILE route in config.Route) { Route.Add(route.Full); }
+            Configuration.setFieldValue("Form_Start.Route", Route);
+            foreach (CONFIG.FILE route in config.Route)
+            { Configuration.setFieldValue(route.Full, route.Text); }
+
+            Configuration.setFieldValue("Form_Start.SelectedMap", config.SelectedMap);
+            Configuration.setFieldValue("Form_Start.SelectedRoute", config.SelectedRoute);
+            Configuration.setFieldValue("Form_Start.CheckMap", config.CheckMap);
+            Configuration.setFieldValue("Form_Start.CheckRoute", config.CheckRoute);
+
+            Configuration.setFieldValue("Form_Start.ConPortName", config.ConPortName);
+            Configuration.setFieldValue("Form_Start.ConBaudRate", config.ConBaudRate);
+            Configuration.setFieldValue("Form_Start.UrgPortName", config.UrgPortName);
+            Configuration.setFieldValue("Form_Start.UrgBaudRate", config.UrgBaudRate);
+            Configuration.setFieldValue("Form_Start.LocPortName", config.LocPortName);
+            Configuration.setFieldValue("Form_Start.LocBaudRate", config.LocBaudRate);
+
+            Configuration.setFieldValue("Form_Start.SelectedControlPortName", config.SelectedControlPortName);
+            Configuration.setFieldValue("Form_Start.SelectedControlBaudRate", config.SelectedControlBaudRate);
+            Configuration.setFieldValue("Form_Start.SelectedUrgPortName", config.SelectedUrgPortName);
+            Configuration.setFieldValue("Form_Start.SelectedUrgBaudRate", config.SelectedUrgBaudRate);
+            Configuration.setFieldValue("Form_Start.SelectedLocatePortName", config.SelectedLocatePortName);
+            Configuration.setFieldValue("Form_Start.SelectedLocateBaudRate", config.SelectedLocateBaudRate);
+
+            Configuration.setFieldValue("Form_Start.CheckControlPort", config.CheckControlPort);
+            Configuration.setFieldValue("Form_Start.CheckUrgPort", config.CheckUrgPort);
+            Configuration.setFieldValue("Form_Start.CheckLocatePort", config.CheckLocatePort);
+
+            Configuration.setFieldValue("Form_Start.urgRange", config.urgRange);
+        }
         
         private void Refresh_FormStart(object source, System.Timers.ElapsedEventArgs e)
         {
@@ -132,14 +228,9 @@ namespace AGVproject
             TH_SendCommand.Close();
             TH_MeasureSurrounding.Close();
             TH_MeasurePosition.Close();
-
-            Configuration.Save();
         }
         private void Form_Start_Load(object sender, EventArgs e)
         {
-            // 加载配置信息
-            Configuration.Load();
-
             // Map
             for (int i = config.Map.Count-1; i >= 0; i--)
             {
@@ -160,6 +251,7 @@ namespace AGVproject
             ToolStripMenuItem SelectedMap = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems
                 [config.SelectedMap + config.MapNameIndexBG];
             setSelectedMap(SelectedMap, e);
+            this.CheckMap.Checked = config.CheckMap;
 
             // Route
             for (int i = config.Route.Count - 1; i >= 0; i--)
@@ -387,7 +479,7 @@ namespace AGVproject
             {
                 TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Stop;
                 TH_AutoSearchTrack.control.EMA = true;
-                Solution_FollowTrack.BuildRoute.Stop();
+                Solution_FollowTrack.BuildTrack.Over = true;
                 this.button.Text = "Continue"; return;
             }
 
@@ -534,7 +626,7 @@ namespace AGVproject
         private void saveMap(object sender, EventArgs e)
         {
             int index = -1;
-            bool needAdd = Configuration.Save_Map(ref index);
+            bool needAdd = HouseStack.Save("");
             if (index == -1) { return; }
             if (!needAdd)
             {
@@ -659,21 +751,21 @@ namespace AGVproject
         }
         private void saveRoute(object sender, EventArgs e)
         {
-            HouseTrack.Save(); return;
+            string path = "", name = "", extension = "";
+            string extensions = "Route File(*.route)|*.route|Picture File(*.png)|*.png";
+            name = config.SelectedRoute == -1 ? "Auto" : config.Route[config.SelectedRoute].Name;
 
-            int index = -1;
-            bool needAdd = Configuration.Save_Route(ref index);
-            if (index == -1) { return; }
-            if (!needAdd)
-            {
-                ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[index + config.RouteNameIndexBG];
-                setSelectedRoute(menu, e); return;
-            }
+            bool OK = Configuration.Save(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
 
-            ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[index].Name);
-            NewMenu.Click += setSelectedRoute;
-            this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
-            setSelectedRoute(NewMenu, e);
+            HouseTrack.Save(path + "\\" + name + "." + extension);
+
+            
+
+            //ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[index].Name);
+            //NewMenu.Click += setSelectedRoute;
+            //this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+            //setSelectedRoute(NewMenu, e);
         }
 
         private void showMapRoute()

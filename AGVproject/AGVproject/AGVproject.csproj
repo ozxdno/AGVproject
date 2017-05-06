@@ -83,8 +83,9 @@
     <Compile Include="Form_Start\Form_Start.Designer.cs">
       <DependentUpon>Form_Start.cs</DependentUpon>
     </Compile>
-    <Compile Include="Solution_FollowTrack\BuildRoute.cs" />
+    <Compile Include="Solution_FollowTrack\BuildTrack.cs" />
     <Compile Include="Solution_FollowTrack\FollowTrack.cs" />
+    <Compile Include="Solution_FollowTrack\TrackFile.cs" />
     <Compile Include="Solution_SLAM\CorrectPosition\CorrectByUrg.cs" />
     <Compile Include="Solution_SLAM\BuildMap\ExtractFeatures.cs" />
     <Compile Include="Solution_SLAM\BuildMap\MatchFeature.cs" />

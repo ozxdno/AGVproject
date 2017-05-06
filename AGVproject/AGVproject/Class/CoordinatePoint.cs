@@ -42,6 +42,33 @@ namespace AGVproject.Class
             public double rCar;
         }
 
+        public static List<double> Point2Double(POINT point)
+        {
+            List<double> data = new List<double>();
+            data.Add(point.x);
+            data.Add(point.y);
+            data.Add(point.a);
+            data.Add(point.r);
+            data.Add(point.d);
+            data.Add(point.aCar);
+            data.Add(point.rCar);
+
+            return data;
+        }
+        public static POINT Double2Point(List<double> data)
+        {
+            POINT point = new POINT();
+            if (data.Count == 0) { return point; }
+            point.x = data[0];
+            point.y = data[1];
+            point.a = data[2];
+            point.r = data[3];
+            point.d = data[4];
+            point.aCar = data[5];
+            point.rCar = data[6];
+            return point;
+        }
+
         public static POINT Create_XY(double x, double y)
         {
             POINT point = new POINT();
@@ -582,7 +609,7 @@ namespace AGVproject.Class
         /// <param name="sour">源坐标</param>
         /// <param name="dest">目的坐标</param>
         /// <returns></returns>
-        public POINT MoveMethod(POINT sour, POINT dest)
+        public static POINT MoveMethod(POINT sour, POINT dest)
         {
             double xMove = dest.x - sour.x;
             double yMove = dest.y - sour.y;
@@ -590,7 +617,7 @@ namespace AGVproject.Class
             double aMove = dest.aCar - sour.aCar;
             double rMove = dest.rCar - sour.rCar;
 
-            POINT Move = CoordinatePoint.Create_XY(xMove, yMove);
+            POINT Move = Create_XY(xMove, yMove); Move.aCar = aMove;
             return TransformCoordinate(Move, 0, 0, rMove);
         }
         /// <summary>

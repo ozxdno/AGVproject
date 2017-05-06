@@ -15,9 +15,15 @@ namespace AGVproject
         [STAThread]
         static void Main()
         {
+            // 初始化
+            AGVproject.Class.Configuration.Load();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form_Start());
+
+            // 保存
+            AGVproject.Class.Configuration.Save();
         }
     }
 

@@ -161,7 +161,23 @@ namespace AGVproject.Class
         ////////////////////////////////////////// private attribute ///////////////////////////////////////////////
         
         ////////////////////////////////////////// public method ///////////////////////////////////////////////
-        
+       
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public static void Initial()
+        {
+            control.Action = Action.Normal;
+            control.EMA = false;
+            control.StackNo = 0;
+            control.TrackNo = 0;
+            control.Event = "Normal";
+            control.EventColor = System.Drawing.Color.Black;
+        }
+
+        /// <summary>
+        /// 启动行进线程
+        /// </summary>
         public static void Start()
         {
             // 开线程
@@ -169,15 +185,16 @@ namespace AGVproject.Class
             control.Thread = new System.Threading.Thread(AST);
             control.Thread.Start();
         }
+        /// <summary>
+        /// 复位行进线程
+        /// </summary>
         public static void Restart()
         {
             // 关闭线程
             control.Abort = true;
             while (control.Thread != null && control.Thread.ThreadState == System.Threading.ThreadState.Running) ;
             control.Abort = false;
-
-            // 加载参数
-            Configuration.Load();
+            
             
             // 开线程
             control.Abort = false;
@@ -185,8 +202,37 @@ namespace AGVproject.Class
             control.Thread.Start();
         }
 
+        /// <summary>
+        /// 从配置文件中加载参数
+        /// </summary>
+        public static void Load()
+        {
+            control.MinDistance_H = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_H");
+            control.MinDistance_T = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_T");
+            control.MinDistance_L = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_L");
+            control.MinDistance_R = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_R");
+
+            control.MaxSpeed_X = Configuration.getFieldValue1_INT("AST.MaxSpeed_X");
+            control.MaxSpeed_Y = Configuration.getFieldValue1_INT("AST.MaxSpeed_Y");
+            control.MaxSpeed_A = Configuration.getFieldValue1_INT("AST.MaxSpeed_A");
+        }
+        /// <summary>
+        /// 保存参数到配置文件中
+        /// </summary>
+        public static void Save()
+        {
+            Configuration.setFieldValue("AST.MinDistance_H", control.MinDistance_H);
+            Configuration.setFieldValue("AST.MinDistance_T", control.MinDistance_T);
+            Configuration.setFieldValue("AST.MinDistance_L", control.MinDistance_L);
+            Configuration.setFieldValue("AST.MinDistance_R", control.MinDistance_R);
+
+            Configuration.setFieldValue("AST.MaxSpeed_X", control.MaxSpeed_X);
+            Configuration.setFieldValue("AST.MaxSpeed_Y", control.MaxSpeed_Y);
+            Configuration.setFieldValue("AST.MaxSpeed_A", control.MaxSpeed_A);
+        }
+
         ////////////////////////////////////////// private method ///////////////////////////////////////////////
-        
+
         private static void AST()
         {
             while (true)
@@ -233,7 +279,7 @@ namespace AGVproject.Class
                 //}
 
                 // 测试自动记录路径并按路径行进
-                Solution_FollowTrack.BuildRoute.Start();
+                Solution_FollowTrack.BuildTrack.Start();
                 Solution_FollowTrack.FollowTrack.Start();
 
                 // 取动作序列，并控制按动作序列行进
