@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+
+using AGVproject.Solution_SLAM.Feature;
 
 namespace AGVproject.Class
 {
@@ -30,59 +33,28 @@ namespace AGVproject.Class
             /// 目标点的仓库坐标
             /// </summary>
             public CoordinatePoint.POINT TargetPosition;
-            /// <summary>
-            /// 目标点和堆垛的相对位置
-            /// </summary>
-            public STACK_POS StackPos;
-            
-            /// <summary>
-            /// X 方向行进模式
-            /// </summary>
-            public MODE_X xMode;
-            /// <summary>
-            /// Y 方向行进模式
-            /// </summary>
-            public MODE_Y yMode;
-            /// <summary>
-            /// A 方向行进模式
-            /// </summary>
-            public MODE_A aMode;
 
             /// <summary>
-            /// 堆垛位置信息
+            /// 是否为左边的垛区
             /// </summary>
-            public struct STACK_POS
-            {
-                /// <summary>
-                /// 是否为左边的垛区
-                /// </summary>
-                public bool IsLeft;
-                /// <summary>
-                /// 垛区编号
-                /// </summary>
-                public int No;
-                /// <summary>
-                /// 小车在垛区的哪一边
-                /// </summary>
-                public TH_AutoSearchTrack.Direction Direction;
-                /// <summary>
-                /// 距这一边左边端点的距离
-                /// </summary>
-                public double Distance;
-            }
+            public bool IsLeft;
+            /// <summary>
+            /// 垛区编号
+            /// </summary>
+            public int No;
+            /// <summary>
+            /// 小车在垛区的哪一边
+            /// </summary>
+            public TH_AutoSearchTrack.Direction Direction;
+            /// <summary>
+            /// 距这一边左边端点的距离
+            /// </summary>
+            public double Distance;
 
             /// <summary>
-            /// X 方向行进模式集合
+            /// 辅助信息
             /// </summary>
-            public enum MODE_X { KeepL, KeepR, BySpeed, ByPosition }
-            /// <summary>
-            /// Y 方向行进模式集合
-            /// </summary>
-            public enum MODE_Y { KeepU, KeepD, BySpeed, ByPosition }
-            /// <summary>
-            /// A 方向行进模式集合
-            /// </summary>
-            public enum MODE_A { BySurrounding, BySpeed, ByPosition }
+            public object Auxiliary;
         }
 
         //////////////////////////////////////////////////// private attribute ///////////////////////////////////////
@@ -110,14 +82,11 @@ namespace AGVproject.Class
         public static void getDefauteTrack()
         {
             TRACK oTrack = new TRACK();
-            oTrack.StackPos.IsLeft = HouseStack.getIsLeft(0);
-            oTrack.StackPos.No = 0;
-            oTrack.StackPos.Direction = TH_AutoSearchTrack.Direction.Down;
-            oTrack.StackPos.Distance = HouseStack.getLength(0) / 2;
-            oTrack.TargetPosition = Position_Rel2Abs(oTrack.StackPos);
-            oTrack.xMode = TRACK.MODE_X.ByPosition;
-            oTrack.yMode = TRACK.MODE_Y.ByPosition;
-            oTrack.aMode = TRACK.MODE_A.ByPosition;
+            oTrack.IsLeft = HouseStack.getIsLeft(0);
+            oTrack.No = 0;
+            oTrack.Direction = TH_AutoSearchTrack.Direction.Down;
+            oTrack.Distance = HouseStack.getLength(0) / 2;
+            fillPosition(ref oTrack);
         }
 
         /// <summary>
@@ -215,7 +184,7 @@ namespace AGVproject.Class
             lock (config.TrackLock)
             {
                 TRACK track = Track[No];
-                track.TargetPosition = Position_Rel2Abs(track.StackPos);
+                fillPosition(ref track);
                 Track[No] = track;
             }
         }
@@ -225,7 +194,7 @@ namespace AGVproject.Class
         /// </summary>
         /// <param name="pos">相对位置信息</param>
         /// <returns></returns>
-        public static CoordinatePoint.POINT Position_Rel2Abs(TRACK.STACK_POS pos)
+        public static void fillPosition(ref TRACK pos)
         {
             CoordinatePoint.POINT Base = HouseStack.getPosition(pos.No);
 
@@ -242,19 +211,39 @@ namespace AGVproject.Class
             if (pos.Direction == TH_AutoSearchTrack.Direction.Left) { Base.x -= keepL; Base.y += W - pos.Distance; }
             if (pos.Direction == TH_AutoSearchTrack.Direction.Right) { Base.x += L + keepR; Base.y += pos.Distance; }
 
-            return Base;
+            pos.TargetPosition = Base;
         }
         
         /// <summary>
-        /// 保存当前路径为文本格式
+        /// 保存当前路径
         /// </summary>
         /// <returns></returns>
         public static bool Save()
         {
-            return false;
+            // 加载保存界面
+            string RoutePath = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Path;
+            string RouteName = Form_Start.config.SelectedRoute < 0 ? "Auto" : Form_Start.config.Map[Form_Start.config.SelectedRoute].Name;
+            string path = "", name = "";
+
+            SaveFileDialog sf = new SaveFileDialog();
+            sf.Filter = "Route File（*.route）|*.route|Picture File（*.jpg）|*.jpg";
+            sf.RestoreDirectory = true;
+            sf.FileName = RouteName;
+            if (sf.ShowDialog() != DialogResult.OK) { return false; }
+
+            int cut = sf.FileName.LastIndexOf("\\");
+            path = sf.FileName.Substring(0, cut);
+            name = sf.FileName.Substring(cut + 1);
+            name = name.Substring(0, name.Length - 6);
+            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return false; }
+
+            // 保存文件
+            
+
+            return true;
         }
         /// <summary>
-        /// 加载指定的文本格式路径
+        /// 加载指定路径
         /// </summary>
         /// <returns></returns>
         public static bool Load()

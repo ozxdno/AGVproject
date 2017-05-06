@@ -317,15 +317,37 @@ namespace AGVproject.Class
             lock (config.StacksLock) { Stacks[No] = stack; }
         }
 
+        /// <summary>
+        /// 从配置文件中加载参数
+        /// </summary>
         public static void Load()
         {
+            Initial();
 
+            TotalStacksL = Configuration.getFieldValue1_INT("HouseStack.TotalStacksL");
+            TotalStacksR = Configuration.getFieldValue1_INT("HouseStack.TotalStacksR");
+            DefaultAisleWidthLR = Configuration.getFieldValue1_DOUBLE("HouseStack.DefaultAisleWidthLR");
+            DefaultAisleWidthUD = Configuration.getFieldValue1_DOUBLE("HouseStack.DefaultAisleWidthUD");
+            DefaultStackLength = Configuration.getFieldValue1_DOUBLE("HouseStack.DefaultStackLength");
+            DefaultStackWidth = Configuration.getFieldValue1_DOUBLE("HouseStack.DefaultStackWidth");
         }
+        /// <summary>
+        /// 保存参数到配置文件中
+        /// </summary>
         public static void Save()
+        {
+            Configuration.setFieldValue("HouseStack.TotalStacksL", TotalStacksL);
+            Configuration.setFieldValue("HouseStack.TotalStacksR", TotalStacksR);
+            Configuration.setFieldValue("HouseStack.DefaultAisleWidthLR", DefaultAisleWidthLR);
+            Configuration.setFieldValue("HouseStack.DefaultAisleWidthUD", DefaultAisleWidthUD);
+            Configuration.setFieldValue("HouseStack.DefaultStackLength", DefaultStackLength);
+            Configuration.setFieldValue("HouseStack.DefaultStackWidth", DefaultStackWidth);
+        }
+        public static void Save(ref string name, ref string path, ref string extension)
         {
 
         }
-        
+
 
         public static bool getIsLeft(int No)
         {

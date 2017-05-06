@@ -316,6 +316,27 @@ namespace AGVproject.Class
             CursorInMap = true;
         }
 
+        /// <summary>
+        /// 从配置文件中加载参数
+        /// </summary>
+        public static void Load()
+        {
+            Initial();
+
+            HouseLength = Configuration.getFieldValue1_DOUBLE("HouseMap.HouseLength");
+            HouseWidth = Configuration.getFieldValue1_DOUBLE("HouseMap.HouseWidth");
+            PixLength = Configuration.getFieldValue1_DOUBLE("HouseMap.PixLength");
+        }
+        /// <summary>
+        /// 保存参数到配置文件中
+        /// </summary>
+        public static void Save()
+        {
+            Configuration.setFieldValue("HouseMap.HouseLength", HouseLength);
+            Configuration.setFieldValue("HouseMap.HouseWidth", HouseWidth);
+            Configuration.setFieldValue("HouseMap.PixLength", PixLength);
+        }
+
         ////////////////////////////////////////////// private method ///////////////////////////////////////////
 
         private static void getFont()

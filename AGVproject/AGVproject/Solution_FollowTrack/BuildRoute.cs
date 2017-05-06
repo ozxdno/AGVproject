@@ -21,7 +21,7 @@ namespace AGVproject.Solution_FollowTrack
         public static List<ROUTE> Route = new List<ROUTE>();
         
         /// <summary>
-        /// 路径信息
+        /// 路径辅助信息
         /// </summary>
         public struct ROUTE
         {

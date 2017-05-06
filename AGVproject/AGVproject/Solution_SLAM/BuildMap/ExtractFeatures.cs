@@ -20,6 +20,7 @@ namespace AGVproject.Solution_SLAM.BuildMap
         public static void Start()
         {
             List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            ptGroups = new List<List<CoordinatePoint.POINT>>();
             cutPointsToGroup(points);
 
             Features = new List<Feature.Feature>();
@@ -29,8 +30,12 @@ namespace AGVproject.Solution_SLAM.BuildMap
                 getDotFeature(points); getLineFeature(points);
             }
         }
-
+        /// <summary>
+        /// 对应于特征所分割出的线段
+        /// </summary>
         public static List<List<CoordinatePoint.POINT>> ptGroups;
+
+
         private static void cutPointsToGroup(List<CoordinatePoint.POINT> points)
         {
             // 点的数量不够

@@ -61,15 +61,11 @@ namespace AGVproject.Class
             /// <summary>
             /// 当前小车靠近的堆垛编号
             /// </summary>
-            public int NearStack;
+            public int StackNo;
             /// <summary>
-            /// 当前点
+            /// 当前小车的路径编号
             /// </summary>
-            public int Current;
-            /// <summary>
-            /// 目标点
-            /// </summary>
-            public int Target;
+            public int TrackNo;
             /// <summary>
             /// 事件通知，在界面中提示当前小车的状态
             /// </summary>
@@ -237,7 +233,6 @@ namespace AGVproject.Class
                 //}
 
                 // 测试自动记录路径并按路径行进
-                //Form_Start.corrpos = true;
                 Solution_FollowTrack.BuildRoute.Start();
                 Solution_FollowTrack.FollowTrack.Start();
 

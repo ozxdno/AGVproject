@@ -52,6 +52,10 @@ namespace AGVproject.Solution_SLAM.Feature
     enum TYPE
     {
         /// <summary>
+        /// 空
+        /// </summary>
+        Empty,
+        /// <summary>
         /// 线
         /// </summary>
         Line,

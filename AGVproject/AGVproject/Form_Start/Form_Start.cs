@@ -659,7 +659,7 @@ namespace AGVproject
         }
         private void saveRoute(object sender, EventArgs e)
         {
-            //if (TH_UpdataPictureBox.Route.Count != 0) { TH_UpdataPictureBox.DrawOver = true; }
+            HouseTrack.Save(); return;
 
             int index = -1;
             bool needAdd = Configuration.Save_Route(ref index);
