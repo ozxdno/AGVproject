@@ -28,5 +28,10 @@ namespace AGVproject.Form_Input
 
             this.Close();
         }
+
+        private void Form_Input_Load(object sender, EventArgs e)
+        {
+            this.Location = MousePosition; this.textBox1.Text = Input;
+        }
     }
 }

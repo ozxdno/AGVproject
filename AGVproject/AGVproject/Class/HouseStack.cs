@@ -264,6 +264,49 @@ namespace AGVproject.Class
         {
             lock (config.StacksLock) { Stacks = stacks; }
         }
+        /// <summary>
+        /// 重新获取垛区排布位置
+        /// </summary>
+        public static void Fit()
+        {
+            List<STACK> Stacks = Get();
+
+            STACK stack0 = Stacks[0];
+            stack0.Position = CoordinatePoint.Create_XY(stack0.AisleWidth_L, 0);
+            Stacks[0] = stack0;
+
+            double ptX = 0, ptY = 0;
+            double centre = HouseMap.HouseWidth - Stacks[1].Length - Stacks[1].AisleWidth_R - Stacks[TotalStacks].Length - Stacks[TotalStacks].AisleWidth_L;
+            
+            for (int i = 1; i <= TotalStacksR; i++)
+            {
+                ptX = HouseMap.HouseWidth - Stacks[i].AisleWidth_R - Stacks[i].Length;
+                ptY += Stacks[i].AisleWidth_U;
+
+                STACK stack = Stacks[i];
+                stack.Position = CoordinatePoint.Create_XY(ptX, ptY);
+                Stacks[i] = stack;
+
+                ptY += Stacks[i].Width;
+            }
+
+            ptX = 0;
+            ptY = 0;
+
+            for (int i = TotalStacks; i > TotalStacksR; i--)
+            {
+                ptX = Stacks[i].AisleWidth_L;
+                ptY += Stacks[i].AisleWidth_U;
+
+                STACK stack = Stacks[i];
+                stack.Position = CoordinatePoint.Create_XY(ptX, ptY);
+                Stacks[i] = stack;
+
+                ptY += Stacks[i].Width;
+            }
+
+            Set(Stacks);
+        }
 
         /// <summary>
         /// 添加堆垛
@@ -396,10 +439,10 @@ namespace AGVproject.Class
                 Configuration.setFieldValue("Length", stack.Length);
                 Configuration.setFieldValue("Width", stack.Width);
                 Configuration.setFieldValue("Position", CoordinatePoint.Point2Double(stack.Position));
-                Configuration.setFieldValue("AisleWidthU", stack.AisleWidth_U);
-                Configuration.setFieldValue("AisleWidthD", stack.AisleWidth_D);
-                Configuration.setFieldValue("AisleWidthL", stack.AisleWidth_L);
-                Configuration.setFieldValue("AisleWidthR", stack.AisleWidth_R);
+                Configuration.setFieldValue("AisleWidth_U", stack.AisleWidth_U);
+                Configuration.setFieldValue("AisleWidth_D", stack.AisleWidth_D);
+                Configuration.setFieldValue("AisleWidth_L", stack.AisleWidth_L);
+                Configuration.setFieldValue("AisleWidth_R", stack.AisleWidth_R);
                 Configuration.setFieldValue("CarPosition", (int)stack.CarPosition);
                 Configuration.setFieldValue("CarDirection", (int)stack.CarDirection);
                 Configuration.setFieldValue("Distance", stack.Distance);

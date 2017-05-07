@@ -33,7 +33,7 @@
             this.iSetKeepL = new System.Windows.Forms.TextBox();
             this.iLength = new System.Windows.Forms.TextBox();
             this.iWidth = new System.Windows.Forms.TextBox();
-            this.iDirection = new System.Windows.Forms.ComboBox();
+            this.listbox1 = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.iAisleWidthL = new System.Windows.Forms.TextBox();
@@ -51,11 +51,11 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.iDistance = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
             this.StackNoLabel = new System.Windows.Forms.Label();
-            this.Confirm = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -97,19 +97,25 @@
             this.iWidth.Size = new System.Drawing.Size(100, 21);
             this.iWidth.TabIndex = 6;
             // 
-            // iDirection
+            // listbox1
             // 
-            this.iDirection.FormattingEnabled = true;
-            this.iDirection.Items.AddRange(new object[] {
-            "左",
-            "右",
-            "上",
-            "下",
-            "？"});
-            this.iDirection.Location = new System.Drawing.Point(80, 13);
-            this.iDirection.Name = "iDirection";
-            this.iDirection.Size = new System.Drawing.Size(39, 20);
-            this.iDirection.TabIndex = 7;
+            this.listbox1.FormattingEnabled = true;
+            this.listbox1.Items.AddRange(new object[] {
+            "默认",
+            "门",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"});
+            this.listbox1.Location = new System.Drawing.Point(72, 13);
+            this.listbox1.Name = "listbox1";
+            this.listbox1.Size = new System.Drawing.Size(47, 20);
+            this.listbox1.TabIndex = 7;
+            this.listbox1.SelectedIndexChanged += new System.EventHandler(this.listbox1_SelectedIndexChanged);
             // 
             // label5
             // 
@@ -259,26 +265,9 @@
             this.label12.BackColor = System.Drawing.SystemColors.Control;
             this.label12.Location = new System.Drawing.Point(13, 16);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(65, 12);
+            this.label12.Size = new System.Drawing.Size(53, 12);
             this.label12.TabIndex = 30;
-            this.label12.Text = "小车位置：";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.BackColor = System.Drawing.SystemColors.Control;
-            this.label13.Location = new System.Drawing.Point(192, 16);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(89, 12);
-            this.label13.TabIndex = 31;
-            this.label13.Text = "距左端点距离：";
-            // 
-            // iDistance
-            // 
-            this.iDistance.Location = new System.Drawing.Point(277, 12);
-            this.iDistance.Name = "iDistance";
-            this.iDistance.Size = new System.Drawing.Size(100, 21);
-            this.iDistance.TabIndex = 32;
+            this.label12.Text = "堆垛号：";
             // 
             // label14
             // 
@@ -302,25 +291,42 @@
             this.StackNoLabel.TabIndex = 34;
             this.StackNoLabel.Text = "99";
             // 
-            // Confirm
+            // button1
             // 
-            this.Confirm.Location = new System.Drawing.Point(410, 11);
-            this.Confirm.Name = "Confirm";
-            this.Confirm.Size = new System.Drawing.Size(102, 23);
-            this.Confirm.TabIndex = 35;
-            this.Confirm.Text = "Confirm";
-            this.Confirm.UseVisualStyleBackColor = true;
-            this.Confirm.Click += new System.EventHandler(this.Confirm_Click);
+            this.button1.Location = new System.Drawing.Point(410, 11);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(102, 23);
+            this.button1.TabIndex = 35;
+            this.button1.Text = "Cancle";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.BackColor = System.Drawing.SystemColors.Control;
+            this.label11.Location = new System.Drawing.Point(125, 16);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(155, 12);
+            this.label11.TabIndex = 36;
+            this.label11.Text = "库房尺寸：200000 / 200000";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.BackColor = System.Drawing.SystemColors.Control;
+            this.label13.Location = new System.Drawing.Point(286, 16);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(41, 12);
+            this.label13.TabIndex = 37;
+            this.label13.Text = "缩放：";
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(125, 13);
+            this.textBox1.Location = new System.Drawing.Point(324, 12);
             this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(54, 21);
-            this.textBox1.TabIndex = 36;
-            this.textBox1.Text = "待调整";
-            this.textBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBox1.Size = new System.Drawing.Size(71, 21);
+            this.textBox1.TabIndex = 38;
             // 
             // Form_Stack
             // 
@@ -328,11 +334,11 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 244);
             this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.Confirm);
+            this.Controls.Add(this.label13);
+            this.Controls.Add(this.label11);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.StackNoLabel);
             this.Controls.Add(this.label14);
-            this.Controls.Add(this.iDistance);
-            this.Controls.Add(this.label13);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);
@@ -350,14 +356,14 @@
             this.Controls.Add(this.iAisleWidthL);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.iDirection);
+            this.Controls.Add(this.listbox1);
             this.Controls.Add(this.iWidth);
             this.Controls.Add(this.iLength);
             this.Controls.Add(this.iSetKeepL);
             this.Controls.Add(this.iSetKeepR);
             this.Controls.Add(this.pictureBox1);
             this.Name = "Form_Stack";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form_Stack";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form_Stack_FormClosing);
             this.Load += new System.EventHandler(this.Form_Stack_Load);
@@ -374,7 +380,7 @@
         private System.Windows.Forms.TextBox iSetKeepL;
         private System.Windows.Forms.TextBox iLength;
         private System.Windows.Forms.TextBox iWidth;
-        private System.Windows.Forms.ComboBox iDirection;
+        private System.Windows.Forms.ComboBox listbox1;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox iAisleWidthL;
@@ -392,11 +398,11 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.TextBox iDistance;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label StackNoLabel;
-        private System.Windows.Forms.Button Confirm;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label label13;
         private System.Windows.Forms.TextBox textBox1;
     }
 }

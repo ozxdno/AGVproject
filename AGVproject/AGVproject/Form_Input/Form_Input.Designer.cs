@@ -49,6 +49,7 @@
             this.Name = "Form_Input";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Form_Input";
+            this.Load += new System.EventHandler(this.Form_Input_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

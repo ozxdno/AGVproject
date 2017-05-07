@@ -102,12 +102,66 @@ namespace AGVproject.Class
         /// </summary>
         public static void getDefauteTrack()
         {
-            TRACK oTrack = new TRACK();
-            oTrack.IsLeft = HouseStack.getIsLeft(0);
-            oTrack.No = 0;
-            oTrack.Direction = TH_AutoSearchTrack.Direction.Down;
-            oTrack.Distance = HouseStack.getLength(0) / 2;
-            fillPosition(ref oTrack);
+            Clear();
+
+            TRACK track0 = new TRACK();
+            track0.IsLeft = HouseStack.getIsLeft(0);
+            track0.No = 0;
+            track0.Direction = TH_AutoSearchTrack.Direction.Down;
+            track0.Distance = HouseStack.getLength(0) / 2;
+            fillPosition(ref track0);
+            addTrack(track0);
+
+            TRACK track1 = new TRACK();
+            track1.IsLeft = false;
+            track1.No = 1;
+            track1.Direction = TH_AutoSearchTrack.Direction.Left;
+            track1.Distance = HouseStack.getWidth(1) + HouseStack.getKeepDistanceU(1);
+            fillPosition(ref track1);
+            addTrack(track1);
+
+            TRACK track2 = new TRACK();
+            track2.IsLeft = false;
+            track2.No = 1;
+            track2.Direction = TH_AutoSearchTrack.Direction.Up;
+            track2.Distance = HouseStack.getLength(1) + HouseStack.getKeepDistanceR(1);
+            fillPosition(ref track2);
+            addTrack(track2);
+
+            for (int i = 1; i <= HouseStack.TotalStacksR; i++)
+            {
+                TRACK ur = new TRACK();
+                ur.IsLeft = false;
+                ur.No = i;
+                ur.Direction = TH_AutoSearchTrack.Direction.Up;
+                ur.Distance = HouseStack.getLength(i) + HouseStack.getKeepDistanceR(i);
+                fillPosition(ref ur);
+                addTrack(ur);
+
+                TRACK ul = new TRACK();
+                ul.IsLeft = false;
+                ul.No = i;
+                ul.Direction = TH_AutoSearchTrack.Direction.Up;
+                ul.Distance = -HouseStack.getKeepDistanceL(i);
+                fillPosition(ref ul);
+                addTrack(ul);
+
+                TRACK dl = new TRACK();
+                dl.IsLeft = false;
+                dl.No = i;
+                dl.Direction = TH_AutoSearchTrack.Direction.Down;
+                dl.Distance = HouseStack.getLength(i) + HouseStack.getKeepDistanceL(i);
+                fillPosition(ref dl);
+                addTrack(dl);
+
+                TRACK dr = new TRACK();
+                dr.IsLeft = false;
+                dr.No = i;
+                dr.Direction = TH_AutoSearchTrack.Direction.Down;
+                dr.Distance = -HouseStack.getKeepDistanceR(i);
+                fillPosition(ref dr);
+                addTrack(dr);
+            }
         }
 
         /// <summary>
@@ -164,6 +218,17 @@ namespace AGVproject.Class
             lock (config.TrackLock) { Track.Insert(No, track); }
         }
         /// <summary>
+        /// 删除最后的路径
+        /// </summary>
+        public static void delTrack()
+        {
+            lock (config.TrackLock)
+            {
+                if (Track == null || Track.Count == 0) { return; }
+                Track.RemoveAt(Track.Count - 1);
+            }
+        }
+        /// <summary>
         /// 删除路径
         /// </summary>
         /// <param name="No">路径编号</param>
@@ -211,28 +276,28 @@ namespace AGVproject.Class
         }
 
         /// <summary>
-        /// 利用相对于堆垛的位置获取仓库坐标系下的坐标
+        /// 填充仓库坐标系下的坐标
         /// </summary>
-        /// <param name="pos">相对位置信息</param>
+        /// <param name="track">路径信息</param>
         /// <returns></returns>
-        public static void fillPosition(ref TRACK pos)
+        public static void fillPosition(ref TRACK track)
         {
-            CoordinatePoint.POINT Base = HouseStack.getPosition(pos.No);
+            CoordinatePoint.POINT Base = HouseStack.getPosition(track.No);
 
-            double keepU = HouseStack.getKeepDistanceU(pos.No);
-            double keepD = HouseStack.getKeepDistanceD(pos.No);
-            double keepL = HouseStack.getKeepDistanceL(pos.No);
-            double keepR = HouseStack.getKeepDistanceR(pos.No);
+            double keepU = HouseStack.getKeepDistanceU(track.No);
+            double keepD = HouseStack.getKeepDistanceD(track.No);
+            double keepL = HouseStack.getKeepDistanceL(track.No);
+            double keepR = HouseStack.getKeepDistanceR(track.No);
 
-            double L = HouseStack.getLength(pos.No);
-            double W = HouseStack.getWidth(pos.No);
+            double L = HouseStack.getLength(track.No);
+            double W = HouseStack.getWidth(track.No);
 
-            if (pos.Direction == TH_AutoSearchTrack.Direction.Up) { Base.x += pos.Distance; Base.y -= keepU; }
-            if (pos.Direction == TH_AutoSearchTrack.Direction.Down) { Base.x += L - pos.Distance; Base.y += W + keepD; }
-            if (pos.Direction == TH_AutoSearchTrack.Direction.Left) { Base.x -= keepL; Base.y += W - pos.Distance; }
-            if (pos.Direction == TH_AutoSearchTrack.Direction.Right) { Base.x += L + keepR; Base.y += pos.Distance; }
+            if (track.Direction == TH_AutoSearchTrack.Direction.Up) { Base.x += track.Distance; Base.y -= keepU; }
+            if (track.Direction == TH_AutoSearchTrack.Direction.Down) { Base.x += L - track.Distance; Base.y += W + keepD; }
+            if (track.Direction == TH_AutoSearchTrack.Direction.Left) { Base.x -= keepL; Base.y += W - track.Distance; }
+            if (track.Direction == TH_AutoSearchTrack.Direction.Right) { Base.x += L + keepR; Base.y += track.Distance; }
 
-            pos.TargetPosition = Base;
+            track.TargetPosition = Base;
         }
 
         /// <summary>
@@ -254,7 +319,7 @@ namespace AGVproject.Class
 
             foreach (TRACK t in track)
             {
-                Configuration.setFieldValue("Position", CoordinatePoint.Point2Double(t.TargetPosition));
+                Configuration.setFieldValue("TargetPosition", CoordinatePoint.Point2Double(t.TargetPosition));
                 Configuration.setFieldValue("IsLeft", t.IsLeft);
                 Configuration.setFieldValue("No", t.No);
                 Configuration.setFieldValue("Direction", (int)t.Direction);
@@ -287,7 +352,7 @@ namespace AGVproject.Class
             while (!Configuration.IsEmpty())
             {
                 TRACK t = new TRACK();
-
+                
                 t.TargetPosition = CoordinatePoint.Double2Point(Configuration.getFieldValue2_DOUBLE("TargetPosition"));
                 t.IsLeft = Configuration.getFieldValue1_BOOL("IsLeft");
                 t.No = Configuration.getFieldValue1_INT("No");

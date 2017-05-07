@@ -32,7 +32,7 @@ namespace AGVproject.Solution_FollowTrack
         {
             HouseTrack.Clear(); Over = false;
 
-            while (!Over)
+            while (!Over && !TH_AutoSearchTrack.control.EMA)
             {
                 // 等待停止事件
                 if (!IsStop()) { continue; }
@@ -44,12 +44,18 @@ namespace AGVproject.Solution_FollowTrack
                 Track.Extra = CorrectPosition.getCorrect();
                 HouseTrack.addTrack(Track);
 
-                TH_AutoSearchTrack.control.Event = "Saved This Mark!";
-                
-                // 等待再次启动
-                while (!Over && IsStop()) ;
+                // 提示
+                //TH_AutoSearchTrack.control.Event = "Saved This Mark!";
+                Form_Start.config.WarningMessage = "Saved This Mark!";
+                Form_Start.config.WarningTick = Form_Start.config.Tick + 20;
 
-                TH_AutoSearchTrack.control.Event = "Finding Mark...";
+                // 等待再次启动
+                while (!Over && !TH_AutoSearchTrack.control.EMA && IsStop()) ;
+
+                // 提示
+                //TH_AutoSearchTrack.control.Event = "Finding Mark...";
+                Form_Start.config.WarningMessage = "Finding Mark...";
+                Form_Start.config.WarningTick = Form_Start.config.Tick + 20;
             }
         }
 

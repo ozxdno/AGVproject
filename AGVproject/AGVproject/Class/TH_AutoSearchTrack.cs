@@ -16,6 +16,15 @@ namespace AGVproject.Class
         public static AST_CONTROL control;
 
         /// <summary>
+        /// 小车行进过程所使用的方法
+        /// </summary>
+        public static AST_Process ProcessHandle;
+        /// <summary>
+        /// 小车行进过程所使用的方法
+        /// </summary>
+        public delegate void AST_Process();
+
+        /// <summary>
         /// 小车控制过程所需要的变量集合
         /// </summary>
         public struct AST_CONTROL
@@ -167,6 +176,8 @@ namespace AGVproject.Class
         /// </summary>
         public static void Initial()
         {
+            ProcessHandle = Solution_FollowTrack.BuildTrack.Start;
+
             control.Action = Action.Normal;
             control.EMA = false;
             control.StackNo = 0;
@@ -194,7 +205,9 @@ namespace AGVproject.Class
             control.Abort = true;
             while (control.Thread != null && control.Thread.ThreadState == System.Threading.ThreadState.Running) ;
             control.Abort = false;
-            
+
+            // 初始化
+            Initial();
             
             // 开线程
             control.Abort = false;
@@ -207,6 +220,8 @@ namespace AGVproject.Class
         /// </summary>
         public static void Load()
         {
+            Initial();
+
             control.MinDistance_H = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_H");
             control.MinDistance_T = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_T");
             control.MinDistance_L = Configuration.getFieldValue1_DOUBLE("AST.MinDistance_L");
@@ -269,6 +284,8 @@ namespace AGVproject.Class
                     //continue;
                 }
 
+                ProcessHandle();
+
                 // 测试自动校准
                 //AST_CorrectPosition.CORRECT correct = AST_CorrectPosition.getCorrect();
                 //while (true)
@@ -279,19 +296,19 @@ namespace AGVproject.Class
                 //}
 
                 // 测试自动记录路径并按路径行进
-                Solution_FollowTrack.BuildTrack.Start();
-                Solution_FollowTrack.FollowTrack.Start();
+                //Solution_FollowTrack.BuildTrack.Start();
+                //Solution_FollowTrack.FollowTrack.Start();
 
                 // 取动作序列，并控制按动作序列行进
-                if (control.Action == Action.Normal) { control.EMA = false; }
-                if (control.Action == Action.Wait) { continue; }
-                if (control.Action == Action.OutAisle) {  }
-                if (control.Action == Action.Return) { }
-                if (control.Action == Action.ByHand) {  }
-                if (control.Action == Action.Stop) { continue; }
-                if (control.Action == Action.Continue) { control.EMA = false; control.Action = Action.Normal; }
-                if (control.Action == Action.Abort) { control.Thread.Abort(); control.Abort = false; return; }
-                if (control.Action == Action.Error) { continue; }
+                //if (control.Action == Action.Normal) { control.EMA = false; }
+                //if (control.Action == Action.Wait) { continue; }
+                //if (control.Action == Action.OutAisle) {  }
+                //if (control.Action == Action.Return) { }
+                //if (control.Action == Action.ByHand) {  }
+                //if (control.Action == Action.Stop) { continue; }
+                //if (control.Action == Action.Continue) { control.EMA = false; control.Action = Action.Normal; }
+                //if (control.Action == Action.Abort) { control.Thread.Abort(); control.Abort = false; return; }
+                //if (control.Action == Action.Error) { continue; }
             }
         }
     }

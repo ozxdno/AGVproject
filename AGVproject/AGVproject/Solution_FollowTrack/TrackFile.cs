@@ -10,9 +10,14 @@ namespace AGVproject.Solution_FollowTrack
 {
     class TrackFile
     {
+        /// <summary>
+        /// 保存路径中的 Extra（CORRECT） 信息
+        /// </summary>
+        /// <param name="Value">Extra 信息</param>
         public static void Save(object Value)
         {
-            CorrectPosition.CORRECT correct = (CorrectPosition.CORRECT)Value;
+            CorrectPosition.CORRECT correct = Value == null ?
+                new CorrectPosition.CORRECT() : (CorrectPosition.CORRECT)Value;
 
             Configuration.setFieldValue("xInvalid", correct.xInvalid);
             Configuration.setFieldValue("xK", correct.xK);
@@ -36,6 +41,10 @@ namespace AGVproject.Solution_FollowTrack
             Configuration.setFieldValue("yR_exchanged", correct.yR_exchanged);
             Configuration.setFieldValue("yR", correct.yR);
         }
+        /// <summary>
+        /// 读取路径文件中的 Extra（CORRECT） 信息
+        /// </summary>
+        /// <returns></returns>
         public static object Load()
         {
             CorrectPosition.CORRECT correct = new CorrectPosition.CORRECT();

@@ -26,6 +26,7 @@ namespace AGVproject
         {
             public System.Timers.Timer Timer;
             public DateTime Time;
+            public long Tick;
 
             public List<FILE> Map;
             public List<FILE> Route;
@@ -58,37 +59,40 @@ namespace AGVproject
             public bool CheckLocatePort;
 
             public double urgRange;
+            public string WarningMessage;
+            public long WarningTick;
+
             public struct FILE { public string Full, Path, Name; public string[] Text; }
         }
         public static void load()
         {
             config.Map = new List<CONFIG.FILE>();
             List<string> Map = Configuration.getFieldValue2_STRING("Form_Start.Map");
-            foreach (string m in Map)
+            for (int i = 0; i < Map.Count; i++)
             {
                 CONFIG.FILE map = new CONFIG.FILE();
                 string path = "", name = "", extension = "";
-                Configuration.cutFullName(m, ref path, ref name, ref extension);
+                Configuration.cutFullName(Map[i], ref path, ref name, ref extension);
 
-                map.Full = m;
+                map.Full = Map[i];
                 map.Path = path;
                 map.Name = name;
-                map.Text = Configuration.getFieldValue2(m);
+                map.Text = Configuration.getFieldValue2("Map" + i.ToString());
                 config.Map.Add(map);
             }
 
             config.Route = new List<CONFIG.FILE>();
             List<string> Route = Configuration.getFieldValue2_STRING("Form_Start.Route");
-            foreach (string r in Route)
+            for (int i = 0; i < Route.Count; i++)
             {
                 CONFIG.FILE route = new CONFIG.FILE();
                 string path = "", name = "", extension = "";
-                Configuration.cutFullName(r, ref path, ref name, ref extension);
+                Configuration.cutFullName(Route[i], ref path, ref name, ref extension);
 
-                route.Full = r;
+                route.Full = Route[i];
                 route.Path = path;
                 route.Name = name;
-                route.Text = Configuration.getFieldValue2(r);
+                route.Text = Configuration.getFieldValue2("Route" + i.ToString());
                 config.Route.Add(route);
             }
 
@@ -122,14 +126,14 @@ namespace AGVproject
             List<string> Map = new List<string>();
             foreach (CONFIG.FILE map in config.Map) { Map.Add(map.Full); }
             Configuration.setFieldValue("Form_Start.Map", Map);
-            foreach (CONFIG.FILE map in config.Map)
-            { Configuration.setFieldValue(map.Full, map.Text); }
+            for (int i = 0; i < config.Map.Count; i++)
+            { Configuration.setFieldValue("Map" + i.ToString(), config.Map[i].Text); }
 
             List<string> Route = new List<string>();
             foreach (CONFIG.FILE route in config.Route) { Route.Add(route.Full); }
             Configuration.setFieldValue("Form_Start.Route", Route);
-            foreach (CONFIG.FILE route in config.Route)
-            { Configuration.setFieldValue(route.Full, route.Text); }
+            for (int i = 0; i < config.Route.Count; i++)
+            { Configuration.setFieldValue("Route" + i.ToString(), config.Route[i].Text); }
 
             Configuration.setFieldValue("Form_Start.SelectedMap", config.SelectedMap);
             Configuration.setFieldValue("Form_Start.SelectedRoute", config.SelectedRoute);
@@ -170,6 +174,7 @@ namespace AGVproject
                 
                 // 刷新时间
                 config.Time = DateTime.Now;
+                config.Tick++;
 
                 string TimeString = config.Time.Year.ToString() + "-";
                 if (config.Time.Month < 10) { TimeString += "0" + config.Time.Month.ToString() + "-"; }
@@ -184,7 +189,7 @@ namespace AGVproject
                 if (config.Time.Second >= 10) { TimeString += config.Time.Second.ToString(); }
                 
                 this.TimeLabel.Text = TimeString;
-
+                
                 // 刷新事件
                 if (TH_AutoSearchTrack.control.Event == null) { TH_AutoSearchTrack.control.Event = "Normal: Waitting  "; }
                 this.EventLabel.Text = TH_AutoSearchTrack.control.Event;
@@ -194,27 +199,46 @@ namespace AGVproject
                 // 刷新图片
                 HouseMap.PictureBoxHeight = this.pictureBox.Height;
                 HouseMap.PictureBoxWidth = this.pictureBox.Width;
+                HouseMap.xScroll = (int)(this.panel1.Width * ((double)this.panel1.HorizontalScroll.Value / this.panel1.HorizontalScroll.Maximum));
+                HouseMap.yScroll = (int)(this.panel1.Height * ((double)this.panel1.VerticalScroll.Value / this.panel1.VerticalScroll.Maximum));
+                HouseMap.FormHeight = this.Height;
+                HouseMap.FormWidth = this.Width;
+                HouseMap.ShowPermitTrack = this.keepToolStripMenuItem.Checked;
 
                 HouseMap.DrawMap();
 
                 this.pictureBox.Height = HouseMap.MapHeight;
                 this.pictureBox.Width = HouseMap.MapWidth;
                 this.pictureBox.Image = HouseMap.Map;
-                //if (TH_UpdataPictureBox.CurrsorInMap) { this.Cursor = TH_UpdataPictureBox.Cursor; }
+                if (HouseMap.CursorInMap) { this.Cursor = HouseMap.Cursor; }
 
                 // 刷新开始按钮位置
-                int xScroll = this.panel1.HorizontalScroll.Value / this.panel1.HorizontalScroll.Maximum;
-                int yScroll = this.panel1.VerticalScroll.Value / this.panel1.VerticalScroll.Maximum;
-
-                int posX = xScroll * this.panel1.Width + this.panel1.Width - 210;
-                int posY = yScroll * this.panel1.Height + this.panel1.Height - 100;
+                int posX = this.panel1.Width - 210;
+                int posY = this.panel1.Height - 100;
                 this.button.Location = new Point(posX, posY);
 
                 int mouX = MousePosition.X;
                 int mouY = MousePosition.Y;
                 int reqX = this.Location.X + this.Width - 230;
                 int reqY = this.Location.Y + this.Height - 130;
-                this.button.Visible = reqX < mouX && mouX < reqX + 180 && reqY < mouY && mouY < reqY + 80;
+                //this.button.Visible = HouseMap.DrawOver && reqX < mouX && mouX < reqX + 180 && reqY < mouY && mouY < reqY + 80;
+                this.button.Visible = this.showToolStripMenuItem.Checked;
+
+                // 刷新说明面板位置
+                int yBG = this.Location.Y + 70;
+                int yED = reqY + 80;
+                this.textBox1.Location = new Point(posX, 0);
+                //this.textBox1.Visible = HouseMap.DrawOver && reqX < mouX && mouX < reqX + 180 && yBG < mouY && mouY < yED;
+                this.textBox1.Visible = this.showToolStripMenuItem.Checked;
+
+                // 刷新警告信息位置
+                if (config.WarningMessage == null) { config.WarningMessage = ""; }
+                this.labelWarning.Text = config.WarningMessage;
+
+                posX = (this.panel1.Width - this.labelWarning.Width) / 2;
+                posY = (this.panel1.Height - this.labelWarning.Height) / 2;
+                this.labelWarning.Location = new Point(posX, posY);
+                this.labelWarning.Visible = config.WarningMessage.Length != 0 && config.Tick < config.WarningTick;
             });
         }
         private void Form_Start_FormClosed(object sender, FormClosedEventArgs e)
@@ -222,6 +246,7 @@ namespace AGVproject
             config.Timer.Close();
 
             TH_AutoSearchTrack.control.Abort = true;
+            TH_AutoSearchTrack.control.EMA = true;
             TH_SendCommand.Abort = true;
             TH_MeasureSurrounding.Abort = true;
 
@@ -233,9 +258,7 @@ namespace AGVproject
         {
             // Map
             for (int i = config.Map.Count-1; i >= 0; i--)
-            {
-                if (!File.Exists(config.Map[i].Full)) { config.Map.RemoveAt(i); }
-            }
+            { if (!File.Exists(config.Map[i].Full)) { config.Map.RemoveAt(i); } }
 
             if (config.SelectedMap > config.Map.Count - 1) { config.SelectedMap = -1; }
             config.MapNameIndexBG = this.mapToolStripMenuItem.DropDownItems.Count;
@@ -244,20 +267,17 @@ namespace AGVproject
             {
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(file.Name);
                 NewMenu.Click += setSelectedMap;
-
+                NewMenu.ToolTipText = file.Full;
                 this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
             }
 
-            ToolStripMenuItem SelectedMap = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems
-                [config.SelectedMap + config.MapNameIndexBG];
-            setSelectedMap(SelectedMap, e);
+            ToolStripMenuItem map = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
+            setSelectedMap(map, e);
             this.CheckMap.Checked = config.CheckMap;
 
             // Route
             for (int i = config.Route.Count - 1; i >= 0; i--)
-            {
-                if (!File.Exists(config.Route[i].Full)) { config.Route.RemoveAt(i); }
-            }
+            { if (!File.Exists(config.Route[i].Full)) { config.Route.RemoveAt(i); } }
 
             if (config.SelectedRoute > config.Route.Count - 1) { config.SelectedRoute = -1; }
             config.RouteNameIndexBG = this.routeToolStripMenuItem.DropDownItems.Count;
@@ -266,13 +286,12 @@ namespace AGVproject
             {
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(file.Name);
                 NewMenu.Click += setSelectedRoute;
-
+                NewMenu.ToolTipText = file.Full;
                 this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
             }
 
-            ToolStripMenuItem SelectedRoute = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems
-                [config.SelectedRoute + config.RouteNameIndexBG];
-            setSelectedRoute(SelectedRoute, e);
+            ToolStripMenuItem route = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
+            setSelectedRoute(route, e);
             this.CheckRoute.Checked = config.CheckRoute;
 
             // ControlPort
@@ -344,8 +363,7 @@ namespace AGVproject
             }
 
             this.checkUrgPort.Checked = config.CheckUrgPort;
-            this.urgRangeToolStripMenuItem.Text = config.urgRange.ToString();
-
+            
             // LocatePort
             foreach (string COM in config.LocPortName)
             {
@@ -381,6 +399,10 @@ namespace AGVproject
 
             this.checkLocPort.Checked = config.CheckLocatePort;
 
+            // right menu
+            this.pixLengthValue.Text = HouseMap.PixLength.ToString();
+            this.urgRangeValue.Text = config.urgRange.ToString();
+
             // config
             config.Timer = new System.Timers.Timer(100);
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
@@ -391,10 +413,11 @@ namespace AGVproject
         }
         private void Form_SizeChanged(object sender, EventArgs e)
         {
-            int posX = this.Width - 240;
-            int posY = this.Height - 200;
-            this.button.Location = new Point(posX, posY);
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
 
+            this.textBox1.Height = this.Height - this.button.Height - 140;
+            
             this.panel1.HorizontalScroll.Value = 0;
             this.panel1.VerticalScroll.Value = 0;
 
@@ -403,13 +426,9 @@ namespace AGVproject
             
             Point picBoxPos = new Point(0, 0);
             if (HouseMap.MapHeight < this.panel1.Height)
-            {
-                picBoxPos.Y = (this.panel1.Height - HouseMap.MapHeight) / 2;
-            }
+            { picBoxPos.Y = (this.panel1.Height - HouseMap.MapHeight) / 2; }
             if (HouseMap.MapWidth < this.panel1.Width)
-            {
-                picBoxPos.X = (this.panel1.Width - HouseMap.MapWidth) / 2;
-            }
+            { picBoxPos.X = (this.panel1.Width - HouseMap.MapWidth) / 2; }
             this.pictureBox.Location = picBoxPos;
 
             this.TimeLabel.Location = new Point(12, this.Height - 60);
@@ -440,33 +459,202 @@ namespace AGVproject
         {
             HouseMap.MouseDoubleClicked();
         }
-        private void contextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        private void MouseRightClicked_Draw(object sender, EventArgs e)
         {
-            if (!config.CheckMap && !config.CheckRoute) { return; }
-            string item = e.ClickedItem.Text;
-            contextMenuStrip.Close();
+            this.drawToolStripMenuItem.Checked = !this.drawToolStripMenuItem.Checked;
+            HouseMap.DrawOver = !this.drawToolStripMenuItem.Checked;
+            this.finishToolStripMenuItem.Checked = HouseMap.DrawOver;
+        }
+        private void MouseRightClicked_Keep(object sender, EventArgs e)
+        {
+            this.keepToolStripMenuItem.Checked = !this.keepToolStripMenuItem.Checked;
+            this.kEEPToolStripMenuItem1.Checked = this.keepToolStripMenuItem.Checked;
+        }
+        private void MouseRightClicked_Undo(object sender, EventArgs e)
+        {
+            this.drawToolStripMenuItem.Checked = true;
+            this.finishToolStripMenuItem.Checked = false;
+            HouseMap.DrawOver = false;
 
-            if (item == "Finish")
+            HouseTrack.delTrack();
+        }
+        private void MouseRightClicked_Finish(object sender, EventArgs e)
+        {
+            this.finishToolStripMenuItem.Checked = !this.finishToolStripMenuItem.Checked;
+            HouseMap.DrawOver = this.finishToolStripMenuItem.Checked;
+            this.drawToolStripMenuItem.Checked = !HouseMap.DrawOver;
+        }
+        private void MouseRightClicked_Clear(object sender, EventArgs e)
+        {
+            HouseTrack.Clear();
+        }
+        private void MouseRightClicked_Fit(object sender, EventArgs e)
+        {
+            HouseStack.Fit();
+            HouseTrack.Fit();
+        }
+        private void MouseRightClicked_Save(object sender, EventArgs e)
+        {
+            string path = "", name = "", extension = "";
+            string extensions = "Map File(*.map)|*.map|Route File(*.route)|*.route|Picture File(*.png)|*.png";
+            
+            bool OK = Configuration.Save(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
+            string fullname = path + "\\" + name + "." + extension;
+            if (extension == "png") { Bitmap MapPic = HouseMap.getMap(); MapPic.Save(fullname); MapPic.Dispose(); return; }
+
+            if (extension == "map")
             {
+                HouseStack.Save(fullname); config.SelectedMap = config.Map.Count;
+                for (int i = 0; i < config.Map.Count; i++)
+                { if (config.Map[i].Full == fullname) { config.SelectedMap = i; break; } }
+
+                if (config.SelectedMap == config.Map.Count)
+                {
+                    CONFIG.FILE map = new CONFIG.FILE();
+                    map.Full = fullname;
+                    map.Path = path;
+                    map.Name = name;
+                    map.Text = new string[0];
+                    config.Map.Add(map);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedMap;
+                    NewMenu.ToolTipText = fullname;
+                    this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+                }
+
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
+                setSelectedMap(menu, e);
             }
-            if (item == "Save Map" && config.CheckMap)
+
+            if (extension == "route")
             {
-                saveMap(sender, e);
+                HouseTrack.Save(fullname); config.SelectedRoute = config.Route.Count;
+                for (int i = 0; i < config.Route.Count; i++)
+                { if (config.Route[i].Full == fullname) { config.SelectedRoute = i; break; } }
+
+                if (config.SelectedRoute == config.Route.Count)
+                {
+                    CONFIG.FILE route = new CONFIG.FILE();
+                    route.Full = fullname;
+                    route.Path = path;
+                    route.Name = name;
+                    route.Text = new string[0];
+                    config.Route.Add(route);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedRoute;
+                    NewMenu.ToolTipText = fullname;
+                    this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+                }
+
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
+                setSelectedRoute(menu, e);
             }
-            if (item == "Save Route" && config.CheckRoute)
+        }
+        private void MouseRightClicked_Input(object sender, EventArgs e)
+        {
+            string path = "", name = "", extension = "";
+            string extensions = "Map File(*.map)|*.map|Route File(*.route)|*.route";
+            bool OK = Configuration.Load(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
+            string full = path + "\\" + name + "." + extension;
+
+            if (extension == "map")
             {
-                saveRoute(sender, e);
+                config.SelectedMap = config.Map.Count;
+                for (int i = 0; i < config.Map.Count; i++)
+                { if (config.Map[i].Full == full) { config.SelectedMap = i; break; } }
+
+                if (config.SelectedMap == config.Map.Count)
+                {
+                    CONFIG.FILE map = new CONFIG.FILE();
+                    map.Full = full;
+                    map.Path = path;
+                    map.Name = name;
+                    map.Text = new string[0];
+                    config.Map.Add(map);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedMap;
+                    NewMenu.ToolTipText = full;
+                    this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
+                }
+
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
+                setSelectedMap(menu, e);
             }
-            if (item == "Clear")
+            if (extension == "route")
             {
-                HouseTrack.Clear();
-                HouseMap.DrawOver = false;
+                config.SelectedRoute = config.Route.Count;
+                for (int i = 0; i < config.Route.Count; i++)
+                { if (config.Route[i].Full == full) { config.SelectedRoute = i; break; } }
+
+                if (config.SelectedRoute == config.Route.Count)
+                {
+                    CONFIG.FILE route = new CONFIG.FILE();
+                    route.Full = full;
+                    route.Path = path;
+                    route.Name = name;
+                    route.Text = new string[0];
+                    config.Route.Add(route);
+
+                    ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                    NewMenu.Click += setSelectedRoute;
+                    NewMenu.ToolTipText = full;
+                    this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+                }
+
+                ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
+                setSelectedRoute(menu, e);
             }
-            if (item == "Undo")
-            {
-                HouseTrack.delTrack(HouseTrack.TotalTrack - 1);
-                HouseMap.DrawOver = false;
-            }
+        }
+        private void MouseRightClicked_Show(object sender, EventArgs e)
+        {
+            this.showToolStripMenuItem.Checked = !this.showToolStripMenuItem.Checked;
+        }
+        private void MouseRightClicked_PixLengthValue(object sender, EventArgs e)
+        {
+            Form_Input.Form_Input input = new Form_Input.Form_Input();
+            input.Input = HouseMap.PixLength.ToString();
+            input.ShowDialog();
+
+            try { HouseMap.PixLength = double.Parse(input.Input); } catch
+            { config.WarningMessage = "Input Error!"; config.WarningTick = config.Tick + 10; return; }
+
+            this.pixLengthValue.Text = HouseMap.PixLength.ToString();
+            Form_SizeChanged(sender, e);
+        }
+        private void MouseRightClicked_UrgRangeValue(object sender, EventArgs e)
+        {
+            Form_Input.Form_Input input = new Form_Input.Form_Input();
+            input.Input = config.urgRange.ToString();
+            input.ShowDialog();
+
+            try { config.urgRange = double.Parse(input.Input); }
+            catch { config.WarningMessage = "Input Error!"; config.WarningTick = config.Tick + 10; return; }
+
+            this.urgRangeValue.Text = config.urgRange.ToString();
+        }
+        private void MouseRightClicked_PositionValue(object sender, EventArgs e)
+        {
+            Form_Input.Form_Input input = new Form_Input.Form_Input();
+            input.Input = TH_MeasurePosition.ToString();
+            input.ShowDialog();
+
+            CoordinatePoint.POINT pos = new CoordinatePoint.POINT();
+            bool OK = TH_MeasurePosition.ToPosition(input.Input, ref pos);
+            if (!OK) { config.WarningMessage = "Input Error!"; config.WarningTick = config.Tick + 10; return; }
+
+            TH_MeasurePosition.setPosition(pos);
+        }
+        private void MouseRightClicked_SelectPosition(object sender, EventArgs e)
+        {
+            HouseMap.MOUSE mouse = HouseMap.getMousePosition();
+            double X = HouseMap.Length_Map2Real(mouse.X);
+            double Y = HouseMap.Length_Map2Real(mouse.Y);
+            TH_MeasurePosition.setPosition(X, Y, 0);
         }
 
         private void Start(object sender, EventArgs e)
@@ -488,9 +676,9 @@ namespace AGVproject
                 TH_AutoSearchTrack.control.Action = TH_AutoSearchTrack.Action.Continue;
                 TH_AutoSearchTrack.control.EMA = false;
                 
-                if (!TH_MeasurePosition.IsOpen) { return; }
-                if (!TH_MeasureSurrounding.IsOpen) { return; }
-                if (!TH_SendCommand.IsOpen) { return; }
+                //if (!TH_MeasurePosition.IsOpen) { return; }
+                //if (!TH_MeasureSurrounding.IsOpen) { return; }
+                //if (!TH_SendCommand.IsOpen) { return; }
                 
                 this.button.Text = "Stop"; return;
             }
@@ -534,35 +722,18 @@ namespace AGVproject
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
             int N = this.mapToolStripMenuItem.DropDownItems.Count;
 
-            for (int i = config.MapNameIndexBG; i < N; i++)
+            for (int i = config.MapNameIndexBG - 1; i < N; i++)
+            { ToolStripMenuItem iMenu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[i]; iMenu.Checked = false; }
+
+            config.SelectedMap = -1;
+            for (int i = config.MapNameIndexBG - 1; i < N; i++, config.SelectedMap++)
             {
                 ToolStripMenuItem iMenu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[i];
-                iMenu.Checked = false;
-            }
-            
-            config.SelectedMap = -1;
-            for (int i = 0; i < config.Map.Count; i++)
-            {
-                if (config.Map[i].Name == menu.Text) { config.SelectedMap = i; break; }
+                if (iMenu.ToolTipText == menu.ToolTipText) { break; }
             }
 
-            HouseStack.getDefaultStacks();
-
-            //bool existFile = Configuration.Load_Map(config.SelectedMap);
-            //if (existFile)
-            //{
-            //    //List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-            //    //for (int i = 0; i <= HouseStack.TotalStacks; i++)
-            //    //{ Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
-
-            //    //TH_UpdataPictureBox.setStack(Stacks);
-            //}
-            //else
-            //{
-            //    //DialogResult dr = MessageBox.Show("Not Exist Map: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
-            //    //if ( dr == DialogResult.Yes) { delSelectedMap(sender, e); }
-            //}
-
+            if (config.SelectedMap != -1) { HouseStack.Load(menu.ToolTipText); }
+            if (config.SelectedMap == -1) { HouseStack.getDefaultStacks(); }
             menu.Checked = true;
             showMapRoute();
         }
@@ -577,39 +748,26 @@ namespace AGVproject
             config.Map.RemoveAt(config.SelectedMap);
 
             config.SelectedMap = -1;
-            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.MapNameIndexBG];
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.MapNameIndexBG - 1];
             menu.Checked = true;
             showMapRoute();
         }
         private void inputMap(object sender, EventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = false;
-            fileDialog.Title = "Select Map";
-            fileDialog.Filter = "Map File(*.map)|*.map";
-            if (fileDialog.ShowDialog() != DialogResult.OK) { return; }
+            string path = "", name = "", extension = "";
+            string extensions = "Map File(*.map)|*.map";
+            bool OK = Configuration.Load(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
+            string full = path + "\\" + name + "." + extension;
 
-            int cut = fileDialog.FileName.LastIndexOf("\\");
-            string path = fileDialog.FileName.Substring(0, cut);
-            string name = fileDialog.FileName.Substring(cut + 1);
-            name = name.Substring(0, name.Length - 4);
-            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
-
-            int index = -1;
+            config.SelectedMap = config.Map.Count;
             for (int i = 0; i < config.Map.Count; i++)
-            {
-                if (config.Map[i].Path != path || config.Map[i].Name != name) { continue; }
-                index = i;
-                DialogResult dr = MessageBox.Show("Exist Map: " + name + ". Do you want to Cover it ?", "Tip", MessageBoxButtons.YesNo);
-                if (dr == DialogResult.No) { return; }
-            }
+            { if (config.Map[i].Full == full) { config.SelectedMap = i; break; } }
 
-            if (index == -1)
+            if (config.SelectedMap == config.Map.Count)
             {
-                index = config.Map.Count;
-
                 CONFIG.FILE map = new CONFIG.FILE();
-                map.Full = path + "\\" + name + ".map";
+                map.Full = full;
                 map.Path = path;
                 map.Name = name;
                 map.Text = new string[0];
@@ -617,44 +775,45 @@ namespace AGVproject
 
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
                 NewMenu.Click += setSelectedMap;
+                NewMenu.ToolTipText = full;
                 this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
             }
 
-            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[index + config.MapNameIndexBG];
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
             setSelectedMap(menu, e);
         }
         private void saveMap(object sender, EventArgs e)
         {
-            int index = -1;
-            bool needAdd = HouseStack.Save("");
-            if (index == -1) { return; }
-            if (!needAdd)
+            string path = "", name = "", extension = "";
+            string extensions = "Map File(*.map)|*.map|Picture File(*.png)|*.png";
+            name = config.SelectedMap == -1 ? "Auto" : config.Map[config.SelectedMap].Name;
+
+            bool OK = Configuration.Save(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
+            string fullname = path + "\\" + name + "." + extension;
+            if (extension == "png") { Bitmap MapPic = HouseMap.getMap(); MapPic.Save(fullname); MapPic.Dispose(); return; }
+            
+            HouseStack.Save(fullname); config.SelectedMap = config.Map.Count;
+            for (int i = 0; i < config.Map.Count; i++)
+            { if (config.Map[i].Full == fullname) { config.SelectedMap = i; break; } }
+
+            if (config.SelectedMap == config.Map.Count)
             {
-                ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[index + config.MapNameIndexBG];
-                setSelectedMap(menu, e); return;
+                CONFIG.FILE map = new CONFIG.FILE();
+                map.Full = fullname;
+                map.Path = path;
+                map.Name = name;
+                map.Text = new string[0];
+                config.Map.Add(map);
+
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                NewMenu.Click += setSelectedMap;
+                NewMenu.ToolTipText = fullname;
+                this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
             }
 
-            ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Map[index].Name);
-            NewMenu.Click += setSelectedMap;
-            this.mapToolStripMenuItem.DropDownItems.Add(NewMenu);
-            setSelectedMap(NewMenu, e);
-        }
-        private void changePixLen(object sender, EventArgs e)
-        {
-            //Form_Input.Form_Input input = new Form_Input.Form_Input();
-            //input.Location = new Point(MousePosition.X, MousePosition.Y);
-            //input.ShowDialog();
-
-            //double pixLen = 0;
-            //try { pixLen = double.Parse(input.Input); } catch { MessageBox.Show("Input Error !"); return; }
-
-            //this.pixLen.Text = input.Input;
-            //config.PixLength = pixLen;
-
-            //List<TH_UpdataPictureBox.STACK> Stacks = new List<TH_UpdataPictureBox.STACK>();
-            //for (int i = 0; i <= HouseStack.TotalStacks; i++) { Stacks.Add(TH_UpdataPictureBox.RealStack2MapStack(i)); }
-
-            //TH_UpdataPictureBox.setStack(Stacks);
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
+            setSelectedMap(menu, e);
         }
 
         private void setSelectedRoute(object sender, EventArgs e)
@@ -662,29 +821,18 @@ namespace AGVproject
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
             int N = this.routeToolStripMenuItem.DropDownItems.Count;
 
-            for (int i = config.RouteNameIndexBG; i < N; i++)
-            {
-                ToolStripMenuItem iMenu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[i];
-                iMenu.Checked = false;
-            }
+            for (int i = config.RouteNameIndexBG - 1; i < N; i++)
+            { ToolStripMenuItem iMenu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[i]; iMenu.Checked = false; }
 
             config.SelectedRoute = -1;
-            for (int i = 0; i < config.Route.Count; i++)
+            for (int i = config.RouteNameIndexBG - 1; i < N; i++, config.SelectedRoute++)
             {
-                if (config.Route[i].Name == menu.Text) { config.SelectedRoute = i; break; }
+                ToolStripMenuItem iMenu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[i];
+                if (iMenu.ToolTipText == menu.ToolTipText) { break; }
             }
 
-            //bool existFile = Configuration.Load_Route(config.SelectedRoute);
-            //if (existFile)
-            //{
-            //    //TH_UpdataPictureBox.DrawOver = TH_UpdataPictureBox.Route.Count != 0;
-            //}
-            //else
-            //{
-            //    //DialogResult dr = MessageBox.Show("Not Exist Route: " + menu.Text + ". Do you want to Delete it ?", "Tip", MessageBoxButtons.YesNo);
-            //    //if (dr == DialogResult.Yes) { delSelectedRoute(sender, e); }
-            //}
-
+            if (config.SelectedRoute != -1) { HouseTrack.Load(menu.ToolTipText); }
+            if (config.SelectedRoute == -1) { HouseTrack.getDefauteTrack(); }
             menu.Checked = true;
             showMapRoute();
         }
@@ -699,39 +847,26 @@ namespace AGVproject
             config.Route.RemoveAt(config.SelectedRoute);
 
             config.SelectedRoute = -1;
-            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.RouteNameIndexBG];
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.RouteNameIndexBG - 1];
             setSelectedRoute(menu, e);
             showMapRoute();
         }
         private void inputRoute(object sender, EventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = false;
-            fileDialog.Title = "Select Route";
-            fileDialog.Filter = "Route File(*.map)|*.route";
-            if (fileDialog.ShowDialog() != DialogResult.OK) { return; }
+            string path = "", name = "", extension = "";
+            string extensions = "Route File(*.route)|*.route";
+            bool OK = Configuration.Load(extensions, ref path, ref name, ref extension, false);
+            if (!OK) { return; }
+            string full = path + "\\" + name + "." + extension;
 
-            int cut = fileDialog.FileName.LastIndexOf("\\");
-            string path = fileDialog.FileName.Substring(0, cut);
-            string name = fileDialog.FileName.Substring(cut + 1);
-            name = name.Substring(0, name.Length - 6);
-            if (name == "Auto") { MessageBox.Show("This Name is reserved !"); return; }
-
-            int index = -1;
+            config.SelectedRoute = config.Route.Count;
             for (int i = 0; i < config.Route.Count; i++)
-            {
-                if (config.Route[i].Path != path || config.Route[i].Name != name) { continue; }
-                index = i;
-                DialogResult dr = MessageBox.Show("Exist Route: " + name + ". Do you want to Cover it ?", "Tip", MessageBoxButtons.YesNo);
-                if (dr == DialogResult.No) { return; }
-            }
+            { if (config.Route[i].Full == full) { config.SelectedRoute = i; break; } }
 
-            if (index == -1)
+            if (config.SelectedRoute == config.Route.Count)
             {
-                index = config.Route.Count;
-
                 CONFIG.FILE route = new CONFIG.FILE();
-                route.Full = path + "\\" + name + ".route";
+                route.Full = full;
                 route.Path = path;
                 route.Name = name;
                 route.Text = new string[0];
@@ -739,15 +874,16 @@ namespace AGVproject
 
                 ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
                 NewMenu.Click += setSelectedRoute;
+                NewMenu.ToolTipText = full;
                 this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
             }
 
-            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[index + config.RouteNameIndexBG];
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
             setSelectedRoute(menu, e);
         }
         private void editRoute(object sender, EventArgs e)
         {
-            //TH_UpdataPictureBox.DrawOver = false;
+            HouseStack.Fit(); HouseTrack.Fit();
         }
         private void saveRoute(object sender, EventArgs e)
         {
@@ -757,15 +893,30 @@ namespace AGVproject
 
             bool OK = Configuration.Save(extensions, ref path, ref name, ref extension, false);
             if (!OK) { return; }
-
-            HouseTrack.Save(path + "\\" + name + "." + extension);
-
+            string fullname = path + "\\" + name + "." + extension;
+            if (extension == "png") { Bitmap MapPic = HouseMap.getMap(); MapPic.Save(fullname); MapPic.Dispose(); return; }
             
+            HouseTrack.Save(fullname); config.SelectedRoute = config.Route.Count;
+            for (int i = 0; i < config.Route.Count; i++)
+            { if (config.Route[i].Full == fullname) { config.SelectedRoute = i; break; } }
 
-            //ToolStripMenuItem NewMenu = new ToolStripMenuItem(config.Route[index].Name);
-            //NewMenu.Click += setSelectedRoute;
-            //this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
-            //setSelectedRoute(NewMenu, e);
+            if (config.SelectedRoute == config.Route.Count)
+            {
+                CONFIG.FILE route = new CONFIG.FILE();
+                route.Full = fullname;
+                route.Path = path;
+                route.Name = name;
+                route.Text = new string[0];
+                config.Route.Add(route);
+
+                ToolStripMenuItem NewMenu = new ToolStripMenuItem(name);
+                NewMenu.Click += setSelectedRoute;
+                NewMenu.ToolTipText = fullname;
+                this.routeToolStripMenuItem.DropDownItems.Add(NewMenu);
+            }
+
+            ToolStripMenuItem menu = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
+            setSelectedRoute(menu, e);
         }
 
         private void showMapRoute()
@@ -994,18 +1145,6 @@ namespace AGVproject
             if (showNext == -1) { return; }
 
             getURG_PortName(this.URG_PortNameToolStripMenuItem.DropDownItems[showNext], e);
-        }
-        private void setUrgRange(object sender, EventArgs e)
-        {
-            Form_Input.Form_Input input = new Form_Input.Form_Input();
-            input.Location = new Point(MousePosition.X, MousePosition.Y);
-            input.ShowDialog();
-
-            double urgRange = 0;
-            try { urgRange = double.Parse(input.Input); } catch { MessageBox.Show("Input Error !"); return; }
-
-            this.urgRangeToolStripMenuItem.Text = input.Input;
-            config.urgRange = urgRange;
         }
         private void clearUrg(object sender, EventArgs e)
         {

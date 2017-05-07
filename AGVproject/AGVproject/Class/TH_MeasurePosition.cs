@@ -230,7 +230,38 @@ namespace AGVproject.Class
             
             return speed;
         }
-        
+        /// <summary>
+        /// 把当前位置转成字符串
+        /// </summary>
+        /// <returns></returns>
+        public static string ToString()
+        {
+            CoordinatePoint.POINT pos = getPosition();
+            return ((int)pos.x).ToString() + ", " + ((int)pos.y).ToString() + ", " + ((int)pos.aCar).ToString();
+        }
+        /// <summary>
+        /// 把当前位置转成字符串
+        /// </summary>
+        /// <returns></returns>
+        public static string ToString(CoordinatePoint.POINT pos)
+        {
+            return ((int)pos.x).ToString() + ", " + ((int)pos.y).ToString() + ", " + ((int)pos.aCar).ToString();
+        }
+        /// <summary>
+        /// 把字符串坐标转换成 POINT 结构体坐标
+        /// </summary>
+        /// <param name="pos">字符串坐标</param>
+        /// <param name="point">POINT 结构体坐标</param>
+        /// <returns></returns>
+        public static bool ToPosition(string pos,ref CoordinatePoint.POINT point)
+        {
+            string[] pt = pos.Split(',');
+            if (pt.Length != 3) { return false; }
+
+            try { point.x = double.Parse(pt[0]); point.y = double.Parse(pt[1]); point.aCar = double.Parse(pt[2]); return true; }
+            catch { return false; }
+        }
+
         ////////////////////////////////////////// private method ////////////////////////////////////////////////
 
         private static void Initial_TH_MeasurePosition()

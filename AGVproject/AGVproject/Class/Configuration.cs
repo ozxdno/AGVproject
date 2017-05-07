@@ -11,8 +11,8 @@ namespace AGVproject.Class
 {
     class Configuration
     {
-        private static List<CFG_FILE> CFG;
-        private struct CFG_FILE { public string Field; public string[] Value; }
+        public static List<CFG_FILE> CFG;
+        public struct CFG_FILE { public string Field; public string[] Value; }
 
         /// <summary>
         /// 清空 CFG 中缓存信息
