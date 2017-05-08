@@ -6,8 +6,14 @@ using System.Threading.Tasks;
 
 namespace AGVproject.Class
 {
+    /// <summary>
+    /// 点类，包含点的一系列操作
+    /// </summary>
     class CoordinatePoint
     {
+        /// <summary>
+        /// 点结构体
+        /// </summary>
         public struct POINT
         {
             /// <summary>

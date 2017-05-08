@@ -162,6 +162,22 @@ namespace AGVproject.Class
                 fillPosition(ref dr);
                 addTrack(dr);
             }
+
+            TRACK track3 = new TRACK();
+            track3.IsLeft = false;
+            track3.No = HouseStack.TotalStacksR;
+            track3.Direction = TH_AutoSearchTrack.Direction.Down;
+            track3.Distance = HouseStack.getLength(track3.No) + HouseStack.getKeepDistanceL(track3.No);
+            fillPosition(ref track3);
+            addTrack(track3);
+
+            TRACK track4 = new TRACK();
+            track4.IsLeft = true;
+            track4.No = HouseStack.TotalStacksR + 1;
+            track4.Direction = TH_AutoSearchTrack.Direction.Down;
+            track4.Distance = -HouseStack.getKeepDistanceR(track4.No);
+            fillPosition(ref track4);
+            addTrack(track4);
         }
 
         /// <summary>

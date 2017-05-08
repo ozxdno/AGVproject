@@ -414,7 +414,7 @@ namespace AGVproject.Class
             #endregion
 
             #region 和路径的相对位置
-            
+
             for (int i = 0; i < Track.Count; i++)
             {
                 int xBG = Length_Real2Map(Track[i].TargetPosition.x);
@@ -422,9 +422,15 @@ namespace AGVproject.Class
 
                 if (Math.Abs(X - xBG) < 3 && Math.Abs(Y - yBG) < 3)
                 { mouse.TrackNo = i; if (mouse.Position == MOUSE.POSITION.Unknow) { mouse.Position = MOUSE.POSITION.OnTrack; } break; }
+            }
 
-                if (i == Track.Count - 1) { continue; }
+            for (int i = 0; i < Track.Count - 1; i++)
+            {
+                if (mouse.Position != MOUSE.POSITION.Unknow) { break; }
 
+                int xBG = Length_Real2Map(Track[i].TargetPosition.x);
+                int yBG = Length_Real2Map(Track[i].TargetPosition.y);
+                
                 int xED = Length_Real2Map(Track[i+1].TargetPosition.x);
                 int yED = Length_Real2Map(Track[i+1].TargetPosition.y);
 
@@ -456,7 +462,7 @@ namespace AGVproject.Class
         public static void MouseLeftClicked()
         {
             // 条件
-            if (!Form_Start.config.CheckMap && !Form_Start.config.CheckRoute) { return; }
+            if (!Form_Start.config.CheckMap || !Form_Start.config.CheckRoute) { return; }
             if (DrawOver) { return; }
             
             // 目标点不能是障碍物
@@ -464,6 +470,10 @@ namespace AGVproject.Class
             if (mouse.Position == MOUSE.POSITION.OnStack && mouse.StackNo != 0)
             { PushedCursor = true; Cursor = Cursors.No; return; }
             if (mouse.Position == MOUSE.POSITION.OnBarrier)
+            { PushedCursor = true; Cursor = Cursors.No; return; }
+
+            // 加载维持距离后不能离开堆垛
+            if (ShowPermitTrack && mouse.StackNo == -1)
             { PushedCursor = true; Cursor = Cursors.No; return; }
             
             // 不能经过障碍物
@@ -508,10 +518,20 @@ namespace AGVproject.Class
 
             MOUSE mouse = getMousePosition();
 
-            if (mouse.StackNo != -1)
+            if (mouse.StackNo != -1 && mouse.Side == TH_AutoSearchTrack.Direction.Tuning && Form_Start.config.CheckMap)
             {
                 Form_Stack.Form_Stack formStack = new Form_Stack.Form_Stack(mouse.StackNo);
-                formStack.Show();
+                formStack.Show(); return;
+            }
+            if (mouse.Position == MOUSE.POSITION.OnTrack && Form_Start.config.CheckRoute)
+            {
+                Form_Track.Form_Track formTrack = new Form_Track.Form_Track();
+                formTrack.Show(); return;
+            }
+            if (mouse.Position == MOUSE.POSITION.OnLine && Form_Start.config.CheckRoute)
+            {
+                Form_Line.Form_Line formLine = new Form_Line.Form_Line();
+                formLine.Show(); return;
             }
         }
         public static void MouseMove(int X, int Y)

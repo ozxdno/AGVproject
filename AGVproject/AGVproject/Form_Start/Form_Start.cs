@@ -171,6 +171,13 @@ namespace AGVproject
                 config.CheckControlPort = this.checkConPort.Checked;
                 config.CheckUrgPort = this.checkUrgPort.Checked;
                 config.CheckLocatePort = this.checkLocPort.Checked;
+
+                // 刷新控件数值
+                //string MapName = config.SelectedMap == -1 ? "Auto" : config.Map[config.SelectedMap].Name;
+                //string RouteName = config.SelectedRoute == -1 ? "Auto" : config.Route[config.SelectedRoute].Name;
+                //this.Text = "Map: " + MapName + " / Route: " + RouteName;
+                //this.CheckMap.Checked = config.CheckMap;
+                
                 
                 // 刷新时间
                 config.Time = DateTime.Now;
@@ -408,6 +415,8 @@ namespace AGVproject
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
             config.Timer.AutoReset = true;
             config.Timer.Start();
+            config.WarningMessage = "Welcom";
+            config.WarningTick = config.Tick + 12;
 
             Form_SizeChanged(sender, e);
         }
@@ -467,15 +476,15 @@ namespace AGVproject
         }
         private void MouseRightClicked_Keep(object sender, EventArgs e)
         {
+            if (!config.CheckMap && !config.CheckRoute) { return; }
+
             this.keepToolStripMenuItem.Checked = !this.keepToolStripMenuItem.Checked;
             this.kEEPToolStripMenuItem1.Checked = this.keepToolStripMenuItem.Checked;
         }
         private void MouseRightClicked_Undo(object sender, EventArgs e)
         {
-            this.drawToolStripMenuItem.Checked = true;
-            this.finishToolStripMenuItem.Checked = false;
-            HouseMap.DrawOver = false;
-
+            if (!config.CheckMap && !config.CheckRoute) { return; }
+            
             HouseTrack.delTrack();
         }
         private void MouseRightClicked_Finish(object sender, EventArgs e)
@@ -486,10 +495,13 @@ namespace AGVproject
         }
         private void MouseRightClicked_Clear(object sender, EventArgs e)
         {
+            if (!config.CheckMap && !config.CheckRoute) { return; }
             HouseTrack.Clear();
         }
         private void MouseRightClicked_Fit(object sender, EventArgs e)
         {
+            if (!config.CheckMap && !config.CheckRoute) { return; }
+
             HouseStack.Fit();
             HouseTrack.Fit();
         }
@@ -502,7 +514,7 @@ namespace AGVproject
             if (!OK) { return; }
             string fullname = path + "\\" + name + "." + extension;
             if (extension == "png") { Bitmap MapPic = HouseMap.getMap(); MapPic.Save(fullname); MapPic.Dispose(); return; }
-
+            
             if (extension == "map")
             {
                 HouseStack.Save(fullname); config.SelectedMap = config.Map.Count;
@@ -652,9 +664,11 @@ namespace AGVproject
         private void MouseRightClicked_SelectPosition(object sender, EventArgs e)
         {
             HouseMap.MOUSE mouse = HouseMap.getMousePosition();
+            CoordinatePoint.POINT pos = TH_MeasurePosition.getPosition();
+
             double X = HouseMap.Length_Map2Real(mouse.X);
             double Y = HouseMap.Length_Map2Real(mouse.Y);
-            TH_MeasurePosition.setPosition(X, Y, 0);
+            TH_MeasurePosition.setPosition(X, Y, pos.aCar);
         }
 
         private void Start(object sender, EventArgs e)

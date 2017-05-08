@@ -50,6 +50,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Form_Line\Form_Line.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Line\Form_Line.Designer.cs">
+      <DependentUpon>Form_Line.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_Track\Form_Track.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Track\Form_Track.Designer.cs">
+      <DependentUpon>Form_Track.cs</DependentUpon>
+    </Compile>
     <Compile Include="Solution_FollowTrack\CorrectPosition.cs" />
     <Compile Include="Class\AST_GuideBySpeed.cs" />
     <Compile Include="Class\AST_GuideByPosition.cs" />
@@ -97,11 +109,17 @@
     <EmbeddedResource Include="Form_Input\Form_Input.resx">
       <DependentUpon>Form_Input.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Form_Line\Form_Line.resx">
+      <DependentUpon>Form_Line.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form_Stack\Form_Stack.resx">
       <DependentUpon>Form_Stack.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Start\Form_Start.resx">
       <DependentUpon>Form_Start.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Track\Form_Track.resx">
+      <DependentUpon>Form_Track.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
