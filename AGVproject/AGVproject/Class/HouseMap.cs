@@ -557,6 +557,7 @@ namespace AGVproject.Class
             HouseLength = Configuration.getFieldValue1_DOUBLE("HouseMap.HouseLength");
             HouseWidth = Configuration.getFieldValue1_DOUBLE("HouseMap.HouseWidth");
             PixLength = Configuration.getFieldValue1_DOUBLE("HouseMap.PixLength");
+            ShowPermitTrack = Configuration.getFieldValue1_BOOL("HouseMap.ShowPermitTrack");
         }
         /// <summary>
         /// 保存参数到配置文件中
@@ -566,6 +567,7 @@ namespace AGVproject.Class
             Configuration.setFieldValue("HouseMap.HouseLength", HouseLength);
             Configuration.setFieldValue("HouseMap.HouseWidth", HouseWidth);
             Configuration.setFieldValue("HouseMap.PixLength", PixLength);
+            Configuration.setFieldValue("HouseMap.ShowPermitTrack", ShowPermitTrack);
         }
 
         ////////////////////////////////////////////// private method ///////////////////////////////////////////

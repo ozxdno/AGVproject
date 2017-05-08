@@ -19,6 +19,7 @@ namespace AGVproject.Solution_FollowTrack
                 CoordinatePoint.POINT dest = HouseTrack.getTargetPosition(i);
                 CoordinatePoint.POINT move = CoordinatePoint.MoveMethod(sour, dest);
 
+                AST_GuideByPosition.StartPosition = TH_MeasurePosition.getPosition();
                 AST_GuideByPosition.ApproachX = false;
                 AST_GuideByPosition.ApproachY = false;
                 AST_GuideByPosition.ApproachA = false;
@@ -52,7 +53,7 @@ namespace AGVproject.Solution_FollowTrack
                     TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
                 }
 
-                CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(i));
+                //CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(i));
             }
         }
     }

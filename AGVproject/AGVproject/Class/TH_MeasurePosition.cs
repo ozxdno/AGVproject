@@ -278,7 +278,7 @@ namespace AGVproject.Class
             config.IsSettingSpeed = false;
 
             config.Speed = new SPEED();
-            config.Current = new CoordinatePoint.POINT();
+            //config.Current = new CoordinatePoint.POINT();
 
             FilterX.P = 10; FilterX.Q = 10; FilterX.R = 10; FilterX.Last = 0;
             FilterY.P = 10; FilterY.Q = 10; FilterY.R = 10; FilterY.Last = 0;

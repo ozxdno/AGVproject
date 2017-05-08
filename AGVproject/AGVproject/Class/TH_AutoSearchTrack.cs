@@ -176,7 +176,7 @@ namespace AGVproject.Class
         /// </summary>
         public static void Initial()
         {
-            ProcessHandle = Solution_FollowTrack.BuildTrack.Start;
+            ProcessHandle = Solution_FollowTrack.FollowTrack.Start;
 
             control.Action = Action.Normal;
             control.EMA = false;

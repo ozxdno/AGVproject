@@ -177,8 +177,19 @@ namespace AGVproject
                 //string RouteName = config.SelectedRoute == -1 ? "Auto" : config.Route[config.SelectedRoute].Name;
                 //this.Text = "Map: " + MapName + " / Route: " + RouteName;
                 //this.CheckMap.Checked = config.CheckMap;
+                //ToolStripMenuItem map = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
+                //map.Checked = config.CheckMap;
+                this.keepToolStripMenuItem.Checked = HouseMap.ShowPermitTrack;
+                //this.CheckRoute.Checked = config.CheckRoute;
+                //ToolStripMenuItem route = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
+                //route.Checked = config.CheckRoute;
+                this.drawToolStripMenuItem.Checked = !HouseMap.DrawOver;
+                this.kEEPToolStripMenuItem1.Checked = HouseMap.ShowPermitTrack;
+                this.finishToolStripMenuItem.Checked = HouseMap.DrawOver;
+                this.pixLengthValue.Text = HouseMap.PixLength.ToString();
+                this.urgRangeValue.Text = config.urgRange.ToString();
                 
-                
+
                 // 刷新时间
                 config.Time = DateTime.Now;
                 config.Tick++;
@@ -210,7 +221,7 @@ namespace AGVproject
                 HouseMap.yScroll = (int)(this.panel1.Height * ((double)this.panel1.VerticalScroll.Value / this.panel1.VerticalScroll.Maximum));
                 HouseMap.FormHeight = this.Height;
                 HouseMap.FormWidth = this.Width;
-                HouseMap.ShowPermitTrack = this.keepToolStripMenuItem.Checked;
+                //HouseMap.ShowPermitTrack = this.keepToolStripMenuItem.Checked;
 
                 HouseMap.DrawMap();
 
@@ -409,6 +420,9 @@ namespace AGVproject
             // right menu
             this.pixLengthValue.Text = HouseMap.PixLength.ToString();
             this.urgRangeValue.Text = config.urgRange.ToString();
+
+            // show
+            this.showToolStripMenuItem.Checked = true;
 
             // config
             config.Timer = new System.Timers.Timer(100);

@@ -47,7 +47,7 @@ namespace AGVproject.Solution_FollowTrack
                 // 提示
                 //TH_AutoSearchTrack.control.Event = "Saved This Mark!";
                 Form_Start.config.WarningMessage = "Saved This Mark!";
-                Form_Start.config.WarningTick = Form_Start.config.Tick + 20;
+                Form_Start.config.WarningTick = Form_Start.config.Tick + 10;
 
                 // 等待再次启动
                 while (!Over && !TH_AutoSearchTrack.control.EMA && IsStop()) ;
@@ -55,7 +55,7 @@ namespace AGVproject.Solution_FollowTrack
                 // 提示
                 //TH_AutoSearchTrack.control.Event = "Finding Mark...";
                 Form_Start.config.WarningMessage = "Finding Mark...";
-                Form_Start.config.WarningTick = Form_Start.config.Tick + 20;
+                Form_Start.config.WarningTick = Form_Start.config.Tick + 10;
             }
         }
 
