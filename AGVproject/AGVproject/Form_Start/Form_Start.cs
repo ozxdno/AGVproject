@@ -171,25 +171,7 @@ namespace AGVproject
                 config.CheckControlPort = this.checkConPort.Checked;
                 config.CheckUrgPort = this.checkUrgPort.Checked;
                 config.CheckLocatePort = this.checkLocPort.Checked;
-
-                // 刷新控件数值
-                //string MapName = config.SelectedMap == -1 ? "Auto" : config.Map[config.SelectedMap].Name;
-                //string RouteName = config.SelectedRoute == -1 ? "Auto" : config.Route[config.SelectedRoute].Name;
-                //this.Text = "Map: " + MapName + " / Route: " + RouteName;
-                //this.CheckMap.Checked = config.CheckMap;
-                //ToolStripMenuItem map = (ToolStripMenuItem)this.mapToolStripMenuItem.DropDownItems[config.SelectedMap + config.MapNameIndexBG];
-                //map.Checked = config.CheckMap;
-                this.keepToolStripMenuItem.Checked = HouseMap.ShowPermitTrack;
-                //this.CheckRoute.Checked = config.CheckRoute;
-                //ToolStripMenuItem route = (ToolStripMenuItem)this.routeToolStripMenuItem.DropDownItems[config.SelectedRoute + config.RouteNameIndexBG];
-                //route.Checked = config.CheckRoute;
-                this.drawToolStripMenuItem.Checked = !HouseMap.DrawOver;
-                this.kEEPToolStripMenuItem1.Checked = HouseMap.ShowPermitTrack;
-                this.finishToolStripMenuItem.Checked = HouseMap.DrawOver;
-                this.pixLengthValue.Text = HouseMap.PixLength.ToString();
-                this.urgRangeValue.Text = config.urgRange.ToString();
                 
-
                 // 刷新时间
                 config.Time = DateTime.Now;
                 config.Tick++;
@@ -221,7 +203,7 @@ namespace AGVproject
                 HouseMap.yScroll = (int)(this.panel1.Height * ((double)this.panel1.VerticalScroll.Value / this.panel1.VerticalScroll.Maximum));
                 HouseMap.FormHeight = this.Height;
                 HouseMap.FormWidth = this.Width;
-                //HouseMap.ShowPermitTrack = this.keepToolStripMenuItem.Checked;
+                HouseMap.ShowPermitTrack = this.keepToolStripMenuItem.Checked;
 
                 HouseMap.DrawMap();
 
@@ -424,6 +406,13 @@ namespace AGVproject
             // show
             this.showToolStripMenuItem.Checked = true;
 
+            // finish
+            this.finishToolStripMenuItem.Checked = true;
+
+            // permit route
+            this.keepToolStripMenuItem.Checked = HouseMap.ShowPermitTrack;
+            this.kEEPToolStripMenuItem1.Checked = HouseMap.ShowPermitTrack;
+
             // config
             config.Timer = new System.Timers.Timer(100);
             config.Timer.Elapsed += new System.Timers.ElapsedEventHandler(Refresh_FormStart);
@@ -459,6 +448,12 @@ namespace AGVproject
             this.EventLabel.Width = this.Width - 185;
             this.EventLabel.Location = new Point(this.Width - this.EventLabel.Width - 20, this.Height - 60);
         }
+
+        private void Menu_RouteKeep(object sender, EventArgs e)
+        {
+            this.keepToolStripMenuItem.Checked = !this.keepToolStripMenuItem.Checked;
+            this.kEEPToolStripMenuItem1.Checked = this.keepToolStripMenuItem.Checked;
+        }
         
         private void MouseEnterMap(object sender, EventArgs e)
         {
@@ -490,8 +485,6 @@ namespace AGVproject
         }
         private void MouseRightClicked_Keep(object sender, EventArgs e)
         {
-            if (!config.CheckMap && !config.CheckRoute) { return; }
-
             this.keepToolStripMenuItem.Checked = !this.keepToolStripMenuItem.Checked;
             this.kEEPToolStripMenuItem1.Checked = this.keepToolStripMenuItem.Checked;
         }

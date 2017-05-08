@@ -127,7 +127,7 @@
             this.urgRangeToolStripMenuItem1,
             this.positionToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(153, 296);
+            this.contextMenuStrip.Size = new System.Drawing.Size(141, 274);
             // 
             // drawToolStripMenuItem
             // 
@@ -174,21 +174,21 @@
             // saveRouteToolStripMenuItem
             // 
             this.saveRouteToolStripMenuItem.Name = "saveRouteToolStripMenuItem";
-            this.saveRouteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveRouteToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
             this.saveRouteToolStripMenuItem.Text = "Save";
             this.saveRouteToolStripMenuItem.Click += new System.EventHandler(this.MouseRightClicked_Save);
             // 
             // inputToolStripMenuItem4
             // 
             this.inputToolStripMenuItem4.Name = "inputToolStripMenuItem4";
-            this.inputToolStripMenuItem4.Size = new System.Drawing.Size(152, 22);
+            this.inputToolStripMenuItem4.Size = new System.Drawing.Size(140, 22);
             this.inputToolStripMenuItem4.Text = "Input";
             this.inputToolStripMenuItem4.Click += new System.EventHandler(this.MouseRightClicked_Input);
             // 
             // showToolStripMenuItem
             // 
             this.showToolStripMenuItem.Name = "showToolStripMenuItem";
-            this.showToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
             this.showToolStripMenuItem.Text = "Show";
             this.showToolStripMenuItem.Click += new System.EventHandler(this.MouseRightClicked_Show);
             // 
@@ -284,21 +284,21 @@
             // inputToolStripMenuItem3
             // 
             this.inputToolStripMenuItem3.Name = "inputToolStripMenuItem3";
-            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(152, 22);
+            this.inputToolStripMenuItem3.Size = new System.Drawing.Size(113, 22);
             this.inputToolStripMenuItem3.Text = "Input";
             this.inputToolStripMenuItem3.Click += new System.EventHandler(this.inputMap);
             // 
             // outputToolStripMenuItem
             // 
             this.outputToolStripMenuItem.Name = "outputToolStripMenuItem";
-            this.outputToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.outputToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
             this.outputToolStripMenuItem.Text = "Save";
             this.outputToolStripMenuItem.Click += new System.EventHandler(this.saveMap);
             // 
             // deleteToolStripMenuItem7
             // 
             this.deleteToolStripMenuItem7.Name = "deleteToolStripMenuItem7";
-            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(152, 22);
+            this.deleteToolStripMenuItem7.Size = new System.Drawing.Size(113, 22);
             this.deleteToolStripMenuItem7.Text = "Delete";
             this.deleteToolStripMenuItem7.Click += new System.EventHandler(this.delSelectedMap);
             // 
@@ -306,13 +306,13 @@
             // 
             this.CheckMap.CheckOnClick = true;
             this.CheckMap.Name = "CheckMap";
-            this.CheckMap.Size = new System.Drawing.Size(152, 22);
+            this.CheckMap.Size = new System.Drawing.Size(113, 22);
             this.CheckMap.Text = "Show";
             // 
             // autoMap
             // 
             this.autoMap.Name = "autoMap";
-            this.autoMap.Size = new System.Drawing.Size(152, 22);
+            this.autoMap.Size = new System.Drawing.Size(113, 22);
             this.autoMap.Text = "Auto";
             this.autoMap.ToolTipText = "Defaute Map";
             this.autoMap.Click += new System.EventHandler(this.setSelectedMap);
@@ -334,35 +334,35 @@
             // buildToolStripMenuItem
             // 
             this.buildToolStripMenuItem.Name = "buildToolStripMenuItem";
-            this.buildToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.buildToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.buildToolStripMenuItem.Text = "Input";
             this.buildToolStripMenuItem.Click += new System.EventHandler(this.inputRoute);
             // 
             // clearToolStripMenuItem1
             // 
             this.clearToolStripMenuItem1.Name = "clearToolStripMenuItem1";
-            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(113, 22);
+            this.clearToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.clearToolStripMenuItem1.Text = "Save";
             this.clearToolStripMenuItem1.Click += new System.EventHandler(this.saveRoute);
             // 
             // deleteToolStripMenuItem6
             // 
             this.deleteToolStripMenuItem6.Name = "deleteToolStripMenuItem6";
-            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(113, 22);
+            this.deleteToolStripMenuItem6.Size = new System.Drawing.Size(152, 22);
             this.deleteToolStripMenuItem6.Text = "Delete";
             this.deleteToolStripMenuItem6.Click += new System.EventHandler(this.delSelectedRoute);
             // 
             // keepToolStripMenuItem
             // 
-            this.keepToolStripMenuItem.CheckOnClick = true;
             this.keepToolStripMenuItem.Name = "keepToolStripMenuItem";
-            this.keepToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.keepToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.keepToolStripMenuItem.Text = "Keep";
+            this.keepToolStripMenuItem.Click += new System.EventHandler(this.Menu_RouteKeep);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Fit";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.editRoute);
             // 
@@ -370,13 +370,13 @@
             // 
             this.CheckRoute.CheckOnClick = true;
             this.CheckRoute.Name = "CheckRoute";
-            this.CheckRoute.Size = new System.Drawing.Size(113, 22);
+            this.CheckRoute.Size = new System.Drawing.Size(152, 22);
             this.CheckRoute.Text = "Show";
             // 
             // autoRoute
             // 
             this.autoRoute.Name = "autoRoute";
-            this.autoRoute.Size = new System.Drawing.Size(113, 22);
+            this.autoRoute.Size = new System.Drawing.Size(152, 22);
             this.autoRoute.Text = "Auto";
             this.autoRoute.ToolTipText = "Default Route";
             this.autoRoute.Click += new System.EventHandler(this.setSelectedRoute);
