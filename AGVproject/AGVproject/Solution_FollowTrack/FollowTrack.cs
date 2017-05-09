@@ -16,11 +16,11 @@ namespace AGVproject.Solution_FollowTrack
             {
                 CoordinatePoint.POINT sour = HouseTrack.getTargetPosition(i - 1);
                 CoordinatePoint.POINT dest = HouseTrack.getTargetPosition(i);
-                CoordinatePoint.POINT move = CoordinatePoint.MoveMethod(sour, dest);
+                CoordinatePoint.POINT move = CoordinatePoint.TransformCoordinate(sour, dest);
 
                 TH_MeasurePosition.setPosition(sour);
-                AST_GuideByPosition.StartPosition = sour;
-                AST_GuideByPosition.TargetPosition = dest;
+                AST_GuideByPosition.setStartPosition(sour);
+                AST_GuideByPosition.setTargetPosition(dest);
                 AST_GuideByPosition.ApproachX = false;
                 AST_GuideByPosition.ApproachY = false;
                 AST_GuideByPosition.ApproachA = false;

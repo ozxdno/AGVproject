@@ -234,7 +234,7 @@ namespace AGVproject.Class
         /// 把当前位置转成字符串
         /// </summary>
         /// <returns></returns>
-        public static string ToString()
+        public new static string ToString()
         {
             CoordinatePoint.POINT pos = getPosition();
             return ((int)pos.x).ToString() + ", " + ((int)pos.y).ToString() + ", " + ((int)pos.aCar).ToString();

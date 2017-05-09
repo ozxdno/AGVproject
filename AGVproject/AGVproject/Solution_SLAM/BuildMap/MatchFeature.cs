@@ -53,8 +53,6 @@ namespace AGVproject.Solution_SLAM.BuildMap
             matchFeature = Features[index]; return Errors[index].Samilar;
         }
 
-        private static Feature.Feature LastFeature;
-        private static Feature.Feature NextFeature;
         private struct ERROR
         {
             public double eLength;

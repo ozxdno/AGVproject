@@ -48,6 +48,11 @@ namespace AGVproject.Class
             public double rCar;
         }
 
+        /// <summary>
+        /// 把 POINT 结构体转换成 DOUBLE 数组
+        /// </summary>
+        /// <param name="point">POINT 型数据</param>
+        /// <returns></returns>
         public static List<double> Point2Double(POINT point)
         {
             List<double> data = new List<double>();
@@ -61,10 +66,15 @@ namespace AGVproject.Class
 
             return data;
         }
+        /// <summary>
+        /// 把 DOUBLE 型数组转换成 POINT 结构体
+        /// </summary>
+        /// <param name="data">DOUBLE 型数据</param>
+        /// <returns></returns>
         public static POINT Double2Point(List<double> data)
         {
             POINT point = new POINT();
-            if (data.Count == 0) { return point; }
+            if (data == null || data.Count < 7) { return point; }
             point.x = data[0];
             point.y = data[1];
             point.a = data[2];
@@ -115,6 +125,10 @@ namespace AGVproject.Class
             return point;
         }
 
+        /// <summary>
+        /// 获取一个无效点（点中所有成员的值为 NaN）
+        /// </summary>
+        /// <returns></returns>
         public static POINT getNegPoint()
         {
             POINT point = new POINT();
@@ -130,6 +144,11 @@ namespace AGVproject.Class
 
             return point;
         }
+        /// <summary>
+        /// 判断输入点是否无效
+        /// </summary>
+        /// <param name="point">输入点</param>
+        /// <returns></returns>
         public static bool IsNegPoint(POINT point)
         {
             if (double.IsNaN(point.x)) { return true; }
@@ -142,6 +161,12 @@ namespace AGVproject.Class
             if (double.IsNaN(point.rCar)) { return true; }
             return false;
         }
+        /// <summary>
+        /// 判断两个点的值是否相同
+        /// </summary>
+        /// <param name="point1">点 1</param>
+        /// <param name="point2">点 2</param>
+        /// <returns></returns>
         public static bool Equal(POINT point1, POINT point2)
         {
             if (point1.x != point2.x) { return false; }
@@ -627,6 +652,37 @@ namespace AGVproject.Class
             Move.aCar = aMove;
             Move.rCar = rMove;
             return TransformCoordinate(Move, 0, 0, dest.rCar);
+        }
+        /// <summary>
+        /// 变换小车坐标系，返回变化后目标位置
+        /// </summary>
+        /// <param name="pointO">把该点设定为原点</param>
+        /// <param name="pos">原系中的位置</param>
+        /// <returns></returns>
+        public static POINT TransformCoordinate(POINT pointO, POINT pos)
+        {
+            double xMove = pos.x - pointO.x;
+            double yMove = pos.y - pointO.y;
+
+            double aMove = pos.aCar - pointO.aCar;
+            double rMove = pos.rCar - pointO.rCar;
+
+            POINT Move = Create_XY(xMove, yMove);
+            Move.aCar = aMove;
+            Move.rCar = rMove;
+            return TransformCoordinate(Move, 0, 0, pos.rCar);
+        }
+        /// <summary>
+        /// 变换小车坐标系
+        /// </summary>
+        /// <param name="pointO"></param>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static List<POINT> TransformCoordinate(POINT pointO, List<POINT> points)
+        {
+            if (points == null) { return new List<POINT>(); }
+            for (int i = 0; i < points.Count; i++) { points[i] = TransformCoordinate(pointO, points[i]); }
+            return points;
         }
         /// <summary>
         /// 变换坐标系

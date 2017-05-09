@@ -14,11 +14,12 @@ namespace AGVproject.Class
         /// <summary>
         /// 调节起点
         /// </summary>
-        public static CoordinatePoint.POINT StartPosition;
+        private static CoordinatePoint.POINT StartPosition;
         /// <summary>
         /// 调节终点
         /// </summary>
-        public static CoordinatePoint.POINT TargetPosition;
+        private static CoordinatePoint.POINT TargetPosition;
+
         /// <summary>
         /// 已到达 X 方向调整极限
         /// </summary>
@@ -33,78 +34,21 @@ namespace AGVproject.Class
         public static bool ApproachA;
 
         /// <summary>
-        /// 向左 / 向右 行进一段距离（向左为负）
-        /// </summary>
-        /// <param name="xMove">右移距离 单位：mm</param>
-        /// <returns></returns>
-        public static int getSpeedX(double xMove)
-        {
-            // 获取控制
-            double current = TH_MeasurePosition.getPosition().x - StartPosition.x;
-            double target = xMove;
-            double Kp = 1;
-            double adjust = -Kp * (current - target);
-            
-            // 调整极限
-            ApproachX = Math.Abs(current - target) < 10;
-
-            // 防撞
-            return AST_GuideBySpeed.getSpeedX(adjust);
-        }
-        /// <summary>
-        /// 向前 / 向后 行进一段距离（向后为负）
-        /// </summary>
-        /// <param name="yMove">前进距离 单位：mm</param>
-        /// <returns></returns>
-        public static int getSpeedY(double yMove)
-        {
-            // 获取控制
-            double current = TH_MeasurePosition.getPosition().y - StartPosition.y;
-            double target = yMove;
-            double Kp = 0.7;
-
-            double adjust = -Kp * (current - target);
-
-            // 调整极限
-            ApproachY = Math.Abs(current - target) < 10;
-
-            // 防撞
-            return AST_GuideBySpeed.getSpeedY(adjust);
-        }
-        /// <summary>
-        /// 向左 / 向右 旋转一定角度（向右为负）
-        /// </summary>
-        /// <param name="aMove">左转角度 单位：度</param>
-        /// <returns></returns>
-        public static int getSpeedA(double aMove)
-        {
-            // 获取控制
-            double current = TH_MeasurePosition.getPosition().aCar - StartPosition.aCar;
-            double target = aMove;
-            double Kp = 80;
-
-            double adjust = -Kp * (current - target);
-
-            // 调整极限
-            ApproachA = Math.Abs(current - target) < 1;
-
-            // 防撞
-            return AST_GuideBySpeed.getSpeedA((int)adjust);
-        }
-
-        /// <summary>
         /// 到达目标点的 X 位置
         /// </summary>
         /// <returns></returns>
         public static int getSpeedX()
         {
+            // 获取数据
+            CoordinatePoint.POINT currpos = TH_MeasurePosition.getPosition();
+
             // 获取控制
-            double current = TH_MeasurePosition.getPosition().x;
-            double target = TargetPosition.x;
+            double current = CoordinatePoint.TransformCoordinate(StartPosition, currpos).x;
+            double target = CoordinatePoint.TransformCoordinate(StartPosition, TargetPosition).x;
             double Kp = 1;
 
             double adjust = -Kp * (current - target);
-
+            
             // 调整极限
             ApproachX = Math.Abs(current - target) < 10;
 
@@ -117,9 +61,12 @@ namespace AGVproject.Class
         /// <returns></returns>
         public static int getSpeedY()
         {
+            // 获取数据
+            CoordinatePoint.POINT currpos = TH_MeasurePosition.getPosition();
+
             // 获取控制
-            double current = TH_MeasurePosition.getPosition().y;
-            double target = TargetPosition.y;
+            double current = CoordinatePoint.TransformCoordinate(StartPosition, currpos).y;
+            double target = CoordinatePoint.TransformCoordinate(StartPosition, TargetPosition).y;
             double Kp = 0.7;
 
             double adjust = -Kp * (current - target);
@@ -148,6 +95,45 @@ namespace AGVproject.Class
 
             // 防撞
             return AST_GuideBySpeed.getSpeedA(adjust);
+        }
+
+        /// <summary>
+        /// 把当前位置设定为起始点仓库坐标
+        /// </summary>
+        public static void setStartPosition()
+        {
+            StartPosition = TH_MeasurePosition.getPosition();
+        }
+        /// <summary>
+        /// 设定起始点仓库坐标
+        /// </summary>
+        /// <param name="pos">起始点仓库坐标</param>
+        public static void setStartPosition(CoordinatePoint.POINT pos)
+        {
+            StartPosition = pos;
+        }
+        /// <summary>
+        /// 设定目标点仓库坐标（必须先把起始点设定完毕）
+        /// </summary>
+        /// <param name="pos">目标点仓库坐标</param>
+        public static void setTargetPosition(CoordinatePoint.POINT pos)
+        {
+            TargetPosition = pos;
+        }
+        /// <summary>
+        /// 按 X / Y / A 三个方向的移动量来设定目标点位置（必须先把起始点设定完毕）
+        /// </summary>
+        /// <param name="xMove">X 方向移动量 单位：mm</param>
+        /// <param name="yMove">Y 方向移动量 单位：mm</param>
+        /// <param name="aMove">A 方向移动量 单位：度</param>
+        public static void setTargetPosition(double xMove, double yMove, double aMove)
+        {
+            TargetPosition.x = StartPosition.x + xMove;
+            TargetPosition.y = StartPosition.y + yMove;
+            TargetPosition = CoordinatePoint.Create_XY(TargetPosition.x, TargetPosition.y);
+
+            TargetPosition.aCar = StartPosition.aCar + aMove;
+            TargetPosition.rCar = TargetPosition.aCar * Math.PI / 180;
         }
     }
 }
