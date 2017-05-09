@@ -255,7 +255,7 @@ namespace AGVproject.Class
         /// <returns></returns>
         public static bool ToPosition(string pos,ref CoordinatePoint.POINT point)
         {
-            string[] pt = pos.Split(',');
+            string[] pt = pos.Split(',','，');
             if (pt.Length != 3) { return false; }
 
             try { point.x = double.Parse(pt[0]); point.y = double.Parse(pt[1]); point.aCar = double.Parse(pt[2]); return true; }

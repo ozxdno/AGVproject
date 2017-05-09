@@ -14,26 +14,26 @@ namespace AGVproject.Class
         /// <summary>
         /// 移除无效数据
         /// </summary>
-        public static bool RemoveNeg;
+        public bool RemoveNeg;
         /// <summary>
         /// 无效数据的填充值
         /// </summary>
-        public static double Fill;
+        public double Fill;
         /// <summary>
         /// 最多可忽略连续点的个数
         /// </summary>
-        public static double NegAmount;
+        public double NegAmount;
         /// <summary>
         /// 最大允许的跳变误差
         /// </summary>
-        public static double MaxError;
+        public double MaxError;
 
         /// <summary>
         /// 滤除输入数据中的跳变数据
         /// </summary>
         /// <param name="data">原数据</param>
         /// <returns></returns>
-        public static List<double> Start(List<double> data)
+        public List<double> Start(List<double> data)
         {
             // 滤除跳变
             int N = data.Count;
@@ -69,7 +69,7 @@ namespace AGVproject.Class
         /// <param name="negAmount">最多可忽略连续点的个数</param>
         /// <param name="maxError">最大允许的跳变误差</param>
         /// <returns></returns>
-        public static List<CoordinatePoint.POINT> FilterX(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
+        public List<CoordinatePoint.POINT> FilterX(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
         {
             if (points == null || points.Count == 0)
             { points = new List<CoordinatePoint.POINT>(); return points; }
@@ -90,7 +90,7 @@ namespace AGVproject.Class
         /// <param name="negAmount">最多可忽略连续点的个数</param>
         /// <param name="maxError">最大允许的跳变误差</param>
         /// <returns></returns>
-        public static List<CoordinatePoint.POINT> FilterD(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
+        public List<CoordinatePoint.POINT> FilterD(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
         {
             if (points == null || points.Count == 0)
             { points = new List<CoordinatePoint.POINT>(); return points; }

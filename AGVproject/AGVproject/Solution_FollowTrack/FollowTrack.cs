@@ -12,8 +12,16 @@ namespace AGVproject.Solution_FollowTrack
     {
         public static void Start()
         {
+            // 初始点校准
+            CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(0));
+
+            TH_AutoSearchTrack.control.Event = "0";
+
             for (int i = 1; i < HouseTrack.TotalTrack; i++)
             {
+                TH_AutoSearchTrack.control.Event = i.ToString();
+
+
                 CoordinatePoint.POINT sour = HouseTrack.getTargetPosition(i - 1);
                 CoordinatePoint.POINT dest = HouseTrack.getTargetPosition(i);
                 CoordinatePoint.POINT move = CoordinatePoint.TransformCoordinate(sour, dest);
@@ -31,7 +39,7 @@ namespace AGVproject.Solution_FollowTrack
                 if (Math.Abs(move.x) > Math.Abs(move.y)) { AdjustX(); AdjustY(); }
                 else { AdjustY(); AdjustX(); }
 
-                //CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(i));
+                CorrectPosition.Start((CorrectPosition.CORRECT)HouseTrack.getExtra(i));
             }
         }
 

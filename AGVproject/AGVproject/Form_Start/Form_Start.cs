@@ -732,10 +732,27 @@ namespace AGVproject
 
             this.button.Text = "Stop";
         }
+
+        static Solution_FollowTrack.CorrectPosition.CORRECT correct = new Solution_FollowTrack.CorrectPosition.CORRECT();
         private void formKeyDown(object sender, KeyEventArgs e)
         {
             
-            
+            if (e.KeyValue == 82)
+            {
+                correct = Solution_FollowTrack.CorrectPosition.getCorrect();
+            }
+            if (e.KeyValue == 83)
+            {
+                Solution_FollowTrack.CorrectPosition.Start(correct);
+            }
+            if (e.KeyValue == 66)
+            {
+                TH_AutoSearchTrack.ProcessHandle = Solution_FollowTrack.BuildTrack.Start;
+            }
+            if (e.KeyValue == 70)
+            {
+                TH_AutoSearchTrack.ProcessHandle = Solution_FollowTrack.FollowTrack.Start;
+            }
         }
 
         private void setSelectedMap(object sender, EventArgs e)

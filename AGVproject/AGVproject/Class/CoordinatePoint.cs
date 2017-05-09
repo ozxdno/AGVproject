@@ -178,6 +178,18 @@ namespace AGVproject.Class
             if (point1.rCar != point2.rCar) { return false; }
             return true;
         }
+        /// <summary>
+        /// 复制一个点集合中的所有点
+        /// </summary>
+        /// <param name="points">被复制的点集合</param>
+        /// <returns></returns>
+        public static List<POINT> Copy(List<POINT> points)
+        {
+            List<POINT> copy = new List<POINT>();
+            if (points == null) { return copy; }
+            foreach (POINT pt in points) { copy.Add(pt); }
+            return copy;
+        }
 
         public static List<POINT> SelectX(double BG, double ED, List<POINT> points)
         {

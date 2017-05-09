@@ -119,17 +119,19 @@ namespace AGVproject.Solution_FollowTrack
         {
             // 获取匹配直线
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
-            getMatch(correctTarget);
+
+            Initial();
+            getMatch2(correctTarget);
 
             correctTarget.xInvalid |= config.xLine == -1;
             correctTarget.yInvalid |= config.yLine == -1;
             if (correctTarget.xInvalid) { config.xLine = -1; }
             if (correctTarget.yInvalid) { config.yLine = -1; }
             
-            if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
-            if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
-            if (config.xLine != -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in Y"; }
-            if (config.xLine != -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Successed"; }
+            //if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
+            //if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
+            //if (config.xLine != -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in Y"; }
+            //if (config.xLine != -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Successed"; }
 
             // 获取中心角度
             double xAverage = 0, yAverage = 0;
@@ -235,11 +237,6 @@ namespace AGVproject.Solution_FollowTrack
             correct.xInvalid = config.xLine == -1;
             correct.yInvalid = config.yLine == -1;
 
-            if (correct.xInvalid && correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid X and Y Lines"; }
-            if (correct.xInvalid && !correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid X Line"; }
-            if (!correct.xInvalid && correct.yInvalid) { TH_AutoSearchTrack.control.Event = "Invalid Y Line"; }
-            if (!correct.xInvalid && !correct.yInvalid) { TH_AutoSearchTrack.control.Event = "LandMark Done"; }
-
             // 获取 X 方向下次校准的参数
             if (!correct.xInvalid)
             {
@@ -262,12 +259,16 @@ namespace AGVproject.Solution_FollowTrack
             // 获取 Y 方向下次校准的参数
             if (!correct.yInvalid)
             {
-                double[] yKAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[config.yLine]));
+                CoordinatePoint.POINT ptBG = config.Lines[config.yLine][0];
+                CoordinatePoint.POINT ptED = config.Lines[config.yLine][config.Lines[config.yLine].Count - 1];
+
+                List<CoordinatePoint.POINT> copyLine = CoordinatePoint.Copy(config.Lines[config.yLine]);
+                double[] yKAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine));
                 correct.yK = yKAB[0];
                 correct.yA = yKAB[1];
                 correct.yB = yKAB[2];
                 correct.yC = CoordinatePoint.AverageA(config.Lines[config.yLine]);
-                correct.yD = yKAB[2];
+                correct.yD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
                 correct.yL = 0;
                 correct.yR = 0;
 
@@ -280,6 +281,14 @@ namespace AGVproject.Solution_FollowTrack
         }
         
         ////////////////////////////////////////////////// private method /////////////////////////////////////////
+
+        private static void Initial()
+        {
+            config.Lines = new List<List<CoordinatePoint.POINT>>();
+            config.LineError = 50; // 线段的点的浮动误差 
+            config.PtReqNum = 30;
+            config.NegeError = 200; // 线段至少10cm长
+        }
 
         private static void cutPointsToGroup(List<CoordinatePoint.POINT> points)
         {
@@ -492,8 +501,11 @@ namespace AGVproject.Solution_FollowTrack
             List<double[]> yKAB = new List<double[]>();
             for (int i = 0; i < config.Lines.Count; i++)
             {
-                double[] x = CoordinatePoint.Fit(config.Lines[i]);
-                double[] y = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[i]));
+                List<CoordinatePoint.POINT> copyLine = new List<CoordinatePoint.POINT>();
+                foreach (CoordinatePoint.POINT pt in config.Lines[i]) { copyLine.Add(pt); }
+
+                double[] x = CoordinatePoint.Fit(copyLine);
+                double[] y = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine));
 
                 xKAB.Add(x); yKAB.Add(y);
             }
@@ -517,9 +529,9 @@ namespace AGVproject.Solution_FollowTrack
                 { err.xL = Math.Abs((xKAB[i][1] - yKAB[i - 1][1]) - (correct.xA - correct.xL)); }
                 if (i > 0 && !correct.xL_exchanged)
                 { err.xL = Math.Abs((xKAB[i][1] - xKAB[i - 1][1]) - (correct.xA - correct.xL)); }
-                if (i < N - 1 && correct.xR_exchanged)
+                if (i < config.Lines.Count - 1 && correct.xR_exchanged)
                 { err.xR = Math.Abs((xKAB[i][1] - yKAB[i + 1][1]) - (correct.xA - correct.xR)); }
-                if (i < N - 1 && !correct.xR_exchanged)
+                if (i < config.Lines.Count - 1 && !correct.xR_exchanged)
                 { err.xR = Math.Abs((xKAB[i][1] - xKAB[i + 1][1]) - (correct.xA - correct.xR)); }
 
                 err.xD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
@@ -533,9 +545,9 @@ namespace AGVproject.Solution_FollowTrack
                 { err.yL = Math.Abs((yKAB[i][1] - yKAB[i - 1][1]) - (correct.yA - correct.yL)); }
                 if (i > 0 && !correct.yL_exchanged)
                 { err.yL = Math.Abs((yKAB[i][1] - xKAB[i - 1][1]) - (correct.yA - correct.yL)); }
-                if (i < N - 1 && correct.yR_exchanged)
+                if (i < config.Lines.Count - 1 && correct.yR_exchanged)
                 { err.yR = Math.Abs((yKAB[i][1] - yKAB[i + 1][1]) - (correct.yA - correct.yR)); }
-                if (i < N - 1 && !correct.yR_exchanged)
+                if (i < config.Lines.Count - 1 && !correct.yR_exchanged)
                 { err.yR = Math.Abs((yKAB[i][1] - xKAB[i + 1][1]) - (correct.yA - correct.yR)); }
 
                 err.yD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
@@ -550,14 +562,15 @@ namespace AGVproject.Solution_FollowTrack
 
             foreach (ERROR error in Error)
             {
-                double xe = error.xPos + error.xFit + error.xL + error.xR + 0.1 * error.xD;
-                double ye = error.yPos + error.yFit + error.yL + error.yR + 0.1 * error.yD;
+                double xe = error.xPos + error.xFit + 0.1 * error.xD;// +error.xL + error.xR;
+                double ye = error.yPos + error.yFit + 0.1 * error.yD;// +error.yL + error.yR;
 
                 if (xe < xFactor) { xFactor = xe; xBest = error.index; }
                 if (ye < yFactor) { yFactor = ye; yBest = error.index; }
             }
 
-            config.xLine = xBest; config.yLine = yBest;
+            if (!correct.xInvalid && xFactor < 60) { config.xLine = xBest; }
+            if (!correct.yInvalid && yFactor < 60) { config.yLine = yBest; }
         }
 
         private static int getSpeedX(CORRECT correctTarget)
@@ -567,11 +580,12 @@ namespace AGVproject.Solution_FollowTrack
             if (config.yLine == -1) { return AST_GuideBySpeed.getSpeedX(0); }
 
             // 获取数据
-            double[] KAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(config.Lines[config.yLine]));
+            List<CoordinatePoint.POINT> copyLine = CoordinatePoint.Copy(config.Lines[config.yLine]);
+            double[] KAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine));
 
             // 获取控制
             double current = KAB[2];
-            double target = correctTarget.yD;
+            double target = correctTarget.yB;
             double Kp = 0.6;
 
             double adjust = Kp * (current - target);
@@ -593,7 +607,7 @@ namespace AGVproject.Solution_FollowTrack
 
             // 获取控制
             double current = KAB[2];
-            double target = correctTarget.xD;
+            double target = correctTarget.xB;
             double Kp = 0.6;
 
             double adjust = Kp * (current - target);
@@ -611,8 +625,12 @@ namespace AGVproject.Solution_FollowTrack
             if (config.xLine == -1 && config.yLine == -1) { return AST_GuideBySpeed.getSpeedA(0); }
 
             // 获取数据
-            int index = config.xLine != -1 ? config.xLine : config.yLine;
-            double[] KAB = CoordinatePoint.Fit(config.Lines[index]);
+            List<CoordinatePoint.POINT> copyLine = new List<CoordinatePoint.POINT>();
+            if (config.yLine != -1) { copyLine = CoordinatePoint.Copy(config.Lines[config.yLine]); }
+             
+            double[] KAB = correctTarget.xInvalid ?
+                CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine)) :
+                CoordinatePoint.Fit(config.Lines[config.xLine]);
 
             // 获取控制
             double current = KAB[1];
@@ -620,6 +638,7 @@ namespace AGVproject.Solution_FollowTrack
             double Kp = 30;
 
             double adjust = Kp * (current - target);
+            if (config.xLine == -1) { adjust = -adjust; }
 
             // 调整终点
             config.ApproachA = Math.Abs(current - target) < 1;
