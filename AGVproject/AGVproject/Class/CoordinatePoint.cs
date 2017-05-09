@@ -623,8 +623,10 @@ namespace AGVproject.Class
             double aMove = dest.aCar - sour.aCar;
             double rMove = dest.rCar - sour.rCar;
 
-            POINT Move = Create_XY(xMove, yMove); Move.aCar = aMove;
-            return TransformCoordinate(Move, 0, 0, rMove);
+            POINT Move = Create_XY(xMove, yMove);
+            Move.aCar = aMove;
+            Move.rCar = rMove;
+            return TransformCoordinate(Move, 0, 0, dest.rCar);
         }
         /// <summary>
         /// 变换坐标系
