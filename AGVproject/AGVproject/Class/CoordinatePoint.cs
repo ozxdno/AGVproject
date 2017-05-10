@@ -190,6 +190,16 @@ namespace AGVproject.Class
             foreach (POINT pt in points) { copy.Add(pt); }
             return copy;
         }
+        /// <summary>
+        /// 返回两个点之间的距离 单位：mm
+        /// </summary>
+        /// <param name="pt1">点 1</param>
+        /// <param name="pt2">点 2</param>
+        /// <returns></returns>
+        public static double getDistance(POINT pt1, POINT pt2)
+        {
+            return Math.Sqrt((pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y));
+        }
 
         public static List<POINT> SelectX(double BG, double ED, List<POINT> points)
         {
@@ -646,25 +656,6 @@ namespace AGVproject.Class
             return sum / points.Count;
         }
 
-        /// <summary>
-        /// 点对点进行移动，从源坐标移动到目标坐标的移动策略
-        /// </summary>
-        /// <param name="sour">源坐标</param>
-        /// <param name="dest">目的坐标</param>
-        /// <returns></returns>
-        public static POINT MoveMethod(POINT sour, POINT dest)
-        {
-            double xMove = dest.x - sour.x;
-            double yMove = dest.y - sour.y;
-
-            double aMove = dest.aCar - sour.aCar;
-            double rMove = dest.rCar - sour.rCar;
-
-            POINT Move = Create_XY(xMove, yMove);
-            Move.aCar = aMove;
-            Move.rCar = rMove;
-            return TransformCoordinate(Move, 0, 0, dest.rCar);
-        }
         /// <summary>
         /// 变换小车坐标系，返回变化后目标位置
         /// </summary>

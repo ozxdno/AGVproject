@@ -32,6 +32,10 @@ namespace AGVproject.Solution_FollowTrack
             /// </summary>
             public double xK;
             /// <summary>
+            /// X 方向直线的长度
+            /// </summary>
+            public double xL;
+            /// <summary>
             /// X 方向直线的角度
             /// </summary>
             public double xA;
@@ -44,35 +48,26 @@ namespace AGVproject.Solution_FollowTrack
             /// </summary>
             public double xC;
             /// <summary>
-            /// X 方向直线的长度
+            /// X 方向直线的最小距离（与截距一个性质）
             /// </summary>
             public double xD;
             /// <summary>
-            /// X 方向左边直线通过了交换 X-Y 的变换
+            /// 右边直线斜率
             /// </summary>
-            public bool xL_exchanged;
+            public double x1;
             /// <summary>
-            /// 该直线的左边一条直线的角度
+            /// 左边直线斜率
             /// </summary>
-            public double xL;
-            /// <summary>
-            /// X 方向右边直线通过了交换 X-Y 的变换
-            /// </summary>
-            public bool xR_exchanged;
-            /// <summary>
-            /// 该直线的右边一条直线的角度
-            /// </summary>
-            public double xR;
+            public double x2;
 
             public double yK;
+            public double yL;
             public double yA;
             public double yB;
             public double yC;
             public double yD;
-            public bool yL_exchanged;
-            public double yL;
-            public bool yR_exchanged;
-            public double yR;
+            public double y1;
+            public double y2;
         }
 
         ////////////////////////////////////////////////// private attribute /////////////////////////////////////////
@@ -91,22 +86,10 @@ namespace AGVproject.Solution_FollowTrack
             public bool ApproachX;
             public bool ApproachY;
             public bool ApproachA;
-        }
-        private struct ERROR
-        {
-            public int index;
 
-            public double xPos;
-            public double xFit;
-            public double xL;
-            public double xR;
-            public double xD;
-
-            public double yPos;
-            public double yFit;
-            public double yL;
-            public double yR;
-            public double yD;
+            public double xAdjustError;
+            public double yAdjustError;
+            public double aAdjustError;
         }
 
         ////////////////////////////////////////////////// public method ///////////////////////////////////////////
@@ -121,97 +104,37 @@ namespace AGVproject.Solution_FollowTrack
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
 
             Initial();
-            getMatch2(correctTarget);
-
-            correctTarget.xInvalid |= config.xLine == -1;
-            correctTarget.yInvalid |= config.yLine == -1;
-            if (correctTarget.xInvalid) { config.xLine = -1; }
-            if (correctTarget.yInvalid) { config.yLine = -1; }
+            getMatch(correctTarget);
             
-            //if (config.xLine == -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X and Y"; }
-            //if (config.xLine == -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Failed in X"; }
-            //if (config.xLine != -1 && config.yLine == -1) { TH_AutoSearchTrack.control.Event = "Match Failed in Y"; }
-            //if (config.xLine != -1 && config.yLine != -1) { TH_AutoSearchTrack.control.Event = "Match Successed"; }
-
             // 获取中心角度
             double xAverage = 0, yAverage = 0;
             if (config.xLine != -1) { xAverage = CoordinatePoint.AverageA(config.Lines[config.xLine]); }
             if (config.yLine != -1) { yAverage = CoordinatePoint.AverageA(config.Lines[config.yLine]); }
             CoordinatePoint.POINT refPos = TH_MeasurePosition.getPosition();
-
-            // 控制初始化
+            
+            // 粗调
             config.ApproachX = false;
             config.ApproachY = false;
             config.ApproachA = false;
-            
-            // 调整角度
-            while (!config.ApproachA)
-            {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
-                cutPointsToGroup(points);
-                sortLines();
+            config.aAdjustError = 3;
+            config.xAdjustError = 50;
+            config.yAdjustError = 50;
 
-                // 获取匹配直线索引号
-                getMatch2(correctTarget);
+            AdjustA(correctTarget);
+            AdjustY(correctTarget);
+            AdjustX(correctTarget);
 
-                // 退出条件
-                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
+            // 精调
+            config.ApproachX = false;
+            config.ApproachY = false;
+            config.ApproachA = false;
+            config.aAdjustError = 1;
+            config.xAdjustError = 10;
+            config.yAdjustError = 10;
 
-                // 获取控制
-                //int xSpeed = getSpeedX(correctTarget);
-                //int ySpeed = getSpeedY(correctTarget);
-                int aSpeed = getSpeedA(correctTarget);
-
-                TH_SendCommand.AGV_MoveControl_0x70(0, 0, aSpeed);
-            }
-
-            // 调整 Y
-            while (!config.ApproachY)
-            {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
-                cutPointsToGroup(points);
-                sortLines();
-
-                // 获取匹配直线索引号
-                getMatch2(correctTarget);
-
-                // 退出条件
-                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
-
-                // 获取控制
-                //int xSpeed = getSpeedX(correctTarget);
-                int ySpeed = getSpeedY(correctTarget);
-                //int aSpeed = getSpeedA(correctTarget);
-
-                TH_SendCommand.AGV_MoveControl_0x70(0, ySpeed, 0);
-            }
-
-            // 调整 X
-            while (!config.ApproachX)
-            {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
-                cutPointsToGroup(points);
-                sortLines();
-
-                // 获取匹配直线索引号
-                getMatch2(correctTarget);
-
-                // 退出条件
-                //if (!Form_Start.corrpos) { TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0); return; }
-
-                // 获取控制
-                int xSpeed = getSpeedX(correctTarget);
-                //int ySpeed = getSpeedY(correctTarget);
-                //int aSpeed = getSpeedA(correctTarget);
-
-                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, 0, 0);
-            }
+            AdjustA(correctTarget);
+            AdjustY(correctTarget);
+            AdjustX(correctTarget);
 
             // 调整完毕
             TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
@@ -245,15 +168,11 @@ namespace AGVproject.Solution_FollowTrack
 
                 double[] xKAB = CoordinatePoint.Fit(config.Lines[config.xLine]);
                 correct.xK = xKAB[0];
+                correct.xL = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
                 correct.xA = xKAB[1];
                 correct.xB = xKAB[2];
                 correct.xC = CoordinatePoint.AverageA(config.Lines[config.xLine]);
-                correct.xD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-                correct.xL = 0;
-                correct.xR = 0;
-
-                if (0 < config.xLine) { double[] xL = CoordinatePoint.Fit(config.Lines[config.xLine - 1]); correct.xL = xL[1]; }
-                if (config.xLine < config.Lines.Count - 1) { double[] xR = CoordinatePoint.Fit(config.Lines[config.xLine + 1]); correct.xR = xR[1]; }
+                correct.xD = CoordinatePoint.MinD(config.Lines[config.xLine]);
             }
 
             // 获取 Y 方向下次校准的参数
@@ -262,18 +181,15 @@ namespace AGVproject.Solution_FollowTrack
                 CoordinatePoint.POINT ptBG = config.Lines[config.yLine][0];
                 CoordinatePoint.POINT ptED = config.Lines[config.yLine][config.Lines[config.yLine].Count - 1];
 
-                List<CoordinatePoint.POINT> copyLine = CoordinatePoint.Copy(config.Lines[config.yLine]);
-                double[] yKAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine));
+                List<CoordinatePoint.POINT> exLine = CoordinatePoint.ExChangeXY(CoordinatePoint.Copy(config.Lines[config.yLine]));
+
+                double[] yKAB = CoordinatePoint.Fit(exLine);
                 correct.yK = yKAB[0];
+                correct.yL = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
                 correct.yA = yKAB[1];
                 correct.yB = yKAB[2];
                 correct.yC = CoordinatePoint.AverageA(config.Lines[config.yLine]);
-                correct.yD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-                correct.yL = 0;
-                correct.yR = 0;
-
-                if (0 < config.yLine) { double[] yL = CoordinatePoint.Fit(config.Lines[config.yLine - 1]); correct.yL = yL[1]; }
-                if (config.yLine < config.Lines.Count - 1) { double[] yR = CoordinatePoint.Fit(config.Lines[config.yLine + 1]); correct.yR = yR[1]; }
+                correct.yD = CoordinatePoint.MinD(exLine);
             }
             
             // 返回结果
@@ -404,7 +320,6 @@ namespace AGVproject.Solution_FollowTrack
             }
             config.yLine = select;
         }
-
         private static void getMatch(CORRECT correct)
         {
             // 初始化
@@ -415,162 +330,139 @@ namespace AGVproject.Solution_FollowTrack
             config.Lines = new List<List<CoordinatePoint.POINT>>();
             cutPointsToGroup(points);
             sortLines();
-            
-            // 存下索引号备用
-            List<int> indexofLine = new List<int>();
-            for (int i = 0; i < config.Lines.Count; i++) { indexofLine.Add(i); }
-            
-            // 寻找匹配直线
-            bool xFound = false, yFound = false;
-            while (indexofLine.Count != 0 && (!xFound || !yFound))
-            {
-                // 找到点数量最多的线
-                int indexofMost = -1, Most = -1, Remove = -1;
-                for (int i = 0; i < indexofLine.Count; i++)
-                {
-                    int N = config.Lines[indexofLine[i]].Count; if (N > Most) { Remove = i; Most = N; }
-                }
-                indexofMost = indexofLine[Remove];
-                indexofLine.RemoveAt(Remove);
 
-                // 获取这条线的 KAB
-                double[] KAB = CoordinatePoint.Fit(config.Lines[indexofMost]);
-                double A = KAB[1], L = 0, R = 0;
-                if (indexofMost > 0) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost - 1]); L = KAB[1]; }
-                if (indexofMost < config.Lines.Count - 1) { KAB = CoordinatePoint.Fit(config.Lines[indexofMost + 1]); R = KAB[1]; }
-
-                if (A < 0) { A += 180; }
-                if (L < 0) { L += 180; }
-                if (R < 0) { R += 180; }
-
-                // 寻找 X 方向的匹配直线
-                if (!xFound && !correct.xInvalid)
-                {
-                    if (correct.xL == 0 && correct.xR == 0) { xFound = true; config.xLine = indexofMost; }
-
-                    double iAngleL = L-A;//Math.Abs(L - A); if (iAngleL > 180) { iAngleL -= 180; }
-                    double sAngleL = correct.xL - correct.xA;//Math.Abs(correct.xA - correct.xL); if (sAngleL > 180) { sAngleL -= 180; }
-                    double iAngleR = R - A;// Math.Abs(R - A); if (iAngleR > 180) { iAngleR -= 180; }
-                    double sAngleR = correct.xR - correct.xA;//Math.Abs(correct.xA - correct.xR); if (sAngleR > 180) { sAngleR -= 180; }
-                    
-                    double ErrorL = Math.Abs(iAngleL - sAngleL);
-                    double ErrorR = Math.Abs(iAngleR - sAngleR);
-                    double ErrorC = Math.Abs(CoordinatePoint.AverageA(config.Lines[indexofMost]) - correct.xC);
-
-                    bool SuitL = L == 0 || correct.xL == 0 || (L != 0 && correct.xL != 0 && ErrorL < 10);
-                    bool SuitR = R == 0 || correct.xR == 0 || (R != 0 && correct.xR != 0 && ErrorR < 10);
-                    bool SuitC = ErrorC < 10;
-                    if (!xFound && (SuitL || SuitR) && SuitC) { xFound = true; config.xLine = indexofMost; continue; }
-                }
-
-                // 寻找 Y 方向的匹配直线
-                if (!yFound && !correct.yInvalid)
-                {
-                    if (correct.yL == 0 && correct.yR == 0) { yFound = true; config.yLine = indexofMost; }
-
-                    double iAngleL = L-A;//Math.Abs(L - A); if (iAngleL > 180) { iAngleL -= 180; }
-                    double sAngleL = correct.yL - correct.yA;//Math.Abs(correct.yA - correct.yL); if (sAngleL > 180) { sAngleL -= 180; }
-                    double iAngleR = R-A;//Math.Abs(R - A); if (iAngleR > 180) { iAngleR -= 180; }
-                    double sAngleR = correct.yR - correct.yA;//Math.Abs(correct.yA - correct.yR); if (sAngleR > 180) { sAngleR -= 180; }
-
-                    double ErrorL = Math.Abs(iAngleL - sAngleL);
-                    double ErrorR = Math.Abs(iAngleR - sAngleR);
-                    double ErrorC = Math.Abs(CoordinatePoint.AverageA(config.Lines[indexofMost]) - correct.yC);
-
-                    bool SuitL = L == 0 || correct.yL == 0 || (L != 0 && correct.yL != 0 && ErrorL < 10);
-                    bool SuitR = R == 0 || correct.yR == 0 || (R != 0 && correct.yR != 0 && ErrorR < 10);
-                    bool SuitC = ErrorC < 10;
-
-                    if (!yFound && (SuitL || SuitR) && SuitC) { yFound = true; config.yLine = indexofMost; }
-                }
-            }
-        }
-        private static void getMatch2(CORRECT correct)
-        {
-            // 初始化
-            config.xLine = -1; config.yLine = -1;
-
-            // 切割成直线
-            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-            config.Lines = new List<List<CoordinatePoint.POINT>>();
-            cutPointsToGroup(points);
-            sortLines();
-
-            // 获取各条直线的 KAB 值。xKAB, yKAB
-            List<double[]> xKAB = new List<double[]>();
-            List<double[]> yKAB = new List<double[]>();
-            for (int i = 0; i < config.Lines.Count; i++)
-            {
-                List<CoordinatePoint.POINT> copyLine = new List<CoordinatePoint.POINT>();
-                foreach (CoordinatePoint.POINT pt in config.Lines[i]) { copyLine.Add(pt); }
-
-                double[] x = CoordinatePoint.Fit(copyLine);
-                double[] y = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine));
-
-                xKAB.Add(x); yKAB.Add(y);
-            }
-
-            // 获取各种误差参数
-            List<ERROR> Error = new List<ERROR>();
+            // 获取各条直线的各种误差参数
+            List<CORRECT> Error = new List<CORRECT>();
             CoordinatePoint.POINT ptBG, ptED;
+
             for (int i = 0; i < config.Lines.Count; i++)
             {
-                ERROR err = new ERROR(); err.index = i;
-                int N = config.Lines[i].Count;
+                // 获取直线
+                List<CoordinatePoint.POINT> readLine = config.Lines[i];
+                List<CoordinatePoint.POINT> copyLine = CoordinatePoint.Copy(readLine);
+                copyLine = CoordinatePoint.ExChangeXY(copyLine);
 
-                ptBG = config.Lines[i][0];
-                ptED = config.Lines[i][N - 1];
+                // 误差集合
+                CORRECT err = new CORRECT();
 
-                err.xPos = Math.Min(Math.Abs(ptBG.a - correct.xC), Math.Abs(ptED.a - correct.xC));
-                if (ptBG.a < correct.xC && correct.xC < ptED.a) { err.xPos = 0; }
-                err.xFit = Math.Abs(xKAB[i][1] - correct.xA);
+                // 获取 KAB 误差
+                double[] xKAB = CoordinatePoint.Fit(readLine);
+                double[] yKAB = CoordinatePoint.Fit(copyLine);
 
-                if (i > 0 && correct.xL_exchanged)
-                { err.xL = Math.Abs((xKAB[i][1] - yKAB[i - 1][1]) - (correct.xA - correct.xL)); }
-                if (i > 0 && !correct.xL_exchanged)
-                { err.xL = Math.Abs((xKAB[i][1] - xKAB[i - 1][1]) - (correct.xA - correct.xL)); }
-                if (i < config.Lines.Count - 1 && correct.xR_exchanged)
-                { err.xR = Math.Abs((xKAB[i][1] - yKAB[i + 1][1]) - (correct.xA - correct.xR)); }
-                if (i < config.Lines.Count - 1 && !correct.xR_exchanged)
-                { err.xR = Math.Abs((xKAB[i][1] - xKAB[i + 1][1]) - (correct.xA - correct.xR)); }
+                err.xK = Math.Abs(correct.xK - xKAB[0]);
+                err.xA = Math.Abs(correct.xA - xKAB[1]);
+                err.xB = Math.Abs(correct.xB - xKAB[2]);
+                err.yK = Math.Abs(correct.yK - yKAB[0]);
+                err.yA = Math.Abs(correct.yA - yKAB[1]);
+                err.yB = Math.Abs(correct.yB - yKAB[2]);
 
-                err.xD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-                err.xD = Math.Abs(err.xD - correct.xD);
+                // 获取 L 误差
+                ptBG = readLine[0]; ptED = readLine[readLine.Count - 1];
+                double length = CoordinatePoint.getDistance(ptBG, ptED);
+                err.xL = Math.Abs(correct.xL - length);
+                err.yL = Math.Abs(correct.yL - length);
 
-                err.yPos = Math.Min(Math.Abs(ptBG.a - correct.yC), Math.Abs(ptED.a - correct.yC));
-                if (ptBG.a < correct.yC && correct.yC < ptED.a) { err.yPos = 0; }
-                err.yFit = Math.Abs(yKAB[i][1] - correct.yA);
+                // 获取 C 误差
+                double centre = CoordinatePoint.AverageA(readLine);
+                err.xC = Math.Abs(correct.xC - centre);
+                err.yC = Math.Abs(correct.yC - centre);
 
-                if (i > 0 && correct.yL_exchanged)
-                { err.yL = Math.Abs((yKAB[i][1] - yKAB[i - 1][1]) - (correct.yA - correct.yL)); }
-                if (i > 0 && !correct.yL_exchanged)
-                { err.yL = Math.Abs((yKAB[i][1] - xKAB[i - 1][1]) - (correct.yA - correct.yL)); }
-                if (i < config.Lines.Count - 1 && correct.yR_exchanged)
-                { err.yR = Math.Abs((yKAB[i][1] - yKAB[i + 1][1]) - (correct.yA - correct.yR)); }
-                if (i < config.Lines.Count - 1 && !correct.yR_exchanged)
-                { err.yR = Math.Abs((yKAB[i][1] - xKAB[i + 1][1]) - (correct.yA - correct.yR)); }
+                // 获取 D 误差
+                double distance = CoordinatePoint.MinD(readLine);
+                err.xD = Math.Abs(correct.xD - distance);
+                err.yD = Math.Abs(correct.yD - distance);
 
-                err.yD = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-                err.yD = Math.Abs(err.yD - correct.yD);
-
+                // 添加到误差列表
                 Error.Add(err);
             }
-
+            
             // 寻找最优的匹配直线
             double xFactor = double.MaxValue, yFactor = double.MaxValue;
             int xBest = -1, yBest = -1;
 
-            foreach (ERROR error in Error)
+            for (int i = 0; i < Error.Count; i++)
             {
-                double xe = error.xPos + error.xFit + 0.1 * error.xD;// +error.xL + error.xR;
-                double ye = error.yPos + error.yFit + 0.1 * error.yD;// +error.yL + error.yR;
+                CORRECT error = Error[i];
 
-                if (xe < xFactor) { xFactor = xe; xBest = error.index; }
-                if (ye < yFactor) { yFactor = ye; yBest = error.index; }
+                double xe = 0.1 * error.xL + error.xA + error.xC + 0.1 * error.xD;
+                double ye = 0.1 * error.yL + error.yA + error.yC + 0.1 * error.yD;
+
+                if (xe < xFactor) { xFactor = xe; xBest = i; }
+                if (ye < yFactor) { yFactor = ye; yBest = i; }
             }
 
-            if (!correct.xInvalid && xFactor < 60) { config.xLine = xBest; }
-            if (!correct.yInvalid && yFactor < 60) { config.yLine = yBest; }
+            if (!correct.xInvalid && xFactor < 40) { config.xLine = xBest; }
+            if (!correct.yInvalid && yFactor < 40) { config.yLine = yBest; }
+        }
+        
+        private static void AdjustX(CORRECT correctTarget)
+        {
+            if (correctTarget.yInvalid) { return; }
+
+            while (!config.ApproachA)
+            {
+                // 切割成直线
+                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                cutPointsToGroup(points);
+                sortLines();
+
+                // 获取匹配直线索引号
+                getMatch(correctTarget);
+
+                // 获取控制
+                int xSpeed = getSpeedX(correctTarget);
+                int ySpeed = AST_GuideBySpeed.getSpeedY(0);
+                int aSpeed = AST_GuideBySpeed.getSpeedA(0);
+
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+            }
+        }
+        private static void AdjustY(CORRECT correctTarget)
+        {
+            if (correctTarget.xInvalid) { return; }
+
+            while (!config.ApproachY)
+            {
+                // 切割成直线
+                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                cutPointsToGroup(points);
+                sortLines();
+
+                // 获取匹配直线索引号
+                getMatch(correctTarget);
+
+                // 获取控制
+                int xSpeed = AST_GuideBySpeed.getSpeedX(0);
+                int ySpeed = getSpeedY(correctTarget);
+                int aSpeed = AST_GuideBySpeed.getSpeedA(0);
+
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+            }
+        }
+        private static void AdjustA(CORRECT correctTarget)
+        {
+            if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
+
+            while (!config.ApproachY)
+            {
+                // 切割成直线
+                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                cutPointsToGroup(points);
+                sortLines();
+
+                // 获取匹配直线索引号
+                getMatch(correctTarget);
+
+                // 获取控制
+                int xSpeed = AST_GuideBySpeed.getSpeedX(0);
+                int ySpeed = AST_GuideBySpeed.getSpeedY(0);
+                int aSpeed = getSpeedA(correctTarget);
+
+                TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+            }
         }
 
         private static int getSpeedX(CORRECT correctTarget)
@@ -591,7 +483,7 @@ namespace AGVproject.Solution_FollowTrack
             double adjust = Kp * (current - target);
 
             // 调整终点
-            config.ApproachX = Math.Abs(current - target) < 10;
+            config.ApproachX = Math.Abs(current - target) < config.xAdjustError;
 
             // 避撞
             return AST_GuideBySpeed.getSpeedX(adjust);
@@ -613,7 +505,7 @@ namespace AGVproject.Solution_FollowTrack
             double adjust = Kp * (current - target);
 
             // 调整终点
-            config.ApproachY = Math.Abs(current - target) < 10;
+            config.ApproachY = Math.Abs(current - target) < config.yAdjustError;
 
             // 避撞
             return AST_GuideBySpeed.getSpeedY(adjust);
@@ -641,7 +533,7 @@ namespace AGVproject.Solution_FollowTrack
             if (config.xLine == -1) { adjust = -adjust; }
 
             // 调整终点
-            config.ApproachA = Math.Abs(current - target) < 1;
+            config.ApproachA = Math.Abs(current - target) < config.aAdjustError;
 
             // 避撞
             return AST_GuideBySpeed.getSpeedA(adjust);
