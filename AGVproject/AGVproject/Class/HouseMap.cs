@@ -525,7 +525,7 @@ namespace AGVproject.Class
             }
             if (mouse.Position == MOUSE.POSITION.OnTrack && Form_Start.config.CheckRoute)
             {
-                Form_Track.Form_Track formTrack = new Form_Track.Form_Track();
+                Solution_FollowTrack.Form_Track formTrack = new Solution_FollowTrack.Form_Track(mouse.TrackNo);
                 formTrack.Show(); return;
             }
             if (mouse.Position == MOUSE.POSITION.OnLine && Form_Start.config.CheckRoute)

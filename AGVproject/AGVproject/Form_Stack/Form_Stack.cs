@@ -76,6 +76,10 @@ namespace AGVproject.Form_Stack
             stack.KeepDistanceR = SetKeepR;
 
             HouseStack.setStack(stack.No, stack);
+
+            HouseStack.Fit(); HouseTrack.Fit();
+            if (Form_Start.config.SelectedMap != -1)
+            { HouseStack.Save(Form_Start.config.Map[Form_Start.config.SelectedMap].Full); }
         }
         private void Form_Stack_Load(object sender, EventArgs e)
         {

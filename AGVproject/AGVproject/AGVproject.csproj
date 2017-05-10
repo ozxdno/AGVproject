@@ -97,6 +97,12 @@
     </Compile>
     <Compile Include="Solution_FollowTrack\BuildTrack.cs" />
     <Compile Include="Solution_FollowTrack\FollowTrack.cs" />
+    <Compile Include="Solution_FollowTrack\Form_Track.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Solution_FollowTrack\Form_Track.Designer.cs">
+      <DependentUpon>Form_Track.cs</DependentUpon>
+    </Compile>
     <Compile Include="Solution_FollowTrack\TrackFile.cs" />
     <Compile Include="Solution_SLAM\CorrectPosition\CorrectByUrg.cs" />
     <Compile Include="Solution_SLAM\BuildMap\ExtractFeatures.cs" />
@@ -131,6 +137,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Solution_FollowTrack\Form_Track.resx">
+      <DependentUpon>Form_Track.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
