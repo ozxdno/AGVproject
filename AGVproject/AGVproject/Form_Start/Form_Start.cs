@@ -402,10 +402,7 @@ namespace AGVproject
             // right menu
             this.pixLengthValue.Text = HouseMap.PixLength.ToString();
             this.urgRangeValue.Text = config.urgRange.ToString();
-
-            // show
-            this.showToolStripMenuItem.Checked = true;
-
+            
             // finish
             this.finishToolStripMenuItem.Checked = true;
 
@@ -422,31 +419,69 @@ namespace AGVproject
             config.WarningTick = config.Tick + 12;
 
             Form_SizeChanged(sender, e);
+            this.showToolStripMenuItem.Checked = true;
         }
         private void Form_SizeChanged(object sender, EventArgs e)
         {
+            // 滑动量归零
             this.panel1.HorizontalScroll.Value = 0;
             this.panel1.VerticalScroll.Value = 0;
 
-            this.textBox1.Height = this.Height - this.button.Height - 140;
-            
-            this.panel1.HorizontalScroll.Value = 0;
-            this.panel1.VerticalScroll.Value = 0;
-
+            // 面板
             this.panel1.Height = this.Height - 100;
             this.panel1.Width = this.Width - 30;
-            
+
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
+
+            // 刷新开始按钮位置
+            int posX = this.panel1.Width - 210;
+            int posY = this.panel1.Height - 100;
+            this.button.Location = new Point(posX, posY);
+            this.textBox1.Height = this.Height - this.button.Height - 140;
+
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
+
+            // 刷新说明面板位置
+            int yBG = this.Location.Y + 70;
+            int yED = this.Location.Y + this.Height - 50;
+            this.textBox1.Location = new Point(posX, 0);
+
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
+
+            // 刷新警告信息位置
+            if (config.WarningMessage == null) { config.WarningMessage = ""; }
+            this.labelWarning.Text = config.WarningMessage;
+
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
+
+            // 事件标签
+            this.EventLabel.Width = this.Width - 185;
+            this.EventLabel.Location = new Point(this.Width - this.EventLabel.Width - 20, this.Height - 60);
+
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
+
+            // 图的位置
             Point picBoxPos = new Point(0, 0);
             if (HouseMap.MapHeight < this.panel1.Height)
             { picBoxPos.Y = (this.panel1.Height - HouseMap.MapHeight) / 2; }
             if (HouseMap.MapWidth < this.panel1.Width)
             { picBoxPos.X = (this.panel1.Width - HouseMap.MapWidth) / 2; }
             this.pictureBox.Location = picBoxPos;
-
             this.TimeLabel.Location = new Point(12, this.Height - 60);
 
-            this.EventLabel.Width = this.Width - 185;
-            this.EventLabel.Location = new Point(this.Width - this.EventLabel.Width - 20, this.Height - 60);
+            // 滑动量归零
+            this.panel1.HorizontalScroll.Value = 0;
+            this.panel1.VerticalScroll.Value = 0;
         }
 
         private void Menu_RouteKeep(object sender, EventArgs e)
