@@ -308,7 +308,7 @@ namespace AGVproject.Class
         {
             List<HouseStack.STACK> Stacks = HouseStack.Get();
             List<HouseTrack.TRACK> Track = HouseTrack.Get();
-
+            
             MOUSE mouse = new MOUSE();
             mouse.X = X;
             mouse.Y = Y;
@@ -318,6 +318,7 @@ namespace AGVproject.Class
             mouse.Side = TH_AutoSearchTrack.Direction.Tuning;
             mouse.Distance = 0;
             mouse.Position = MOUSE.POSITION.Unknow;
+            if (X > MapWidth || Y > MapHeight) { CursorInMap = false; return mouse; }
 
             #region 和堆垛的相对位置
 

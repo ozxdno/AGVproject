@@ -51,11 +51,6 @@ namespace AGVproject.Solution_FollowTrack
 
                 // 等待再次启动
                 while (!Over && !TH_AutoSearchTrack.control.EMA && IsStop()) ;
-
-                // 提示
-                //TH_AutoSearchTrack.control.Event = "Finding Mark...";
-                Form_Start.config.WarningMessage = "Finding Mark...";
-                Form_Start.config.WarningTick = Form_Start.config.Tick + 10;
             }
         }
 

@@ -112,6 +112,8 @@ namespace AGVproject.Class
             fillPosition(ref track0);
             addTrack(track0);
 
+            TH_MeasurePosition.setPosition(track0.TargetPosition);
+
             TRACK track1 = new TRACK();
             track1.IsLeft = false;
             track1.No = 1;
@@ -379,6 +381,7 @@ namespace AGVproject.Class
                 track.Add(t);
             }
 
+            TH_MeasurePosition.setPosition(track[0].TargetPosition);
             Set(track); return true;
         }
 

@@ -104,13 +104,6 @@ namespace AGVproject.Solution_FollowTrack
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
 
             Initial();
-            getMatch(correctTarget);
-            
-            // 获取中心角度
-            double xAverage = 0, yAverage = 0;
-            if (config.xLine != -1) { xAverage = CoordinatePoint.AverageA(config.Lines[config.xLine]); }
-            if (config.yLine != -1) { yAverage = CoordinatePoint.AverageA(config.Lines[config.yLine]); }
-            CoordinatePoint.POINT refPos = TH_MeasurePosition.getPosition();
             
             // 粗调
             config.ApproachX = false;
@@ -210,7 +203,7 @@ namespace AGVproject.Solution_FollowTrack
         {
             // 点的数量不够
             if (points.Count == 0) { return; }
-            if (points.Count == 1 || points.Count == 2) { config.Lines.Add(points); return; }
+            if (points.Count == 1 || points.Count == 2) { return; }
 
             // 基本参数
             double MaxDis = 0.0;
@@ -232,14 +225,18 @@ namespace AGVproject.Solution_FollowTrack
             }
 
             // 分割直线
-            if (MaxDis <= config.LineError) { config.Lines.Add(points); return; }
+            if (MaxDis <= config.LineError)
+            {
+                if (points.Count < config.PtReqNum) { return; }
+                config.Lines.Add(points); return;
+            }
 
             List<CoordinatePoint.POINT> newLine = new List<CoordinatePoint.POINT>();
             for (int i = 0; i <= indexofmax; i++) { newLine.Add(points[i]); }
             cutPointsToGroup(newLine);
 
             newLine = new List<CoordinatePoint.POINT>();
-            for (int i = indexofmax; i < points.Count; i++) { newLine.Add(points[i]); }
+            for (int i = indexofmax + 1; i < points.Count; i++) { newLine.Add(points[i]); }
             cutPointsToGroup(newLine);
         }
         private static void sortLines()
@@ -399,11 +396,11 @@ namespace AGVproject.Solution_FollowTrack
         {
             if (correctTarget.yInvalid) { return; }
 
-            while (!config.ApproachA)
+            while (!config.ApproachX)
             {
                 // 切割成直线
                 List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                config.Lines.Clear();
                 cutPointsToGroup(points);
                 sortLines();
 
@@ -426,7 +423,7 @@ namespace AGVproject.Solution_FollowTrack
             {
                 // 切割成直线
                 List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                config.Lines.Clear();
                 cutPointsToGroup(points);
                 sortLines();
 
@@ -445,11 +442,11 @@ namespace AGVproject.Solution_FollowTrack
         {
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
 
-            while (!config.ApproachY)
+            while (!config.ApproachA)
             {
                 // 切割成直线
                 List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines = new List<List<CoordinatePoint.POINT>>();
+                config.Lines.Clear();
                 cutPointsToGroup(points);
                 sortLines();
 
@@ -519,8 +516,8 @@ namespace AGVproject.Solution_FollowTrack
             // 获取数据
             List<CoordinatePoint.POINT> copyLine = new List<CoordinatePoint.POINT>();
             if (config.yLine != -1) { copyLine = CoordinatePoint.Copy(config.Lines[config.yLine]); }
-             
-            double[] KAB = correctTarget.xInvalid ?
+
+            double[] KAB = config.xLine == -1 ?
                 CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(copyLine)) :
                 CoordinatePoint.Fit(config.Lines[config.xLine]);
 

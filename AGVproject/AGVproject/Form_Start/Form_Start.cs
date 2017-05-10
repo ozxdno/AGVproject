@@ -59,8 +59,10 @@ namespace AGVproject
             public bool CheckLocatePort;
 
             public double urgRange;
+
             public string WarningMessage;
             public long WarningTick;
+            
 
             public struct FILE { public string Full, Path, Name; public string[] Text; }
         }

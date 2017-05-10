@@ -95,10 +95,6 @@ namespace AGVproject.Solution_FollowTrack
             track.Distance = Distance;
             track.Extra = correct;
             HouseTrack.setTrack(TrackNo, track);
-
-            HouseTrack.Fit();
-            if (Form_Start.config.SelectedRoute != -1)
-            { HouseTrack.Save(Form_Start.config.Route[Form_Start.config.SelectedRoute].Full); }
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
