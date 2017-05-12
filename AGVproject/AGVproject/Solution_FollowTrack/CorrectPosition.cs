@@ -76,10 +76,13 @@ namespace AGVproject.Solution_FollowTrack
         private struct CONFIG
         {
             public List<List<CoordinatePoint.POINT>> Lines;
+            public List<CoordinatePoint.POINT> Surrounding;
             public double LineError;
             public double NegeError;
             public int PtReqNum;
-            
+
+            public long xInvalidTime;
+            public long yInvalidTime;
             public int xLine;
             public int yLine;
 
@@ -113,9 +116,9 @@ namespace AGVproject.Solution_FollowTrack
             config.xAdjustError = 50;
             config.yAdjustError = 50;
 
-            AdjustA(correctTarget);
-            AdjustY(correctTarget);
-            AdjustX(correctTarget);
+            AdjustA(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+            AdjustY(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+            AdjustX(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
 
             // 精调
             config.ApproachX = false;
@@ -125,12 +128,9 @@ namespace AGVproject.Solution_FollowTrack
             config.xAdjustError = 10;
             config.yAdjustError = 10;
 
-            AdjustA(correctTarget);
-            AdjustY(correctTarget);
-            AdjustX(correctTarget);
-
-            // 调整完毕
-            TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+            AdjustA(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+            AdjustY(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
+            AdjustX(correctTarget); TH_SendCommand.AGV_MoveControl_0x70(0, 0, 0);
         }
         /// <summary>
         /// 获取当前校准信息
@@ -138,15 +138,11 @@ namespace AGVproject.Solution_FollowTrack
         /// <returns></returns>
         public static CORRECT getCorrect()
         {
-            CORRECT correct = new CORRECT();
-            config.Lines = new List<List<CoordinatePoint.POINT>>();
-            config.LineError = 50; // 线段的点的浮动误差 
-            config.PtReqNum = 30;
-            config.NegeError = 200; // 线段至少10cm长
+            Initial(); CORRECT correct = new CORRECT();
 
             // 切割成直线，获取对应直线
-            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-            cutPointsToGroup(points);
+            config.Surrounding = TH_MeasureSurrounding.getSurroundingA(1, 179);
+            cutPointsToGroup(0, config.Surrounding.Count - 1);
             getLandMark();
 
             // 判断数据是否有效
@@ -231,13 +227,51 @@ namespace AGVproject.Solution_FollowTrack
                 config.Lines.Add(points); return;
             }
 
-            List<CoordinatePoint.POINT> newLine = new List<CoordinatePoint.POINT>();
-            for (int i = 0; i <= indexofmax; i++) { newLine.Add(points[i]); }
-            cutPointsToGroup(newLine);
+            List<CoordinatePoint.POINT> NewLine = new List<CoordinatePoint.POINT>();
+            for (int i = 0; i <= indexofmax; i++) { NewLine.Add(points[i]); }
+            if (NewLine.Count >= config.PtReqNum) { cutPointsToGroup(NewLine); }
 
-            newLine = new List<CoordinatePoint.POINT>();
-            for (int i = indexofmax + 1; i < points.Count; i++) { newLine.Add(points[i]); }
-            cutPointsToGroup(newLine);
+            NewLine = new List<CoordinatePoint.POINT>();
+            for (int i = indexofmax + 1; i < points.Count; i++) { NewLine.Add(points[i]); }
+            if (NewLine.Count >= config.PtReqNum) { cutPointsToGroup(NewLine); }
+        }
+        private static void cutPointsToGroup(int indexBG, int indexED)
+        {
+            // 点的数量不够
+            if (indexED - indexBG + 1 < config.PtReqNum) { return; }
+
+            // 基本参数
+            double MaxDis = 0.0;
+            int indexofmax = 0;
+
+            // 直线参数
+            double x1 = config.Surrounding[indexBG].x, y1 = config.Surrounding[indexBG].y;
+            double x2 = config.Surrounding[indexED].x, y2 = config.Surrounding[indexED].y;
+
+            double A = y2 - y1, B = -(x2 - x1), C = (x2 - x1) * y1 - (y2 - y1) * x1;
+
+            // 寻找最大距离
+            for (int i = indexBG; i <= indexED; i++)
+            {
+                double iDis = Math.Abs(A * config.Surrounding[i].x + B * config.Surrounding[i].y + C) / Math.Sqrt(A * A + B * B);
+                if (MaxDis > iDis) { continue; }
+
+                indexofmax = i; MaxDis = iDis;
+            }
+
+            // 建立分线段缓存
+            List<CoordinatePoint.POINT> TempLine = new List<CoordinatePoint.POINT>();
+
+            // 分割直线
+            if (MaxDis <= config.LineError)
+            {
+                if (indexED - indexBG + 1 < config.PtReqNum) { return; }
+                for (int i = indexBG; i <= indexED; i++) { TempLine.Add(config.Surrounding[i]); }
+                config.Lines.Add(TempLine); return;
+            }
+
+            if (indexofmax - indexBG + 1 >= config.PtReqNum) { cutPointsToGroup(indexBG, indexofmax); }
+            if (indexED - indexofmax >= config.PtReqNum) { cutPointsToGroup(indexofmax + 1, indexED); }
         }
         private static void sortLines()
         {
@@ -323,9 +357,9 @@ namespace AGVproject.Solution_FollowTrack
             config.xLine = -1; config.yLine = -1;
 
             // 切割成直线
-            List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
             config.Lines = new List<List<CoordinatePoint.POINT>>();
-            cutPointsToGroup(points);
+            config.Surrounding = TH_MeasureSurrounding.getSurroundingA(1, 179);
+            cutPointsToGroup(0, config.Surrounding.Count - 1);
             sortLines();
 
             // 获取各条直线的各种误差参数
@@ -395,17 +429,20 @@ namespace AGVproject.Solution_FollowTrack
         private static void AdjustX(CORRECT correctTarget)
         {
             if (correctTarget.yInvalid) { return; }
+            config.xInvalidTime = 0;
+            config.yInvalidTime = 0;
 
             while (!config.ApproachX)
             {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines.Clear();
-                cutPointsToGroup(points);
-                sortLines();
-
                 // 获取匹配直线索引号
                 getMatch(correctTarget);
+
+                // 判断无效次数
+                if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
+                if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
+                if (config.yInvalidTime > 10) {
+                    getMatch(correctTarget);
+                    return; }
 
                 // 获取控制
                 int xSpeed = getSpeedX(correctTarget);
@@ -413,22 +450,25 @@ namespace AGVproject.Solution_FollowTrack
                 int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
                 TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                System.Threading.Thread.Sleep(100);
             }
         }
         private static void AdjustY(CORRECT correctTarget)
         {
             if (correctTarget.xInvalid) { return; }
+            config.xInvalidTime = 0;
+            config.yInvalidTime = 0;
 
             while (!config.ApproachY)
             {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines.Clear();
-                cutPointsToGroup(points);
-                sortLines();
-
                 // 获取匹配直线索引号
                 getMatch(correctTarget);
+
+                if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
+                if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
+                if (config.xInvalidTime > 10) {
+                    getMatch(correctTarget);
+                    return; }
 
                 // 获取控制
                 int xSpeed = AST_GuideBySpeed.getSpeedX(0);
@@ -436,22 +476,25 @@ namespace AGVproject.Solution_FollowTrack
                 int aSpeed = AST_GuideBySpeed.getSpeedA(0);
 
                 TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                System.Threading.Thread.Sleep(100);
             }
         }
         private static void AdjustA(CORRECT correctTarget)
         {
             if (correctTarget.xInvalid && correctTarget.yInvalid) { return; }
+            config.xInvalidTime = 0;
+            config.yInvalidTime = 0;
 
             while (!config.ApproachA)
             {
-                // 切割成直线
-                List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
-                config.Lines.Clear();
-                cutPointsToGroup(points);
-                sortLines();
-
                 // 获取匹配直线索引号
                 getMatch(correctTarget);
+
+                if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
+                if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
+                if (config.xInvalidTime > 10 && config.yInvalidTime > 10) {
+                    getMatch(correctTarget);
+                    return; }
 
                 // 获取控制
                 int xSpeed = AST_GuideBySpeed.getSpeedX(0);
@@ -459,6 +502,7 @@ namespace AGVproject.Solution_FollowTrack
                 int aSpeed = getSpeedA(correctTarget);
 
                 TH_SendCommand.AGV_MoveControl_0x70(xSpeed, ySpeed, aSpeed);
+                System.Threading.Thread.Sleep(100);
             }
         }
 
