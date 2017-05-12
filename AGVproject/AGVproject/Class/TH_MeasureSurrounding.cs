@@ -252,9 +252,9 @@ namespace AGVproject.Class
                 // 加入历史数据、当前数据、超声波数据
                 config.NextSurrounding = new List<CoordinatePoint.POINT>();
                 
-                getPreviousSurrounding();
+                //getPreviousSurrounding();
                 getCurrentSurrounding();
-                getUltraSonicSurrounding();
+                //getUltraSonicSurrounding();
 
                 // 更新当前环境
                 config.IsSetting = true;
@@ -306,7 +306,7 @@ namespace AGVproject.Class
             //return distance;
 
             // 滤除跳变
-            int N_nege = 20, N = distance.Count;
+            int N_nege = 5, N = distance.Count;
             double floatError = 100;
 
             List<long> diff = new List<long>();
