@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 using AGVproject.Class;
 
+// 1 多次获取校正信息取中值作为该点的校准标准
+// 2 调整过程过抖，可以减小精度或进行滤波
+// 3 校准过程调整策略问题，到底先校准哪个，后校准哪个
+// 4 校准过程单因素阈值，单个因素误差过大，不考虑
+
 namespace AGVproject.Solution_FollowTrack
 {
     class FollowTrack
@@ -19,7 +24,7 @@ namespace AGVproject.Solution_FollowTrack
 
             for (int i = 1; i < HouseTrack.TotalTrack; i++)
             {
-                TH_AutoSearchTrack.control.Event = i.ToString();
+                TH_AutoSearchTrack.control.Event = (i - 1).ToString() + "--->" + i.ToString();
 
 
                 CoordinatePoint.POINT sour = HouseTrack.getTargetPosition(i - 1);
