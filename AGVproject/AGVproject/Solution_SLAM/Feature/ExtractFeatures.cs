@@ -6,14 +6,29 @@ using System.Threading.Tasks;
 
 using AGVproject.Class;
 
-namespace AGVproject.Solution_SLAM.BuildMap
+namespace AGVproject.Solution_SLAM.Feature
 {
+    /// <summary>
+    /// 从激光雷达数据中剥离出特征信息
+    /// </summary>
     class ExtractFeatures
     {
+        ///////////////////////////////////////////// public attribute ////////////////////////////////////////
+
         /// <summary>
         /// 本次扫描中的特征集合
         /// </summary>
-        public static List<Feature.Feature> Features;
+        public static List<Feature> Features;
+
+        /// <summary>
+        /// 对应于特征所分割出的线段
+        /// </summary>
+        public static List<List<CoordinatePoint.POINT>> ptGroups;
+
+        ///////////////////////////////////////////// private attribute ////////////////////////////////////////
+
+        ///////////////////////////////////////////// public method ////////////////////////////////////////
+
         /// <summary>
         /// 获取本次扫描的特征集合
         /// </summary>
@@ -23,18 +38,27 @@ namespace AGVproject.Solution_SLAM.BuildMap
             ptGroups = new List<List<CoordinatePoint.POINT>>();
             cutPointsToGroup(points);
 
-            Features = new List<Feature.Feature>();
+            Features = new List<Feature>();
 
             foreach (List<CoordinatePoint.POINT> group in ptGroups)
             {
                 getDotFeature(points); getLineFeature(points);
             }
         }
-        /// <summary>
-        /// 对应于特征所分割出的线段
-        /// </summary>
-        public static List<List<CoordinatePoint.POINT>> ptGroups;
 
+        /// <summary>
+        /// 把一系列特征从源地址拷贝到目的地址
+        /// </summary>
+        /// <param name="sour">源地址</param>
+        /// <param name="dest">目的地址</param>
+        public static void CopyFeatures(List<Feature> sour, ref List<Feature> dest)
+        {
+            dest = new List<Feature>();
+            if (sour == null) { return; }
+            foreach (Feature f in sour) { dest.Add(f); }
+        }
+
+        ///////////////////////////////////////////// private method ////////////////////////////////////////
 
         private static void cutPointsToGroup(List<CoordinatePoint.POINT> points)
         {
@@ -80,9 +104,9 @@ namespace AGVproject.Solution_SLAM.BuildMap
             double Length = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
             if (Length > 50) { return; }
             
-            Feature.Feature dot = new Feature.Feature();
+            Feature dot = new Feature();
 
-            dot.Type = Feature.TYPE.Dot;
+            dot.Type = TYPE.Dot;
             dot.Length = Length;
             dot.DirectionBG = ptBG.a;
             dot.DirectionED = ptED.a;
@@ -99,9 +123,9 @@ namespace AGVproject.Solution_SLAM.BuildMap
             double Length = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
             if (Length <= 50) { return; }
 
-            Feature.Feature line = new Feature.Feature();
+            Feature line = new Feature();
 
-            line.Type = Feature.TYPE.Line;
+            line.Type = TYPE.Line;
             line.Length = Length;
             line.DirectionBG = ptBG.a;
             line.DirectionED = ptED.a;

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AGVproject.Solution_SLAM.CorrectPosition
+namespace AGVproject.Solution_SLAM.BuildMap
 {
     /// <summary>
-    /// 用一帧激光雷达数据校准小车位姿
+    /// 对多种传感器所测得的小车移动信息进行融合
     /// </summary>
-    class CorrectByUrg
+    class FusionMove
     {
-        
+
     }
 }

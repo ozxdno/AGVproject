@@ -74,7 +74,7 @@ namespace AGVproject.Class
         public static int FormWidth;
 
         /// <summary>
-        /// 不允许操作图片
+        /// 不允许操作图片（不允许占用线程以外的任何线程对地图图片进行操作）
         /// </summary>
         public static bool NoOperate;
         /// <summary>

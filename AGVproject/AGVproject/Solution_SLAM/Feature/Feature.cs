@@ -27,21 +27,29 @@ namespace AGVproject.Solution_SLAM.Feature
         /// 激光雷达扫到该直线终止点的角度 单位：度
         /// </summary>
         public double DirectionED;
+        /// <summary>
+        /// 与上一条直线的夹角 单位：度
+        /// </summary>
+        public double AngleP;
+        /// <summary>
+        /// 与下一条直线的夹角 单位：度
+        /// </summary>
+        public double AngleN;
 
         /// <summary>
-        /// 斜率
+        /// 斜率（Y / X）
         /// </summary>
         public double K;
         /// <summary>
-        /// 偏角
+        /// 偏角 单位：度
         /// </summary>
         public double A;
         /// <summary>
-        /// 截距
+        /// 截距 单位：mm
         /// </summary>
         public double B;
         /// <summary>
-        /// 与原点距离
+        /// 与原点最近距离 单位：mm
         /// </summary>
         public double D;
     }

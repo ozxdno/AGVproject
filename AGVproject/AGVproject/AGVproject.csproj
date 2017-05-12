@@ -104,10 +104,12 @@
       <DependentUpon>Form_Track.cs</DependentUpon>
     </Compile>
     <Compile Include="Solution_FollowTrack\TrackFile.cs" />
-    <Compile Include="Solution_SLAM\CorrectPosition\CorrectByUrg.cs" />
-    <Compile Include="Solution_SLAM\BuildMap\ExtractFeatures.cs" />
-    <Compile Include="Solution_SLAM\BuildMap\MatchFeature.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\FusionMove.cs" />
+    <Compile Include="Solution_SLAM\Feature\ExtractFeatures.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\MainProcess.cs" />
+    <Compile Include="Solution_SLAM\Feature\MatchFeature.cs" />
     <Compile Include="Solution_SLAM\BuildMap\MeasureMove.cs" />
+    <Compile Include="Solution_SLAM\BuildMap\ScanMethod.cs" />
     <Compile Include="Solution_SLAM\BuildMap\UpdataMap.cs" />
     <Compile Include="Solution_SLAM\Feature\Feature.cs" />
     <Compile Include="StartProject.cs" />
