@@ -80,7 +80,7 @@ namespace AGVproject.Class
             for (int i = 0; i < points.Count; i++) { data.Add(points[i].x); }
 
             data = Start(data);
-            for (int i = data.Count - 1; i >= 0; i--) { if (Fill == data[i]) { points.RemoveAt(i); } }
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
             return points;
         }
         /// <summary>
@@ -101,7 +101,7 @@ namespace AGVproject.Class
             for (int i = 0; i < points.Count; i++) { data.Add(points[i].d); }
 
             data = Start(data);
-            for (int i = data.Count - 1; i >= 0; i--) { if (Fill == data[i]) { points.RemoveAt(i); } }
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
             return points;
         }
     }
@@ -112,7 +112,7 @@ namespace AGVproject.Class
     class KalmanFilter
     {
         /// <summary>
-        /// 暂时没弄清楚
+        /// 估计时的方差
         /// </summary>
         public double P;
         /// <summary>

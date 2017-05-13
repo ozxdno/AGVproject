@@ -418,6 +418,15 @@ namespace AGVproject.Solution_FollowTrack
                 double xe = 0.01 * error.xL + error.xA + error.xC + 0.1 * error.xD;
                 double ye = 0.01 * error.yL + error.yA + error.yC + 0.1 * error.yD;
 
+                if (error.xL > 1000) { xe = 10000; }
+                if (error.xA > 10) { xe = 10000; }
+                if (error.xC > 20) { xe = 10000; }
+                if (error.xD > 200) { xe = 10000; }
+                if (error.yL > 1000) { ye = 10000; }
+                if (error.yA > 10) { ye = 10000; }
+                if (error.yC > 20) { ye = 10000; }
+                if (error.yD > 200) { ye = 10000; }
+
                 if (xe < xFactor) { xFactor = xe; xBest = i; }
                 if (ye < yFactor) { yFactor = ye; yBest = i; }
             }
@@ -440,7 +449,8 @@ namespace AGVproject.Solution_FollowTrack
                 // 判断无效次数
                 if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
                 if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
-                if (config.yInvalidTime > 10) { return; }
+                if (config.yInvalidTime > 10)
+                { TH_AutoSearchTrack.control.Event = "Failed Correct X"; return; }
 
                 // 获取控制
                 int xSpeed = getSpeedX(correctTarget);
@@ -464,7 +474,8 @@ namespace AGVproject.Solution_FollowTrack
 
                 if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
                 if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
-                if (config.xInvalidTime > 10) { return; }
+                if (config.xInvalidTime > 10)
+                { TH_AutoSearchTrack.control.Event = "Failed Correct Y"; return; }
 
                 // 获取控制
                 int xSpeed = AST_GuideBySpeed.getSpeedX(0);
@@ -488,7 +499,8 @@ namespace AGVproject.Solution_FollowTrack
 
                 if (config.xLine == -1) { config.xInvalidTime++; } else { config.xInvalidTime = 0; }
                 if (config.yLine == -1) { config.yInvalidTime++; } else { config.yInvalidTime = 0; }
-                if (config.xInvalidTime > 10 && config.yInvalidTime > 10) { return; }
+                if (config.xInvalidTime > 10 && config.yInvalidTime > 10)
+                { TH_AutoSearchTrack.control.Event = "Failed Correct A"; return; }
 
                 // 获取控制
                 int xSpeed = AST_GuideBySpeed.getSpeedX(0);

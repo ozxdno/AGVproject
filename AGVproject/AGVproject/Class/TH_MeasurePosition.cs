@@ -278,11 +278,10 @@ namespace AGVproject.Class
             config.IsSettingSpeed = false;
 
             config.Speed = new SPEED();
-            //config.Current = new CoordinatePoint.POINT();
 
-            FilterX.P = 10; FilterX.Q = 10; FilterX.R = 10; FilterX.Last = 0;
-            FilterY.P = 10; FilterY.Q = 10; FilterY.R = 10; FilterY.Last = 0;
-            FilterA.P = 01; FilterA.Q = 01; FilterA.R = 01; FilterA.Last = 0;
+            FilterX.P = 10; FilterX.Q = 30; FilterX.R = 10; FilterX.Last = 0;
+            FilterY.P = 10; FilterY.Q = 30; FilterY.R = 10; FilterY.Last = 0;
+            FilterA.P = 01; FilterA.Q = 05; FilterA.R = 01; FilterA.Last = 0;
         }
 
         private static void portDataReceived(object sender, EventArgs e)
@@ -386,9 +385,9 @@ namespace AGVproject.Class
             Y = Y / 4.077;
             A = A / 4.077;
 
-            //X = FilterX.Start(X);
-            //Y = FilterY.Start(Y);
-            //A = FilterA.Start(A);
+            X = FilterX.Start(X);
+            Y = FilterY.Start(Y);
+            A = FilterA.Start(A);
 
             config.IsSetting = true;
             while (config.IsGetting) ;
