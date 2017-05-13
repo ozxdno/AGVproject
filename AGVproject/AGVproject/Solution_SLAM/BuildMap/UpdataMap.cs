@@ -30,7 +30,7 @@ namespace AGVproject.Solution_SLAM.BuildMap
         ////////////////////////////////////////////// public method ///////////////////////////////////////////
 
         /// <summary>
-        /// 地图初始化（完全未知，纯黑色填充）
+        /// 地图初始化
         /// </summary>
         public static void InitBuildMap()
         {
@@ -48,6 +48,17 @@ namespace AGVproject.Solution_SLAM.BuildMap
             // 释放控制权
             HouseMap.NoOperate = false;
         }
+
+        /// <summary>
+        /// 依据移动信息重新设定当前位置
+        /// </summary>
+        /// <param name="move">移动量</param>
+        /// <param name="startPos">起始点位置</param>
+        public static void SetPosition(FusionMove.MOVE move, CoordinatePoint.POINT startPos)
+        {
+
+        }
+
         /// <summary>
         /// 在地图上绘出激光雷达当前扫描到的数据
         /// </summary>

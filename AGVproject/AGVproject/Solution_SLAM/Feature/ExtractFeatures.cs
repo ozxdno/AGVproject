@@ -27,6 +27,8 @@ namespace AGVproject.Solution_SLAM.Feature
 
         ///////////////////////////////////////////// private attribute ////////////////////////////////////////
 
+        private static AbruptFilter Filter;
+
         ///////////////////////////////////////////// public method ////////////////////////////////////////
 
         /// <summary>
@@ -35,17 +37,24 @@ namespace AGVproject.Solution_SLAM.Feature
         public static void Start()
         {
             List<CoordinatePoint.POINT> points = TH_MeasureSurrounding.getSurroundingA(0, 180);
+            points = Filter.FilterD(points, 20, 50);
             ptGroups = new List<List<CoordinatePoint.POINT>>();
             cutPointsToGroup(points);
 
             Features = new List<Feature>();
-
-            foreach (List<CoordinatePoint.POINT> group in ptGroups)
-            {
-                getDotFeature(points); getLineFeature(points);
-            }
+            foreach (List<CoordinatePoint.POINT> group in ptGroups) { getFeature(group); }
         }
 
+        /// <summary>
+        /// 把当前获取的特征信息拷贝到目标地址
+        /// </summary>
+        /// <param name="dest">目标地址</param>
+        public static void CopyFeatures(ref List<Feature> dest)
+        {
+            dest = new List<Feature>();
+            if (Features == null) { return; }
+            foreach (Feature f in Features) { dest.Add(f); }
+        }
         /// <summary>
         /// 把一系列特征从源地址拷贝到目的地址
         /// </summary>
@@ -96,47 +105,36 @@ namespace AGVproject.Solution_SLAM.Feature
             for (int i = indexofmax; i < points.Count; i++) { newLine.Add(points[i]); }
             cutPointsToGroup(newLine);
         }
-        private static void getDotFeature(List<CoordinatePoint.POINT> points)
+        private static void getFeature(List<CoordinatePoint.POINT> points)
         {
+            if (points.Count < 10) { return; }
+
             CoordinatePoint.POINT ptBG = points[0];
             CoordinatePoint.POINT ptED = points[points.Count - 1];
 
             double Length = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-            if (Length > 50) { return; }
-            
-            Feature dot = new Feature();
+            if (Length < 100) { return; }
 
-            dot.Type = TYPE.Dot;
-            dot.Length = Length;
-            dot.DirectionBG = ptBG.a;
-            dot.DirectionED = ptED.a;
+            double[] xKAB = CoordinatePoint.Fit(points);
+            double[] yKAB = CoordinatePoint.Fit(CoordinatePoint.ExChangeXY(CoordinatePoint.Copy(points)));
 
-            dot.D = CoordinatePoint.MinD(points);
+            Feature feature = new Feature();
 
-            Features.Add(dot);
-        }
-        private static void getLineFeature(List<CoordinatePoint.POINT> points)
-        {
-            CoordinatePoint.POINT ptBG = points[0];
-            CoordinatePoint.POINT ptED = points[points.Count - 1];
+            feature.Type = TYPE.Line;
+            feature.N = points.Count;
+            feature.Length = Length;
+            feature.Direction = CoordinatePoint.AverageA(points);
+            feature.Distance = CoordinatePoint.MinD(points);
+            feature.AngleP = 0;
+            feature.AngleN = 0;
+            feature.xK = xKAB[0];
+            feature.xA = xKAB[1];
+            feature.xB = xKAB[2];
+            feature.yK = yKAB[0];
+            feature.yA = yKAB[1];
+            feature.yB = yKAB[2];
 
-            double Length = Math.Sqrt((ptBG.x - ptED.x) * (ptBG.x - ptED.x) + (ptBG.y - ptED.y) * (ptBG.y - ptED.y));
-            if (Length <= 50) { return; }
-
-            Feature line = new Feature();
-
-            line.Type = TYPE.Line;
-            line.Length = Length;
-            line.DirectionBG = ptBG.a;
-            line.DirectionED = ptED.a;
-
-            double[] KAB = CoordinatePoint.Fit(points);
-            line.K = KAB[0];
-            line.A = KAB[1];
-            line.B = KAB[2];
-            line.D = CoordinatePoint.MinD(points);
-
-            Features.Add(line);
+            Features.Add(feature);
         }
     }
 }

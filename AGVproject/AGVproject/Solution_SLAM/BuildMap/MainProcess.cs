@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 using AGVproject.Class;
 
+// 1 编码器卡尔曼滤波
+// 2 激光雷达突变滤波
+
 namespace AGVproject.Solution_SLAM.BuildMap
 {
     /// <summary>
@@ -15,13 +18,20 @@ namespace AGVproject.Solution_SLAM.BuildMap
     {
         ////////////////////////////////////////////// public attribute ///////////////////////////////////////////
 
+        /// <summary>
+        /// 控制周期起始点坐标
+        /// </summary>
+        public static CoordinatePoint.POINT ptBG;
+        /// <summary>
+        /// 控制周期终止点坐标
+        /// </summary>
+        public static CoordinatePoint.POINT ptED;
+
         ////////////////////////////////////////////// private attribute ///////////////////////////////////////////
 
         private static CONFIG config;
         private struct CONFIG
         {
-            public CoordinatePoint.POINT LastPosition;
-            public CoordinatePoint.POINT NextPosition;
         }
 
         ////////////////////////////////////////////// public method ///////////////////////////////////////////
@@ -35,14 +45,18 @@ namespace AGVproject.Solution_SLAM.BuildMap
             AST_GuideBySpeed.ApproachY = false;
             AST_GuideBySpeed.ApproachA = false;
 
-            config.LastPosition = TH_MeasurePosition.getPosition();
-
+            ScanMethod.xSpeed = TH_AutoSearchTrack.control.MaxSpeed_X;
+            ScanMethod.ySpeed = TH_AutoSearchTrack.control.MaxSpeed_Y;
+            ScanMethod.aSpeed = TH_AutoSearchTrack.control.MaxSpeed_A;
+            
             while (true)
             {
+                ptBG = TH_MeasurePosition.getPosition();
                 ScanMethod.Start();
-                config.NextPosition = TH_MeasurePosition.getPosition();
+                ptED = TH_MeasurePosition.getPosition();
 
-                MeasureMove.Start();
+                FusionMove.Urg = MeasureMove.Start();
+                
             }
         }
 

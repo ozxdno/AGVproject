@@ -80,7 +80,49 @@ namespace AGVproject.Class
             for (int i = 0; i < points.Count; i++) { data.Add(points[i].x); }
 
             data = Start(data);
-            for (int i = data.Count - 1; i >= 0; i--) { if (Fill == data[i]) { points.RemoveAt(i); } }
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
+            return points;
+        }
+        /// <summary>
+        /// 滤除目标点中 Y 值跳变的点
+        /// </summary>
+        /// <param name="points">目标点</param>
+        /// <param name="negAmount">最多可忽略连续点的个数</param>
+        /// <param name="maxError">最大允许的跳变误差</param>
+        /// <returns></returns>
+        public List<CoordinatePoint.POINT> FilterY(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
+        {
+            if (points == null || points.Count == 0)
+            { points = new List<CoordinatePoint.POINT>(); return points; }
+
+            RemoveNeg = false; Fill = double.NaN; NegAmount = negAmount; MaxError = maxError;
+
+            List<double> data = new List<double>();
+            for (int i = 0; i < points.Count; i++) { data.Add(points[i].y); }
+
+            data = Start(data);
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
+            return points;
+        }
+        /// <summary>
+        /// 滤除目标点中 X 值跳变的点
+        /// </summary>
+        /// <param name="points">目标点</param>
+        /// <param name="negAmount">最多可忽略连续点的个数</param>
+        /// <param name="maxError">最大允许的跳变误差</param>
+        /// <returns></returns>
+        public List<CoordinatePoint.POINT> FilterA(List<CoordinatePoint.POINT> points, double negAmount, double maxError)
+        {
+            if (points == null || points.Count == 0)
+            { points = new List<CoordinatePoint.POINT>(); return points; }
+
+            RemoveNeg = false; Fill = double.NaN; NegAmount = negAmount; MaxError = maxError;
+
+            List<double> data = new List<double>();
+            for (int i = 0; i < points.Count; i++) { data.Add(points[i].a); }
+
+            data = Start(data);
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
             return points;
         }
         /// <summary>
@@ -101,7 +143,7 @@ namespace AGVproject.Class
             for (int i = 0; i < points.Count; i++) { data.Add(points[i].d); }
 
             data = Start(data);
-            for (int i = data.Count - 1; i >= 0; i--) { if (Fill == data[i]) { points.RemoveAt(i); } }
+            for (int i = data.Count - 1; i >= 0; i--) { if (double.IsNaN(data[i])) { points.RemoveAt(i); } }
             return points;
         }
     }
@@ -112,7 +154,7 @@ namespace AGVproject.Class
     class KalmanFilter
     {
         /// <summary>
-        /// 暂时没弄清楚
+        /// 估计时的方差
         /// </summary>
         public double P;
         /// <summary>

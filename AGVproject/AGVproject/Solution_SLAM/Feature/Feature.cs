@@ -16,17 +16,21 @@ namespace AGVproject.Solution_SLAM.Feature
         /// </summary>
         public TYPE Type;
         /// <summary>
+        /// 该特征包含点的个数
+        /// </summary>
+        public int N;
+        /// <summary>
         /// 长度 单位：mm
         /// </summary>
         public double Length;
         /// <summary>
-        /// 激光雷达扫到该直线起始点的角度 单位：度
+        /// 该直线与激光雷达的相对位置 单位：度
         /// </summary>
-        public double DirectionBG;
+        public double Direction;
         /// <summary>
-        /// 激光雷达扫到该直线终止点的角度 单位：度
+        /// 该直线与激光雷达的最近距离 单位：mm
         /// </summary>
-        public double DirectionED;
+        public double Distance;
         /// <summary>
         /// 与上一条直线的夹角 单位：度
         /// </summary>
@@ -39,19 +43,28 @@ namespace AGVproject.Solution_SLAM.Feature
         /// <summary>
         /// 斜率（Y / X）
         /// </summary>
-        public double K;
+        public double xK;
         /// <summary>
         /// 偏角 单位：度
         /// </summary>
-        public double A;
+        public double xA;
         /// <summary>
         /// 截距 单位：mm
         /// </summary>
-        public double B;
+        public double xB;
+
         /// <summary>
-        /// 与原点最近距离 单位：mm
+        /// 斜率（Y / X）
         /// </summary>
-        public double D;
+        public double yK;
+        /// <summary>
+        /// 偏角 单位：度
+        /// </summary>
+        public double yA;
+        /// <summary>
+        /// 截距 单位：mm
+        /// </summary>
+        public double yB;
     }
 
     /// <summary>
@@ -70,6 +83,10 @@ namespace AGVproject.Solution_SLAM.Feature
         /// <summary>
         /// 点
         /// </summary>
-        Dot
+        Dot,
+        /// <summary>
+        /// 无效
+        /// </summary>
+        Invaild
     }
 }
